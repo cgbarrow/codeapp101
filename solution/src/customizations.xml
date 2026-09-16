@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Entities>
+  <Entity>
+    <Name LocalizedName="Todo List" OriginalName="Todo List">cb_TodoList</Name>
+    <EntityInfo>
+      <entity Name="cb_TodoList">
+        <LocalizedNames><LocalizedName description="Todo List" languagecode="1033" /></LocalizedNames>
+        <LocalizedCollectionNames><LocalizedCollectionName description="Todo Lists" languagecode="1033" /></LocalizedCollectionNames>
+        <Descriptions><Description description="A bucket of tasks, e.g. Work, Personal, Groceries." languagecode="1033" /></Descriptions>
+        <attributes>
+    <attribute PhysicalName="cb_TodoListId">
+      <Type>primarykey</Type>
+      <Name>cb_todolistid</Name>
+      <LogicalName>cb_todolistid</LogicalName>
+      <RequiredLevel>systemrequired</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForGrid|ValidForForm</DisplayMask>
+      <ValidForUpdateApi>0</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>0</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>0</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>0</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <displaynames><displayname description="Todo List" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Unique identifier for entity instances" languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_Name">
+      <Type>nvarchar</Type>
+      <Name>cb_name</Name>
+      <LogicalName>cb_name</LogicalName>
+      <RequiredLevel>required</RequiredLevel>
+      <DisplayMask>PrimaryName|ValidForAdvancedFind|ValidForForm|ValidForGrid|RequiredForForm</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <Format>text</Format><MaxLength>100</MaxLength><Length>200</Length>
+      <displaynames><displayname description="Name" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="List name shown in the sidebar." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_SortOrder">
+      <Type>int</Type>
+      <Name>cb_sortorder</Name>
+      <LogicalName>cb_sortorder</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <MinValue>-2147483648</MinValue><MaxValue>2147483647</MaxValue>
+      <displaynames><displayname description="Sort Order" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Manual ordering of lists in the sidebar." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_IsInbox">
+      <Type>bit</Type>
+      <Name>cb_isinbox</Name>
+      <LogicalName>cb_isinbox</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <optionset Name="cb_todolist_cb_isinbox">
+        <OptionSetType>bit</OptionSetType>
+        <IsGlobal>0</IsGlobal>
+        <IsCustomizable>1</IsCustomizable>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <displaynames><displayname description="Is Inbox" languagecode="1033" /></displaynames>
+        <Descriptions><Description description="Exactly one per user; created automatically and cannot be deleted." languagecode="1033" /></Descriptions>
+        <options>
+          <option value="1"><labels><label description="Yes" languagecode="1033" /></labels></option>
+          <option value="0"><labels><label description="No" languagecode="1033" /></labels></option>
+        </options>
+      </optionset>
+      <displaynames><displayname description="Is Inbox" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Exactly one per user; created automatically and cannot be deleted." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_IsArchived">
+      <Type>bit</Type>
+      <Name>cb_isarchived</Name>
+      <LogicalName>cb_isarchived</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <optionset Name="cb_todolist_cb_isarchived">
+        <OptionSetType>bit</OptionSetType>
+        <IsGlobal>0</IsGlobal>
+        <IsCustomizable>1</IsCustomizable>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <displaynames><displayname description="Is Archived" languagecode="1033" /></displaynames>
+        <Descriptions><Description description="Hidden from the sidebar but kept." languagecode="1033" /></Descriptions>
+        <options>
+          <option value="1"><labels><label description="Yes" languagecode="1033" /></labels></option>
+          <option value="0"><labels><label description="No" languagecode="1033" /></labels></option>
+        </options>
+      </optionset>
+      <displaynames><displayname description="Is Archived" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Hidden from the sidebar but kept." languagecode="1033" /></Descriptions>
+    </attribute>
+        </attributes>
+        <EntitySetName>cb_todolists</EntitySetName>
+        <IsDuplicateCheckSupported>0</IsDuplicateCheckSupported>
+        <IsBusinessProcessEnabled>0</IsBusinessProcessEnabled>
+        <IsRequiredOffline>0</IsRequiredOffline>
+        <IsInteractionCentricEnabled>0</IsInteractionCentricEnabled>
+        <IsCollaboration>0</IsCollaboration>
+        <AutoRouteToOwnerQueue>0</AutoRouteToOwnerQueue>
+        <IsConnectionsEnabled>0</IsConnectionsEnabled>
+        <IsDocumentManagementEnabled>0</IsDocumentManagementEnabled>
+        <AutoCreateAccessTeams>0</AutoCreateAccessTeams>
+        <IsOneNoteIntegrationEnabled>0</IsOneNoteIntegrationEnabled>
+        <IsKnowledgeManagementEnabled>0</IsKnowledgeManagementEnabled>
+        <IsSLAEnabled>0</IsSLAEnabled>
+        <IsBPFEntity>0</IsBPFEntity>
+        <IsDocumentRecommendationsEnabled>0</IsDocumentRecommendationsEnabled>
+        <IsMSTeamsIntegrationEnabled>0</IsMSTeamsIntegrationEnabled>
+        <SyncToExternalSearchIndex>0</SyncToExternalSearchIndex>
+        <IsMailMergeEnabled>0</IsMailMergeEnabled>
+        <IsEnabledForCharts>1</IsEnabledForCharts>
+        <IsEnabledForTrace>0</IsEnabledForTrace>
+        <IsEnabledForExternalChannels>0</IsEnabledForExternalChannels>
+        <IsEnabledInUnifiedInterface>1</IsEnabledInUnifiedInterface>
+        <IsQuickCreateEnabled>0</IsQuickCreateEnabled>
+        <IsValidForQueue>0</IsValidForQueue>
+        <IsPrivate>0</IsPrivate>
+        <IsAvailableOffline>0</IsAvailableOffline>
+        <IsReadingPaneEnabled>1</IsReadingPaneEnabled>
+        <IsAIRUpdated>0</IsAIRUpdated>
+        <IsCustomizable>1</IsCustomizable>
+        <IsRenameable>1</IsRenameable>
+        <IsMappable>1</IsMappable>
+        <CanModifyAuditSettings>1</CanModifyAuditSettings>
+        <CanModifyMobileVisibility>1</CanModifyMobileVisibility>
+        <CanModifyMobileClientVisibility>1</CanModifyMobileClientVisibility>
+        <CanModifyConnectionSettings>1</CanModifyConnectionSettings>
+        <CanModifyDuplicateDetectionSettings>1</CanModifyDuplicateDetectionSettings>
+        <CanModifyMailMergeSettings>1</CanModifyMailMergeSettings>
+        <CanModifyQueueSettings>1</CanModifyQueueSettings>
+        <CanCreateAttributes>1</CanCreateAttributes>
+        <CanCreateForms>1</CanCreateForms>
+        <CanCreateCharts>1</CanCreateCharts>
+        <CanCreateViews>1</CanCreateViews>
+        <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+        <CanEnableSyncToExternalSearchIndex>1</CanEnableSyncToExternalSearchIndex>
+        <IsVisibleInMobile>0</IsVisibleInMobile>
+        <IsVisibleInMobileClient>1</IsVisibleInMobileClient>
+        <IsReadOnlyInMobileClient>0</IsReadOnlyInMobileClient>
+        <IsOfflineInMobileClient>0</IsOfflineInMobileClient>
+        <DaysSinceRecordLastModified>0</DaysSinceRecordLastModified>
+        <MobileOfflineFilters></MobileOfflineFilters>
+        <IsActivity>0</IsActivity>
+        <IsActivityParty>0</IsActivityParty>
+        <IsReplicated>0</IsReplicated>
+        <IsReplicationUserFiltered>0</IsReplicationUserFiltered>
+        <ChangeTrackingEnabled>1</ChangeTrackingEnabled>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <OwnershipTypeMask>UserOwned</OwnershipTypeMask>
+        <IsAuditEnabled>0</IsAuditEnabled>
+        <IsRetrieveAuditEnabled>0</IsRetrieveAuditEnabled>
+        <IsRetrieveMultipleAuditEnabled>0</IsRetrieveMultipleAuditEnabled>
+        <EntityHelpUrlEnabled>0</EntityHelpUrlEnabled>
+        <EntityColor>#2E7D6B</EntityColor>
+        <HasRelatedNotes>False</HasRelatedNotes>
+        <HasRelatedActivities>False</HasRelatedActivities>
+      </entity>
+    </EntityInfo>
+  </Entity>
+  <Entity>
+    <Name LocalizedName="Todo Task" OriginalName="Todo Task">cb_TodoTask</Name>
+    <EntityInfo>
+      <entity Name="cb_TodoTask">
+        <LocalizedNames><LocalizedName description="Todo Task" languagecode="1033" /></LocalizedNames>
+        <LocalizedCollectionNames><LocalizedCollectionName description="Todo Tasks" languagecode="1033" /></LocalizedCollectionNames>
+        <Descriptions><Description description="A single task belonging to a list." languagecode="1033" /></Descriptions>
+        <attributes>
+    <attribute PhysicalName="cb_TodoTaskId">
+      <Type>primarykey</Type>
+      <Name>cb_todotaskid</Name>
+      <LogicalName>cb_todotaskid</LogicalName>
+      <RequiredLevel>systemrequired</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForGrid|ValidForForm</DisplayMask>
+      <ValidForUpdateApi>0</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>0</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>0</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>0</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <displaynames><displayname description="Todo Task" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Unique identifier for entity instances" languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_Title">
+      <Type>nvarchar</Type>
+      <Name>cb_title</Name>
+      <LogicalName>cb_title</LogicalName>
+      <RequiredLevel>required</RequiredLevel>
+      <DisplayMask>PrimaryName|ValidForAdvancedFind|ValidForForm|ValidForGrid|RequiredForForm</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <Format>text</Format><MaxLength>400</MaxLength><Length>800</Length>
+      <displaynames><displayname description="Title" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Task title (date phrases already stripped by the app)." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_Notes">
+      <Type>ntext</Type>
+      <Name>cb_notes</Name>
+      <LogicalName>cb_notes</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <Format>text</Format><MaxLength>4000</MaxLength>
+      <displaynames><displayname description="Notes" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Free-form notes." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_DueDate">
+      <Type>datetime</Type>
+      <Name>cb_duedate</Name>
+      <LogicalName>cb_duedate</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <Format>datetime</Format><Behavior>1</Behavior><CanChangeDateTimeBehavior>1</CanChangeDateTimeBehavior>
+      <displaynames><displayname description="Due Date" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="When the task is due (user local). Date-only when Has Time is No." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_HasTime">
+      <Type>bit</Type>
+      <Name>cb_hastime</Name>
+      <LogicalName>cb_hastime</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <optionset Name="cb_todotask_cb_hastime">
+        <OptionSetType>bit</OptionSetType>
+        <IsGlobal>0</IsGlobal>
+        <IsCustomizable>1</IsCustomizable>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <displaynames><displayname description="Has Time" languagecode="1033" /></displaynames>
+        <Descriptions><Description description="No means the due date is a whole day." languagecode="1033" /></Descriptions>
+        <options>
+          <option value="1"><labels><label description="Yes" languagecode="1033" /></labels></option>
+          <option value="0"><labels><label description="No" languagecode="1033" /></labels></option>
+        </options>
+      </optionset>
+      <displaynames><displayname description="Has Time" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="No means the due date is a whole day." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_ReminderAt">
+      <Type>datetime</Type>
+      <Name>cb_reminderat</Name>
+      <LogicalName>cb_reminderat</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <Format>datetime</Format><Behavior>1</Behavior><CanChangeDateTimeBehavior>1</CanChangeDateTimeBehavior>
+      <displaynames><displayname description="Reminder At" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="When to notify (user local)." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_IsCompleted">
+      <Type>bit</Type>
+      <Name>cb_iscompleted</Name>
+      <LogicalName>cb_iscompleted</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <optionset Name="cb_todotask_cb_iscompleted">
+        <OptionSetType>bit</OptionSetType>
+        <IsGlobal>0</IsGlobal>
+        <IsCustomizable>1</IsCustomizable>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <displaynames><displayname description="Is Completed" languagecode="1033" /></displaynames>
+        <Descriptions><Description description="Is Completed" languagecode="1033" /></Descriptions>
+        <options>
+          <option value="1"><labels><label description="Yes" languagecode="1033" /></labels></option>
+          <option value="0"><labels><label description="No" languagecode="1033" /></labels></option>
+        </options>
+      </optionset>
+      <displaynames><displayname description="Is Completed" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Is Completed" languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_CompletedOn">
+      <Type>datetime</Type>
+      <Name>cb_completedon</Name>
+      <LogicalName>cb_completedon</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <Format>datetime</Format><Behavior>1</Behavior><CanChangeDateTimeBehavior>1</CanChangeDateTimeBehavior>
+      <displaynames><displayname description="Completed On" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Completed On" languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_Recurrence">
+      <Type>picklist</Type>
+      <Name>cb_recurrence</Name>
+      <LogicalName>cb_recurrence</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <optionset Name="cb_todotask_cb_recurrence">
+        <OptionSetType>picklist</OptionSetType>
+        <IsGlobal>0</IsGlobal>
+        <IsCustomizable>1</IsCustomizable>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <displaynames><displayname description="Recurrence" languagecode="1033" /></displaynames>
+        <Descriptions><Description description="How the task repeats after completion." languagecode="1033" /></Descriptions>
+        <options><option value="100000000"><labels><label description="None" languagecode="1033" /></labels></option><option value="100000001"><labels><label description="Daily" languagecode="1033" /></labels></option><option value="100000002"><labels><label description="Weekly" languagecode="1033" /></labels></option><option value="100000003"><labels><label description="Monthly" languagecode="1033" /></labels></option></options>
+      </optionset>
+      <displaynames><displayname description="Recurrence" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="How the task repeats after completion." languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_SortOrder">
+      <Type>int</Type>
+      <Name>cb_sortorder</Name>
+      <LogicalName>cb_sortorder</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <MinValue>-2147483648</MinValue><MaxValue>2147483647</MaxValue>
+      <displaynames><displayname description="Sort Order" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Manual ordering within the list." languagecode="1033" /></Descriptions>
+    </attribute>
+        </attributes>
+        <EntitySetName>cb_todotasks</EntitySetName>
+        <IsDuplicateCheckSupported>0</IsDuplicateCheckSupported>
+        <IsBusinessProcessEnabled>0</IsBusinessProcessEnabled>
+        <IsRequiredOffline>0</IsRequiredOffline>
+        <IsInteractionCentricEnabled>0</IsInteractionCentricEnabled>
+        <IsCollaboration>0</IsCollaboration>
+        <AutoRouteToOwnerQueue>0</AutoRouteToOwnerQueue>
+        <IsConnectionsEnabled>0</IsConnectionsEnabled>
+        <IsDocumentManagementEnabled>0</IsDocumentManagementEnabled>
+        <AutoCreateAccessTeams>0</AutoCreateAccessTeams>
+        <IsOneNoteIntegrationEnabled>0</IsOneNoteIntegrationEnabled>
+        <IsKnowledgeManagementEnabled>0</IsKnowledgeManagementEnabled>
+        <IsSLAEnabled>0</IsSLAEnabled>
+        <IsBPFEntity>0</IsBPFEntity>
+        <IsDocumentRecommendationsEnabled>0</IsDocumentRecommendationsEnabled>
+        <IsMSTeamsIntegrationEnabled>0</IsMSTeamsIntegrationEnabled>
+        <SyncToExternalSearchIndex>0</SyncToExternalSearchIndex>
+        <IsMailMergeEnabled>0</IsMailMergeEnabled>
+        <IsEnabledForCharts>1</IsEnabledForCharts>
+        <IsEnabledForTrace>0</IsEnabledForTrace>
+        <IsEnabledForExternalChannels>0</IsEnabledForExternalChannels>
+        <IsEnabledInUnifiedInterface>1</IsEnabledInUnifiedInterface>
+        <IsQuickCreateEnabled>0</IsQuickCreateEnabled>
+        <IsValidForQueue>0</IsValidForQueue>
+        <IsPrivate>0</IsPrivate>
+        <IsAvailableOffline>0</IsAvailableOffline>
+        <IsReadingPaneEnabled>1</IsReadingPaneEnabled>
+        <IsAIRUpdated>0</IsAIRUpdated>
+        <IsCustomizable>1</IsCustomizable>
+        <IsRenameable>1</IsRenameable>
+        <IsMappable>1</IsMappable>
+        <CanModifyAuditSettings>1</CanModifyAuditSettings>
+        <CanModifyMobileVisibility>1</CanModifyMobileVisibility>
+        <CanModifyMobileClientVisibility>1</CanModifyMobileClientVisibility>
+        <CanModifyConnectionSettings>1</CanModifyConnectionSettings>
+        <CanModifyDuplicateDetectionSettings>1</CanModifyDuplicateDetectionSettings>
+        <CanModifyMailMergeSettings>1</CanModifyMailMergeSettings>
+        <CanModifyQueueSettings>1</CanModifyQueueSettings>
+        <CanCreateAttributes>1</CanCreateAttributes>
+        <CanCreateForms>1</CanCreateForms>
+        <CanCreateCharts>1</CanCreateCharts>
+        <CanCreateViews>1</CanCreateViews>
+        <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+        <CanEnableSyncToExternalSearchIndex>1</CanEnableSyncToExternalSearchIndex>
+        <IsVisibleInMobile>0</IsVisibleInMobile>
+        <IsVisibleInMobileClient>1</IsVisibleInMobileClient>
+        <IsReadOnlyInMobileClient>0</IsReadOnlyInMobileClient>
+        <IsOfflineInMobileClient>0</IsOfflineInMobileClient>
+        <DaysSinceRecordLastModified>0</DaysSinceRecordLastModified>
+        <MobileOfflineFilters></MobileOfflineFilters>
+        <IsActivity>0</IsActivity>
+        <IsActivityParty>0</IsActivityParty>
+        <IsReplicated>0</IsReplicated>
+        <IsReplicationUserFiltered>0</IsReplicationUserFiltered>
+        <ChangeTrackingEnabled>1</ChangeTrackingEnabled>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <OwnershipTypeMask>UserOwned</OwnershipTypeMask>
+        <IsAuditEnabled>0</IsAuditEnabled>
+        <IsRetrieveAuditEnabled>0</IsRetrieveAuditEnabled>
+        <IsRetrieveMultipleAuditEnabled>0</IsRetrieveMultipleAuditEnabled>
+        <EntityHelpUrlEnabled>0</EntityHelpUrlEnabled>
+        <EntityColor>#3B5BDB</EntityColor>
+        <HasRelatedNotes>False</HasRelatedNotes>
+        <HasRelatedActivities>False</HasRelatedActivities>
+      </entity>
+    </EntityInfo>
+  </Entity>
+  <Entity>
+    <Name LocalizedName="Todo Subtask" OriginalName="Todo Subtask">cb_TodoSubtask</Name>
+    <EntityInfo>
+      <entity Name="cb_TodoSubtask">
+        <LocalizedNames><LocalizedName description="Todo Subtask" languagecode="1033" /></LocalizedNames>
+        <LocalizedCollectionNames><LocalizedCollectionName description="Todo Subtasks" languagecode="1033" /></LocalizedCollectionNames>
+        <Descriptions><Description description="A checklist step inside a task." languagecode="1033" /></Descriptions>
+        <attributes>
+    <attribute PhysicalName="cb_TodoSubtaskId">
+      <Type>primarykey</Type>
+      <Name>cb_todosubtaskid</Name>
+      <LogicalName>cb_todosubtaskid</LogicalName>
+      <RequiredLevel>systemrequired</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForGrid|ValidForForm</DisplayMask>
+      <ValidForUpdateApi>0</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>0</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>0</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>0</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <displaynames><displayname description="Todo Subtask" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Unique identifier for entity instances" languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_Title">
+      <Type>nvarchar</Type>
+      <Name>cb_title</Name>
+      <LogicalName>cb_title</LogicalName>
+      <RequiredLevel>required</RequiredLevel>
+      <DisplayMask>PrimaryName|ValidForAdvancedFind|ValidForForm|ValidForGrid|RequiredForForm</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <Format>text</Format><MaxLength>400</MaxLength><Length>800</Length>
+      <displaynames><displayname description="Title" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Title" languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_IsDone">
+      <Type>bit</Type>
+      <Name>cb_isdone</Name>
+      <LogicalName>cb_isdone</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <optionset Name="cb_todosubtask_cb_isdone">
+        <OptionSetType>bit</OptionSetType>
+        <IsGlobal>0</IsGlobal>
+        <IsCustomizable>1</IsCustomizable>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <displaynames><displayname description="Is Done" languagecode="1033" /></displaynames>
+        <Descriptions><Description description="Is Done" languagecode="1033" /></Descriptions>
+        <options>
+          <option value="1"><labels><label description="Yes" languagecode="1033" /></labels></option>
+          <option value="0"><labels><label description="No" languagecode="1033" /></labels></option>
+        </options>
+      </optionset>
+      <displaynames><displayname description="Is Done" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Is Done" languagecode="1033" /></Descriptions>
+    </attribute>
+    <attribute PhysicalName="cb_SortOrder">
+      <Type>int</Type>
+      <Name>cb_sortorder</Name>
+      <LogicalName>cb_sortorder</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.0.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <MinValue>-2147483648</MinValue><MaxValue>2147483647</MaxValue>
+      <displaynames><displayname description="Sort Order" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Manual ordering within the task." languagecode="1033" /></Descriptions>
+    </attribute>
+        </attributes>
+        <EntitySetName>cb_todosubtasks</EntitySetName>
+        <IsDuplicateCheckSupported>0</IsDuplicateCheckSupported>
+        <IsBusinessProcessEnabled>0</IsBusinessProcessEnabled>
+        <IsRequiredOffline>0</IsRequiredOffline>
+        <IsInteractionCentricEnabled>0</IsInteractionCentricEnabled>
+        <IsCollaboration>0</IsCollaboration>
+        <AutoRouteToOwnerQueue>0</AutoRouteToOwnerQueue>
+        <IsConnectionsEnabled>0</IsConnectionsEnabled>
+        <IsDocumentManagementEnabled>0</IsDocumentManagementEnabled>
+        <AutoCreateAccessTeams>0</AutoCreateAccessTeams>
+        <IsOneNoteIntegrationEnabled>0</IsOneNoteIntegrationEnabled>
+        <IsKnowledgeManagementEnabled>0</IsKnowledgeManagementEnabled>
+        <IsSLAEnabled>0</IsSLAEnabled>
+        <IsBPFEntity>0</IsBPFEntity>
+        <IsDocumentRecommendationsEnabled>0</IsDocumentRecommendationsEnabled>
+        <IsMSTeamsIntegrationEnabled>0</IsMSTeamsIntegrationEnabled>
+        <SyncToExternalSearchIndex>0</SyncToExternalSearchIndex>
+        <IsMailMergeEnabled>0</IsMailMergeEnabled>
+        <IsEnabledForCharts>1</IsEnabledForCharts>
+        <IsEnabledForTrace>0</IsEnabledForTrace>
+        <IsEnabledForExternalChannels>0</IsEnabledForExternalChannels>
+        <IsEnabledInUnifiedInterface>1</IsEnabledInUnifiedInterface>
+        <IsQuickCreateEnabled>0</IsQuickCreateEnabled>
+        <IsValidForQueue>0</IsValidForQueue>
+        <IsPrivate>0</IsPrivate>
+        <IsAvailableOffline>0</IsAvailableOffline>
+        <IsReadingPaneEnabled>1</IsReadingPaneEnabled>
+        <IsAIRUpdated>0</IsAIRUpdated>
+        <IsCustomizable>1</IsCustomizable>
+        <IsRenameable>1</IsRenameable>
+        <IsMappable>1</IsMappable>
+        <CanModifyAuditSettings>1</CanModifyAuditSettings>
+        <CanModifyMobileVisibility>1</CanModifyMobileVisibility>
+        <CanModifyMobileClientVisibility>1</CanModifyMobileClientVisibility>
+        <CanModifyConnectionSettings>1</CanModifyConnectionSettings>
+        <CanModifyDuplicateDetectionSettings>1</CanModifyDuplicateDetectionSettings>
+        <CanModifyMailMergeSettings>1</CanModifyMailMergeSettings>
+        <CanModifyQueueSettings>1</CanModifyQueueSettings>
+        <CanCreateAttributes>1</CanCreateAttributes>
+        <CanCreateForms>1</CanCreateForms>
+        <CanCreateCharts>1</CanCreateCharts>
+        <CanCreateViews>1</CanCreateViews>
+        <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+        <CanEnableSyncToExternalSearchIndex>1</CanEnableSyncToExternalSearchIndex>
+        <IsVisibleInMobile>0</IsVisibleInMobile>
+        <IsVisibleInMobileClient>1</IsVisibleInMobileClient>
+        <IsReadOnlyInMobileClient>0</IsReadOnlyInMobileClient>
+        <IsOfflineInMobileClient>0</IsOfflineInMobileClient>
+        <DaysSinceRecordLastModified>0</DaysSinceRecordLastModified>
+        <MobileOfflineFilters></MobileOfflineFilters>
+        <IsActivity>0</IsActivity>
+        <IsActivityParty>0</IsActivityParty>
+        <IsReplicated>0</IsReplicated>
+        <IsReplicationUserFiltered>0</IsReplicationUserFiltered>
+        <ChangeTrackingEnabled>1</ChangeTrackingEnabled>
+        <IntroducedVersion>1.0.0.0</IntroducedVersion>
+        <OwnershipTypeMask>UserOwned</OwnershipTypeMask>
+        <IsAuditEnabled>0</IsAuditEnabled>
+        <IsRetrieveAuditEnabled>0</IsRetrieveAuditEnabled>
+        <IsRetrieveMultipleAuditEnabled>0</IsRetrieveMultipleAuditEnabled>
+        <EntityHelpUrlEnabled>0</EntityHelpUrlEnabled>
+        <EntityColor>#D9480F</EntityColor>
+        <HasRelatedNotes>False</HasRelatedNotes>
+        <HasRelatedActivities>False</HasRelatedActivities>
+      </entity>
+    </EntityInfo>
+  </Entity>
+  </Entities>
+  <Roles>
+    <Role name="Todo User" id="{7c1e2b3a-4d5f-4a6b-9c8d-0e1f2a3b4c5d}">
+      <IsCustomizable>1</IsCustomizable>
+      <RolePrivileges>
+      <RolePrivilege name="prvCreatecb_TodoList" level="Basic" />
+      <RolePrivilege name="prvReadcb_TodoList" level="Basic" />
+      <RolePrivilege name="prvWritecb_TodoList" level="Basic" />
+      <RolePrivilege name="prvDeletecb_TodoList" level="Basic" />
+      <RolePrivilege name="prvAppendcb_TodoList" level="Basic" />
+      <RolePrivilege name="prvAppendTocb_TodoList" level="Basic" />
+      <RolePrivilege name="prvAssigncb_TodoList" level="Basic" />
+      <RolePrivilege name="prvSharecb_TodoList" level="Basic" />
+      <RolePrivilege name="prvCreatecb_TodoTask" level="Basic" />
+      <RolePrivilege name="prvReadcb_TodoTask" level="Basic" />
+      <RolePrivilege name="prvWritecb_TodoTask" level="Basic" />
+      <RolePrivilege name="prvDeletecb_TodoTask" level="Basic" />
+      <RolePrivilege name="prvAppendcb_TodoTask" level="Basic" />
+      <RolePrivilege name="prvAppendTocb_TodoTask" level="Basic" />
+      <RolePrivilege name="prvAssigncb_TodoTask" level="Basic" />
+      <RolePrivilege name="prvSharecb_TodoTask" level="Basic" />
+      <RolePrivilege name="prvCreatecb_TodoSubtask" level="Basic" />
+      <RolePrivilege name="prvReadcb_TodoSubtask" level="Basic" />
+      <RolePrivilege name="prvWritecb_TodoSubtask" level="Basic" />
+      <RolePrivilege name="prvDeletecb_TodoSubtask" level="Basic" />
+      <RolePrivilege name="prvAppendcb_TodoSubtask" level="Basic" />
+      <RolePrivilege name="prvAppendTocb_TodoSubtask" level="Basic" />
+      <RolePrivilege name="prvAssigncb_TodoSubtask" level="Basic" />
+      <RolePrivilege name="prvSharecb_TodoSubtask" level="Basic" />
+      </RolePrivileges>
+    </Role>
+  </Roles>
+  <Workflows />
+  <FieldSecurityProfiles />
+  <Templates />
+  <EntityMaps />
+  <EntityRelationships>
+  <EntityRelationship Name="cb_todolist_cb_todotask_list">
+    <EntityRelationshipType>OneToMany</EntityRelationshipType>
+    <IsCustomizable>1</IsCustomizable>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <IsHierarchical>0</IsHierarchical>
+    <ReferencingEntityName>cb_TodoTask</ReferencingEntityName>
+    <ReferencedEntityName>cb_TodoList</ReferencedEntityName>
+    <CascadeAssign>Cascade</CascadeAssign>
+    <CascadeDelete>Cascade</CascadeDelete>
+    <CascadeArchive>Cascade</CascadeArchive>
+    <CascadeReparent>Cascade</CascadeReparent>
+    <CascadeShare>Cascade</CascadeShare>
+    <CascadeUnshare>Cascade</CascadeUnshare>
+    <CascadeRollupView>NoCascade</CascadeRollupView>
+    <IsValidForAdvancedFind>1</IsValidForAdvancedFind>
+    <ReferencingAttributeName>cb_List</ReferencingAttributeName>
+    <RelationshipDescription><Descriptions><Description description="List" languagecode="1033" /></Descriptions></RelationshipDescription>
+    <EntityRelationshipRoles>
+      <EntityRelationshipRole>
+        <NavPaneDisplayOption>UseCollectionName</NavPaneDisplayOption>
+        <NavPaneArea>Details</NavPaneArea>
+        <NavPaneOrder>10000</NavPaneOrder>
+        <NavigationPropertyName>cb_todolist_cb_todotask_list</NavigationPropertyName>
+        <RelationshipRoleType>1</RelationshipRoleType>
+      </EntityRelationshipRole>
+      <EntityRelationshipRole>
+        <NavigationPropertyName>cb_List</NavigationPropertyName>
+        <RelationshipRoleType>0</RelationshipRoleType>
+      </EntityRelationshipRole>
+    </EntityRelationshipRoles>
+    <field name="cb_list" requiredlevel="required" lookupstyle="single" lookupbrowse="0" IsSecured="0" IsCustomizable="1" IsRenameable="1" CanModifySearchSettings="1" CanModifyRequirementLevelSettings="1" CanModifyAdditionalSettings="1" ImeMode="auto" IsSearchable="1" IsFilterable="0" IsRetrievable="0" IsLocalizable="0" IsAuditEnabled="1" IsSortableEnabled="0" IsGlobalFilterEnabled="0" IntroducedVersion="1.0.0.0">
+      <displaynames><displayname description="List" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="List" languagecode="1033" /></Descriptions>
+    </field>
+  </EntityRelationship>
+  <EntityRelationship Name="cb_todotask_cb_todosubtask_task">
+    <EntityRelationshipType>OneToMany</EntityRelationshipType>
+    <IsCustomizable>1</IsCustomizable>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <IsHierarchical>0</IsHierarchical>
+    <ReferencingEntityName>cb_TodoSubtask</ReferencingEntityName>
+    <ReferencedEntityName>cb_TodoTask</ReferencedEntityName>
+    <CascadeAssign>Cascade</CascadeAssign>
+    <CascadeDelete>Cascade</CascadeDelete>
+    <CascadeArchive>Cascade</CascadeArchive>
+    <CascadeReparent>Cascade</CascadeReparent>
+    <CascadeShare>Cascade</CascadeShare>
+    <CascadeUnshare>Cascade</CascadeUnshare>
+    <CascadeRollupView>NoCascade</CascadeRollupView>
+    <IsValidForAdvancedFind>1</IsValidForAdvancedFind>
+    <ReferencingAttributeName>cb_Task</ReferencingAttributeName>
+    <RelationshipDescription><Descriptions><Description description="Task" languagecode="1033" /></Descriptions></RelationshipDescription>
+    <EntityRelationshipRoles>
+      <EntityRelationshipRole>
+        <NavPaneDisplayOption>UseCollectionName</NavPaneDisplayOption>
+        <NavPaneArea>Details</NavPaneArea>
+        <NavPaneOrder>10000</NavPaneOrder>
+        <NavigationPropertyName>cb_todotask_cb_todosubtask_task</NavigationPropertyName>
+        <RelationshipRoleType>1</RelationshipRoleType>
+      </EntityRelationshipRole>
+      <EntityRelationshipRole>
+        <NavigationPropertyName>cb_Task</NavigationPropertyName>
+        <RelationshipRoleType>0</RelationshipRoleType>
+      </EntityRelationshipRole>
+    </EntityRelationshipRoles>
+    <field name="cb_task" requiredlevel="required" lookupstyle="single" lookupbrowse="0" IsSecured="0" IsCustomizable="1" IsRenameable="1" CanModifySearchSettings="1" CanModifyRequirementLevelSettings="1" CanModifyAdditionalSettings="1" ImeMode="auto" IsSearchable="1" IsFilterable="0" IsRetrievable="0" IsLocalizable="0" IsAuditEnabled="1" IsSortableEnabled="0" IsGlobalFilterEnabled="0" IntroducedVersion="1.0.0.0">
+      <displaynames><displayname description="Task" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Task" languagecode="1033" /></Descriptions>
+    </field>
+  </EntityRelationship>
+  <EntityRelationship Name="cb_todotask_cb_todotask_recurrenceparent">
+    <EntityRelationshipType>OneToMany</EntityRelationshipType>
+    <IsCustomizable>1</IsCustomizable>
+    <IntroducedVersion>1.0.0.0</IntroducedVersion>
+    <IsHierarchical>0</IsHierarchical>
+    <ReferencingEntityName>cb_TodoTask</ReferencingEntityName>
+    <ReferencedEntityName>cb_TodoTask</ReferencedEntityName>
+    <CascadeAssign>NoCascade</CascadeAssign>
+    <CascadeDelete>RemoveLink</CascadeDelete>
+    <CascadeArchive>RemoveLink</CascadeArchive>
+    <CascadeReparent>NoCascade</CascadeReparent>
+    <CascadeShare>NoCascade</CascadeShare>
+    <CascadeUnshare>NoCascade</CascadeUnshare>
+    <CascadeRollupView>NoCascade</CascadeRollupView>
+    <IsValidForAdvancedFind>1</IsValidForAdvancedFind>
+    <ReferencingAttributeName>cb_RecurrenceParent</ReferencingAttributeName>
+    <RelationshipDescription><Descriptions><Description description="Recurrence Parent" languagecode="1033" /></Descriptions></RelationshipDescription>
+    <EntityRelationshipRoles>
+      <EntityRelationshipRole>
+        <NavPaneDisplayOption>UseCollectionName</NavPaneDisplayOption>
+        <NavPaneArea>Details</NavPaneArea>
+        <NavPaneOrder>10000</NavPaneOrder>
+        <NavigationPropertyName>cb_todotask_cb_todotask_recurrenceparent</NavigationPropertyName>
+        <RelationshipRoleType>1</RelationshipRoleType>
+      </EntityRelationshipRole>
+      <EntityRelationshipRole>
+        <NavigationPropertyName>cb_RecurrenceParent</NavigationPropertyName>
+        <RelationshipRoleType>0</RelationshipRoleType>
+      </EntityRelationshipRole>
+    </EntityRelationshipRoles>
+    <field name="cb_recurrenceparent" requiredlevel="none" lookupstyle="single" lookupbrowse="0" IsSecured="0" IsCustomizable="1" IsRenameable="1" CanModifySearchSettings="1" CanModifyRequirementLevelSettings="1" CanModifyAdditionalSettings="1" ImeMode="auto" IsSearchable="1" IsFilterable="0" IsRetrievable="0" IsLocalizable="0" IsAuditEnabled="1" IsSortableEnabled="0" IsGlobalFilterEnabled="0" IntroducedVersion="1.0.0.0">
+      <displaynames><displayname description="Recurrence Parent" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="Recurrence Parent" languagecode="1033" /></Descriptions>
+    </field>
+  </EntityRelationship>
+  </EntityRelationships>
+  <OrganizationSettings />
+  <optionsets />
+  <CustomControls />
+  <EntityDataProviders />
+  <Languages>
+    <Language>1033</Language>
+  </Languages>
+</ImportExportXml>
