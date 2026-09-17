@@ -75,8 +75,9 @@ T0 runs in parallel with T1–T3 (it is Christopher-side in the maker portal). T
 ### Phase 4 · Ship
 - [ ] T15 Full Playwright suite, Lighthouse ≥ 90/95, Hallmark audit clean, README + smoke checklist
 - [ ] T16 `npm run build` → `pa app push --solution-id …` → `pa app share` → smoke on phone and desktop against real Dataverse
+- [ ] T17 Finish the how-to article: Parts 2 to 4, screenshots, command verification
 
-**Checkpoint D (Done)** — SPEC §8 success criteria 1–10 all true.
+**Checkpoint D (Done)** — SPEC §8 success criteria 1–10 all true; how-to article complete.
 
 ## Risks and mitigations
 
@@ -96,6 +97,10 @@ T0 runs in parallel with T1–T3 (it is Christopher-side in the maker portal). T
 - Safe in parallel: T0 with T1–T3; T7/T8/T9 after T6; T10–T14 after T9 (they touch different feature folders).
 - Sequential: T1 → T2 → T3 (shared foundations); T4 after T3 and T0; T16 last.
 - Contract-first: `src/data/repo.ts` (T3) is the contract that lets UI tasks and the Dataverse implementation proceed independently.
+
+## Documentation as we go
+
+`docs/how-to-build-a-power-apps-code-app.md` is a knowledge-base article written alongside the build, not after it. Part 1 (planning, schema, environment) is finished. Each task appends brief notes: any non-obvious step, any failure and what fixed it, any decision a reader would ask about. Task 17 turns those notes into finished prose. Writing it during the build is the point, because the failures are what make it useful and they are forgotten within a day.
 
 ## Out of this plan (Phase 2, separate spec)
 

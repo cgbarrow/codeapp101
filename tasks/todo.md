@@ -1,6 +1,8 @@
 # Todo — Simple Todo code app
 
-Definition of done for every task: lint 0 warnings, `npm run typecheck` clean, tests green, `npm run build` passes, spec updated if scope moved, commit on a feature branch.
+Definition of done for every task: lint 0 warnings, `npm run typecheck` clean, tests green, `npm run build` passes, spec updated if scope moved, **notes added to `docs/how-to-build-a-power-apps-code-app.md`** if the task produced anything a reader would need (a non-obvious step, a failure and its fix, a decision worth explaining), commit on a feature branch.
+
+Keep article notes brief and factual while building; Task 17 turns them into finished prose.
 
 ---
 
@@ -344,5 +346,26 @@ Definition of done for every task: lint 0 warnings, `npm run typecheck` clean, t
 
 ---
 
+## Task 17: Finish the how-to article
+
+**Description:** Turn the running notes in `docs/how-to-build-a-power-apps-code-app.md` into finished Parts 2 to 4, matching the voice and structure of Part 1. Capture the screenshots listed as placeholders. Verify every command in the article actually runs as written.
+
+**Acceptance criteria:**
+- [ ] Parts 2, 3 and 4 complete, each following Overview → Prerequisites → Procedure → Verify → Troubleshooting → Related information
+- [ ] Every placeholder in `docs/images/` replaced with a real screenshot, or the placeholder removed
+- [ ] Every command block copy-pasted and run once on a clean checkout to confirm it works
+- [ ] Troubleshooting entries carry the real error text encountered, not a paraphrase
+
+**Verification:**
+- [ ] A reader who has never used Power Platform can follow it start to finish
+- [ ] No unresolved placeholder text remains
+
+**Dependencies:** T16
+**Files:** `docs/how-to-build-a-power-apps-code-app.md`, `docs/images/*`
+**Scope:** M
+
+---
+
 ## Checkpoint D — Done
 - [ ] All tasks checked, SPEC §8 met, spec and ADRs current
+- [ ] How-to article complete and publishable
