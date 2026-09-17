@@ -1,6 +1,6 @@
 # Todo — Simple Todo code app
 
-Definition of done for every task: lint 0 warnings, `npm run typecheck` clean, tests green, `npm run build` passes, spec updated if scope moved, **notes added to `docs/how-to-build-a-power-apps-code-app.md`** if the task produced anything a reader would need (a non-obvious step, a failure and its fix, a decision worth explaining), commit on a feature branch.
+Definition of done for every task: lint 0 warnings, `npm run typecheck` clean, tests green, `npm run build` passes, spec updated if scope moved, **`README.md` updated** if the task changed the status table, layout, commands, stack or feature list, **notes added to `docs/how-to-build-a-power-apps-code-app.md`** if the task produced anything a reader would need (a non-obvious step, a failure and its fix, a decision worth explaining), commit on a feature branch. See `CLAUDE.md`.
 
 Keep article notes brief and factual while building; Task 17 turns them into finished prose.
 
