@@ -47,6 +47,7 @@ docs/                    how-to article, setup runbook, design notes, ADRs
 src/                     application code; src/test/ holds the Vitest setup
 src/styles/              design tokens (the only place colours and fonts are defined), reset, fonts
 src/components/          one folder per component, with its CSS module and test
+src/data/                domain types, repository interfaces, in-memory repos, TanStack Query hooks
 docs/design/             theme choice and shell screenshots at six widths
 e2e/                     Playwright specs
 .github/workflows/ci.yml lint, typecheck, test and build on every pull request
@@ -59,7 +60,7 @@ npm install
 npm run dev
 ```
 
-That starts Vite locally and needs no tenant access. From task 3 onwards it runs against the in-memory data layer. Until task 4 initialises the code app, the dev server prints a harmless warning about a missing `power.config.json`.
+That starts Vite in `mock` mode, which loads `.env.mock` and runs against in-memory sample data, so it needs no tenant access. Until task 4 initialises the code app, the dev server prints a harmless warning about a missing `power.config.json`, and a build without mocks stops at startup with an error saying the Dataverse repositories are not wired yet.
 
 Checks, all of which must pass before a commit:
 
@@ -68,6 +69,12 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+```
+
+Coverage, with the SPEC gates of 90 % of lines in `src/data` and `src/features` and 70 % overall:
+
+```bash
+npm run test:coverage
 ```
 
 End-to-end tests need the Playwright browsers once:
@@ -99,7 +106,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2). Next up is task 3, the data layer |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks against in-memory data (task 3). Next up is task 4, wiring Dataverse |
 | Documentation | Part 1 of 4 published |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

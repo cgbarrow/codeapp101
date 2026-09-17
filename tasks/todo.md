@@ -74,13 +74,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Define `List`, `Task`, `Subtask`, `Recurrence` types and the `ListRepo`/`TaskRepo`/`SubtaskRepo` interfaces. Implement an in-memory mock repo seeded with sample data (deterministic for tests, optional latency for dev). Add react-query hooks (`useLists`, `useTasks(listId)`, `useTodayTasks`, `useCreateTask`, `useToggleTask`, `useUpdateTask`, `useDeleteTask`, list equivalents) with optimistic updates and rollback. Wire `QueryClientProvider` and a `RepoProvider` selecting mock vs Dataverse by `VITE_USE_MOCKS`.
 
 **Acceptance criteria:**
-- [ ] Nothing outside `src/data` imports `src/generated`
-- [ ] Mock repo passes a shared contract test suite (`repoContract.test.ts`) that the Dataverse repo will reuse in T4
-- [ ] `useToggleTask` shows the optimistic state immediately and rolls back when the repo rejects
+- [x] Nothing outside `src/data` imports `src/generated`
+- [x] Mock repo passes a shared contract test suite (`repoContract.test.ts`) that the Dataverse repo will reuse in T4
+- [x] `useToggleTask` shows the optimistic state immediately and rolls back when the repo rejects
 
 **Verification:**
-- [ ] `npm test -- src/data`
-- [ ] Coverage for `src/data` ≥ 90 %
+- [x] `npm test -- src/data`
+- [x] Coverage for `src/data` ≥ 90 %
+
+**Status: DONE 2026-09-17.** `src/data` line coverage 100 %.
 
 **Dependencies:** T1
 **Files:** `src/data/repo.ts`, `src/data/mock/*.ts`, `src/data/queries.ts`, `src/data/keys.ts`, `src/data/RepoProvider.tsx`, `src/data/repoContract.test.ts`
@@ -110,7 +112,7 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 ## Checkpoint A (after T1–T4)
 - [ ] All four commands green; CI green on the PR
 - [ ] Shell renders with mock lists in `npm run dev` and with real lists in Local Play
-- [ ] Human review of the Hallmark theme and shell before feature work
+- [x] Human review of the Hallmark theme and shell before feature work (approved 2026-09-17)
 
 ---
 

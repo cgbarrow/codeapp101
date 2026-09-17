@@ -188,7 +188,7 @@ pa app add data-source --connector dataverse --table cb_todosubtask
 
 Daily development:
 ```bash
-npm run dev            # vite only (mocked services via VITE_USE_MOCKS=true)
+npm run dev            # vite --mode mock: loads .env.mock (VITE_USE_MOCKS=true), in-memory sample data
 pa app run             # Power Apps local host; open the "Local Play" URL in the tenant browser profile
 npm run typecheck      # tsc -b --noEmit
 npm run lint           # eslint . --max-warnings 0
@@ -263,9 +263,13 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   │   ├── reminders/scheduler.ts
 │   │   └── today/selectToday.ts
 │   ├── data/                    → the ONLY code that touches generated services
-│   │   ├── repo.ts              → TaskRepo / ListRepo / SubtaskRepo interfaces
+│   │   ├── repo.ts              → domain types + TaskRepo / ListRepo / SubtaskRepo interfaces
+│   │   ├── defaults.ts          → field defaults shared by every repo and by optimistic rows
+│   │   ├── repoContract.ts      → behaviour suite every repo implementation must pass
+│   │   ├── createRepos.ts       → picks mock or Dataverse from VITE_USE_MOCKS
+│   │   ├── RepoProvider.tsx     → context provider; useRepos.ts reads it
 │   │   ├── dataverse/           → real implementations over src/generated
-│   │   ├── mock/                → in-memory implementations for dev + tests
+│   │   ├── mock/                → in-memory implementations + sample seed for dev + tests
 │   │   ├── queries.ts           → react-query hooks (useTasks, useToggleTask, ...)
 │   │   └── keys.ts              → query keys
 │   ├── hooks/                   → useKeyboardShortcuts, useNotifications
@@ -299,7 +303,7 @@ type TaskRowProps = {
 };
 
 export const TaskRow = memo(function TaskRow({ task, isSelected, onSelect }: TaskRowProps) {
-  const toggle = useToggleTask(task.listId);
+  const toggle = useToggleTask();
   const overdue = !task.isCompleted && task.dueDate !== null && task.dueDate < startOfToday();
 
   return (

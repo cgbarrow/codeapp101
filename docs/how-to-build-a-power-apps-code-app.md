@@ -228,6 +228,20 @@ Note that a System Administrator already holds every privilege the custom role g
 - The shell's mobile bottom sheet is hidden with `visibility: hidden` as well as a transform. That removes the closed sheet from the tab order and the accessibility tree without JavaScript media queries, and the same markup becomes the persistent sidebar from 48rem.
 - `e2e/shell.spec.ts` asserts `scrollWidth - clientWidth === 0` at 320, 375, 414, 768, 1024 and 1440 px, and saves screenshots to `docs/design/` when `SHELL_SCREENSHOTS=1`. `page.evaluate` callbacks use `document`, so `tsconfig.node.json` needs `"DOM"` in `lib`.
 
+### Part 2 · The repository layer (draft notes)
+
+*Running notes from task 3.*
+
+- The app never calls generated Dataverse services directly. `src/data/repo.ts` defines app-shaped types (`Task.dueDate` is `Date | null`) and three interfaces, `ListRepo`, `TaskRepo` and `SubtaskRepo`. An in-memory implementation exists first; the Dataverse one follows in task 4.
+- The shared behaviour lives in `src/data/repoContract.ts` as a function, `runRepoContract(name, makeRepos)`, not in a `.test.ts` file. Importing one test file from another registers its tests twice. The mock runs the suite in `repoContract.test.ts`, and the Dataverse repo will call the same function.
+- The contract copies Dataverse's cascade rules so that the mock cannot be more forgiving than the real thing: deleting a list deletes its tasks, and deleting a task deletes its subtasks. It also requires that dates come back as `Date` instances at the same instant.
+- Mock repos copy every object that crosses the boundary, including `Date` objects. Without that, a component that mutated a returned task would silently change the "database" and hide bugs that only show against Dataverse.
+- `npm run dev` runs `vite --mode mock`, which loads the committed `.env.mock` (`VITE_USE_MOCKS=true`). The repo's `.gitignore` ignores `.env.*`, so `.env.mock` is explicitly un-ignored; it holds no secrets. A build without mocks throws a clear error at startup rather than quietly falling back to sample data.
+- Optimistic updates snapshot every cached query under a key prefix (`["tasks"]`), rewrite them, and restore the snapshot on error. Patching every task cache, not just the current list, means a task toggled from the Today view and from its list stays consistent. Every mutation invalidates the prefix when it settles, so the server's answer always wins in the end.
+- To test optimism, the repo call is held open with a hand-settled promise (`deferred()` in `src/test/renderWithProviders.tsx`). The test checks that the cache has already changed while the mutation is still pending, then rejects the promise and checks the rollback.
+- `eslint-plugin-react-refresh` warns when a file exports both a component and a hook, and the lint runs with `--max-warnings 0`. That is why the context and `useRepos` live in `useRepos.ts`, separate from `RepoProvider.tsx`.
+- A second guard test, `src/data/boundaries.node.test.ts`, fails if anything outside `src/data` imports from `src/generated`.
+
 ---
 
 ## Verify
