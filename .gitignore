@@ -23,3 +23,6 @@ playwright/.cache
 !.env.example
 !.env.mock
 !.env.smoke
+
+# Claude Code: per-machine permissions (launch.json is shared and committed)
+.claude/settings.local.json
