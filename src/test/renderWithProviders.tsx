@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { ToastProvider } from "@/components/Toast/ToastProvider";
 import type { Repos } from "@/data/repo";
 import { RepoProvider } from "@/data/RepoProvider";
 
@@ -16,7 +17,9 @@ export function createWrapper(repos: Repos, queryClient = createTestQueryClient(
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <RepoProvider repos={repos}>{children}</RepoProvider>
+        <RepoProvider repos={repos}>
+          <ToastProvider>{children}</ToastProvider>
+        </RepoProvider>
       </QueryClientProvider>
     );
   };

@@ -439,6 +439,14 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Reordering writes only what changed.** `reorderLists` renumbers the visible lists 0, 1, 2… and returns only the lists whose `sortOrder` moved, so dragging one list past its neighbour sends two `PATCH` requests, not one per list.
 - **Automated browsers do not fire native drag and drop.** A scripted mouse drag in Chromium DevTools or Playwright does not produce HTML5 `dragstart`/`drop` events. The component test drives the drop with `fireEvent.dragStart`/`dragOver`/`drop`, and the up/down buttons in edit mode give keyboard and touch users the same result.
 
+#### Task 6 notes: tasks, the checkmark and Undo
+
+- **Undo without a flicker needs two guards.** Completing a task and pressing Undo sends two writes. Without care, the first write's refetch lands while the Undo is still in flight and the task briefly shows as completed again. First, every task mutation has `mutationKey: ["tasks"]`, and its `onSettled` refetches only when `queryClient.isMutating({ mutationKey: ["tasks"] })` is 1, meaning no other task write is pending. Second, toggles share `scope: { id: "toggle-task" }`, which makes TanStack Query run their network calls one after another, so Dataverse cannot receive the Undo before the completion. `onMutate` still runs immediately for a queued mutation, so the screen updates at once. `src/data/queries.test.tsx` proves both: a test records every cache state after Undo and fails if the task ever reads as completed.
+- **Let the tick play before the row moves.** The optimistic update would move a completed task into the Completed section in the same frame, and the 200 ms animation would never be seen. `useTaskToggle` keeps just-completed ids in a "lingering" set for 500 ms, and `TaskList` orders those tasks as if they were still open.
+- **Time animations with a timer, not `animationend`.** jsdom has no `AnimationEvent`, so React listens for `webkitAnimationEnd` and a test's `fireEvent.animationEnd` never reaches the handler. In a real browser the event also never fires when `prefers-reduced-motion` switches the animation off. A `setTimeout` matched to the CSS duration works in both.
+- **Toasts pause while pointed at or focused.** A 3-second Undo is short for keyboard and screen-reader users, so the countdown stops while the pointer or focus is on the toast (WCAG 2.2.1, timing adjustable). Errors stay until dismissed and use `role="alert"`; everything else goes to a polite live region.
+- **The Completed view reuses list caches.** `/completed` gathers every list's cached tasks with `useQueries` instead of adding a repository method, the same approach as the sidebar counts.
+
 ---
 
 ## Verify
@@ -695,4 +703,4 @@ Code apps do not run in the Power Apps mobile player, so mobile means a mobile b
 
 ---
 
-*Part 3 is in progress as build notes. Next up: tasks and the checkmark, fast capture with natural-language dates, and the Today view.*
+*Part 3 is in progress as build notes. Next up: fast capture with natural-language dates, task detail, and keyboard shortcuts.*

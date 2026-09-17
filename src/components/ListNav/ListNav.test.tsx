@@ -72,6 +72,14 @@ describe("ListNav", () => {
       expect(screen.getByRole("link", { name: /Work/ })).not.toHaveAttribute("aria-current");
     });
 
+    it("links to the Completed view", async () => {
+      renderNav("/completed");
+
+      const link = screen.getByRole("link", { name: "Completed" });
+      expect(link).toHaveAttribute("href", "/completed");
+      expect(link).toHaveAttribute("aria-current", "page");
+    });
+
     it("hides archived lists", async () => {
       await repos.lists.update("seed-groceries", { isArchived: true });
       renderNav();

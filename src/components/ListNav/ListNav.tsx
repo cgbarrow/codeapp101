@@ -216,6 +216,14 @@ export function ListNav() {
         )
       )}
 
+      <ul className={styles.lists} aria-label="Views">
+        <li className={styles.row}>
+          <NavLink to="/completed" className={styles.item}>
+            <span className={styles.name}>Completed</span>
+          </NavLink>
+        </li>
+      </ul>
+
       <ul className={styles.lists} aria-label="Your lists" aria-busy={lists.isPending}>
         {lists.isPending &&
           [0, 1, 2].map((index) => (

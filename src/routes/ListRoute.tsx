@@ -1,8 +1,9 @@
 import { Link, useParams } from "react-router";
+import { TaskList } from "@/components/TaskList/TaskList";
 import { useInbox, useLists } from "@/data/queries";
 import styles from "./ListRoute.module.css";
 
-/** `/list/:id`. The task list itself arrives in task 6. */
+/** `/list/:id`: one list and its tasks. */
 export function ListRoute() {
   const { id } = useParams();
   const lists = useLists();
@@ -29,6 +30,7 @@ export function ListRoute() {
     <section className={styles.route}>
       <h1>{list.name}</h1>
       {list.isArchived && <p className={styles.note}>Archived</p>}
+      <TaskList key={list.id} listId={list.id} listName={list.name} />
     </section>
   );
 }

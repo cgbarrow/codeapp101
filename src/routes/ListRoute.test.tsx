@@ -28,6 +28,14 @@ describe("ListRoute", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Work" })).toBeInTheDocument();
   });
 
+  it("shows the list's tasks", async () => {
+    renderRoute("/list/seed-work");
+
+    expect(
+      await screen.findByRole("checkbox", { name: "Complete Send the Q3 budget draft" }),
+    ).toBeInTheDocument();
+  });
+
   it("says so when the list does not exist and links back to the Inbox", async () => {
     renderRoute("/list/missing");
 

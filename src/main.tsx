@@ -6,6 +6,7 @@ import "@/styles/fonts.css";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 import { App } from "@/App";
+import { ToastProvider } from "@/components/Toast/ToastProvider";
 import { createRepos } from "@/data/createRepos";
 import { RepoProvider } from "@/data/RepoProvider";
 
@@ -18,7 +19,9 @@ createRoot(document.getElementById("root")!).render(
       <RepoProvider repos={repos}>
         {/* Hash URLs: the Power Apps host serves index.html from a fixed URL with no rewrites. */}
         <HashRouter>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </HashRouter>
       </RepoProvider>
     </QueryClientProvider>

@@ -9,6 +9,7 @@ import {
 import { deleteList, type DeleteListOptions } from "@/features/lists/deleteList";
 import { ensureInbox } from "@/features/lists/ensureInbox";
 import type { SortOrderChange } from "@/features/lists/reorderLists";
+import { orderCompletedTasks } from "@/features/tasks/orderTasks";
 import { definedOnly, listDefaults, taskDefaults } from "./defaults";
 import { queryKeys } from "./keys";
 import type { List, ListPatch, NewList, NewTask, Task, TaskPatch } from "./repo";
@@ -42,6 +43,16 @@ async function rewriteCaches<T>(
 
 function restoreCaches<T>(queryClient: QueryClient, snapshot: Snapshot<T> | undefined) {
   for (const [key, data] of snapshot ?? []) queryClient.setQueryData(key, data);
+}
+
+/**
+ * Refetches task caches once the last task write settles. Refetching after an earlier write while a
+ * later one is still pending would briefly show the earlier state, such as a completion that the
+ * user has already undone.
+ */
+function invalidateTasksWhenIdle(queryClient: QueryClient) {
+  if (queryClient.isMutating({ mutationKey: queryKeys.tasks }) > 1) return;
+  return queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
 }
 
 function listIdOfTaskCache(key: QueryKey): string | null {
@@ -101,6 +112,23 @@ export function useTaskCounts(listIds: readonly string[]): Record<string, TaskCo
   });
 }
 
+/** Completed tasks across the given lists, most recently completed first. */
+export function useCompletedTasks(listIds: readonly string[]) {
+  const { tasks } = useRepos();
+  return useQueries({
+    queries: listIds.map((listId) => ({
+      queryKey: queryKeys.tasksByList(listId),
+      queryFn: () => tasks.getByList(listId),
+    })),
+    combine: (results) => ({
+      tasks: orderCompletedTasks(results.flatMap((result) => result.data ?? [])),
+      isPending: results.some((result) => result.isPending),
+      isError: results.some((result) => result.isError),
+      refetch: () => Promise.all(results.map((result) => result.refetch())),
+    }),
+  });
+}
+
 export function useTasks(listId: string) {
   const { tasks } = useRepos();
   return useQuery({
@@ -126,6 +154,7 @@ export function useCreateTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: queryKeys.tasks,
     mutationFn: (input: NewTask) => tasks.create(input),
     onMutate: async (input) => {
       const placeholder = {
@@ -151,7 +180,7 @@ export function useCreateTask() {
       }
     },
     onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+    onSettled: () => invalidateTasksWhenIdle(queryClient),
   });
 }
 
@@ -162,12 +191,13 @@ export function useUpdateTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: queryKeys.tasks,
     mutationFn: ({ id, patch }: UpdateTaskInput) => tasks.update(id, patch),
     onMutate: async ({ id, patch }) => ({
       snapshot: await applyTaskPatch(queryClient, id, patch),
     }),
     onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+    onSettled: () => invalidateTasksWhenIdle(queryClient),
   });
 }
 
@@ -182,12 +212,15 @@ export function useToggleTask() {
   });
 
   return useMutation({
+    mutationKey: queryKeys.tasks,
+    // One write at a time, so a completion and its undo reach the server in order.
+    scope: { id: "toggle-task" },
     mutationFn: ({ id, isCompleted }: ToggleTaskInput) => tasks.update(id, patchFor(isCompleted)),
     onMutate: async ({ id, isCompleted }) => ({
       snapshot: await applyTaskPatch(queryClient, id, patchFor(isCompleted)),
     }),
     onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+    onSettled: () => invalidateTasksWhenIdle(queryClient),
   });
 }
 
@@ -196,6 +229,7 @@ export function useDeleteTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: queryKeys.tasks,
     mutationFn: (id: string) => tasks.delete(id),
     onMutate: async (id) => ({
       snapshot: await rewriteCaches<Task[]>(queryClient, queryKeys.tasks, (data) =>
@@ -203,7 +237,7 @@ export function useDeleteTask() {
       ),
     }),
     onError: (_error, _id, context) => restoreCaches(queryClient, context?.snapshot),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+    onSettled: () => invalidateTasksWhenIdle(queryClient),
   });
 }
 

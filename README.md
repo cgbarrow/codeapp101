@@ -11,6 +11,7 @@ A distraction-free todo list, designed so capturing a task takes under five seco
 - **Fast capture** — press `n`, type, press Enter. Typing `Buy milk on Friday` creates a task called "Buy milk" due next Friday, with the date parsed in the browser.
 - **Multiple lists** — Work, Personal, Groceries, and an Inbox that is created automatically. Press `1` to `9` to switch lists; drag to reorder on desktop, or use the up and down buttons in edit mode.
 - **Due dates and reminders** — deadlines, optional times, and browser notifications while the app is open.
+- **Completing tasks** — a ticked task animates, stays in place for a moment, then moves to a collapsed Completed section. Undo is offered for three seconds; `/completed` shows everything you have finished.
 - **Today view** — overdue and due-today tasks across every list, and the default landing view.
 - **Recurring tasks** — daily, weekly or monthly, with the next instance created on completion.
 - **Subtasks** — checklist steps inside a task, with progress shown on the row.
@@ -48,7 +49,8 @@ docs/                    how-to article, setup runbook, design notes, ADRs
 src/                     application code; src/test/ holds the Vitest setup
 src/styles/              design tokens (the only place colours and fonts are defined), reset, fonts
 src/components/          one folder per component, with its CSS module and test
-src/routes/              one component per route: /list/:id so far
+src/routes/              one component per route: /list/:id and /completed so far
+src/hooks/               React hooks shared across components, such as toggling a task with Undo
 src/features/            domain logic with no React, such as Inbox creation and list reordering
 src/data/                domain types, repository interfaces, in-memory and Dataverse repos, TanStack Query hooks
 src/generated/           written by the pa CLI from the Dataverse tables; never edited by hand
@@ -112,7 +114,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5). Next up is task 6, the task list and checkmark |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6). Next up is task 7, quick add |
 | Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes started |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router";
 import { AppShell } from "@/components/AppShell/AppShell";
 import { ListNav } from "@/components/ListNav/ListNav";
 import { useInbox } from "@/data/queries";
+import { CompletedRoute } from "@/routes/CompletedRoute";
 import { ListRoute } from "@/routes/ListRoute";
 
 const DataverseSmoke = lazy(() =>
@@ -28,6 +29,7 @@ export function App({ smoke = smokeEnabled }: AppProps) {
       ) : (
         <Routes>
           <Route path="/list/:id" element={<ListRoute />} />
+          <Route path="/completed" element={<CompletedRoute />} />
           <Route path="*" element={<InboxRedirect />} />
         </Routes>
       )}
@@ -39,6 +41,7 @@ export function App({ smoke = smokeEnabled }: AppProps) {
 function InboxRedirect() {
   const inbox = useInbox();
   if (inbox.data) return <Navigate to={`/list/${inbox.data.id}`} replace />;
-  if (inbox.isError) return <p role="alert">Your Inbox didn't load. Reload the app to try again.</p>;
+  if (inbox.isError)
+    return <p role="alert">Your Inbox didn't load. Reload the app to try again.</p>;
   return null;
 }

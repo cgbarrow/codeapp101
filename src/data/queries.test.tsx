@@ -9,6 +9,7 @@ import {
   useDeleteList,
   useDeleteTask,
   useInbox,
+  useCompletedTasks,
   useLists,
   useTaskCounts,
   useReorderLists,
@@ -18,7 +19,7 @@ import {
   useUpdateList,
   useUpdateTask,
 } from "./queries";
-import type { Repos } from "./repo";
+import type { Repos, Task } from "./repo";
 
 const now = new Date(2026, 8, 17, 9, 30);
 
@@ -160,6 +161,73 @@ describe("useToggleTask", () => {
       expect(result.current.today.data?.find((t) => t.id === "seed-t5")?.isCompleted).toBe(true),
     );
     gate.resolve();
+  });
+
+  it("sends toggle writes one at a time, in the order they were made", async () => {
+    const gates = [deferred(), deferred()];
+    const calls: boolean[] = [];
+    const update = repos.tasks.update;
+    repos.tasks.update = async (id, patch) => {
+      const gate = gates[calls.length];
+      calls.push(patch.isCompleted!);
+      await gate.promise;
+      return update(id, patch);
+    };
+    const { result } = renderWithRepos(() => ({
+      tasks: useTasks("seed-work"),
+      toggle: useToggleTask(),
+    }));
+    await waitFor(() => expect(result.current.tasks.isSuccess).toBe(true));
+
+    act(() => result.current.toggle.mutate({ id: "seed-t2", isCompleted: true }));
+    act(() => result.current.toggle.mutate({ id: "seed-t2", isCompleted: false }));
+    await waitFor(() => expect(calls).toEqual([true]));
+
+    gates[0].resolve();
+    await waitFor(() => expect(calls).toEqual([true, false]));
+    gates[1].resolve();
+
+    await waitFor(async () => {
+      const [stored] = (await repos.tasks.getByList("seed-work")).filter((t) => t.id === "seed-t2");
+      expect(stored.isCompleted).toBe(false);
+    });
+  });
+
+  it("never shows an undone completion again while the earlier write settles", async () => {
+    const gates = [deferred(), deferred()];
+    let call = 0;
+    const update = repos.tasks.update;
+    repos.tasks.update = async (id, patch) => {
+      await gates[call++].promise;
+      return update(id, patch);
+    };
+    const { result, queryClient } = renderWithRepos(() => ({
+      tasks: useTasks("seed-work"),
+      toggle: useToggleTask(),
+    }));
+    await waitFor(() => expect(result.current.tasks.isSuccess).toBe(true));
+
+    act(() => result.current.toggle.mutate({ id: "seed-t2", isCompleted: true }));
+    act(() => result.current.toggle.mutate({ id: "seed-t2", isCompleted: false }));
+    await waitFor(() =>
+      expect(result.current.tasks.data?.find((t) => t.id === "seed-t2")?.isCompleted).toBe(false),
+    );
+    const seen: boolean[] = [];
+    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+      const data = queryClient.getQueryData<Task[]>(["tasks", "list", "seed-work"]);
+      const task = data?.find((t) => t.id === "seed-t2");
+      if (task) seen.push(task.isCompleted);
+    });
+
+    gates[0].resolve();
+    await waitFor(() => expect(call).toBe(2));
+    gates[1].resolve();
+    await waitFor(() => expect(queryClient.isMutating()).toBe(0));
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    unsubscribe();
+
+    expect(seen).not.toContain(true);
+    expect(result.current.tasks.data?.find((t) => t.id === "seed-t2")?.isCompleted).toBe(false);
   });
 });
 
@@ -504,5 +572,34 @@ describe("useReorderLists", () => {
       "Personal",
       "Groceries",
     ]);
+  });
+});
+
+describe("useCompletedTasks", () => {
+  it("gathers completed tasks from every list, most recent first", async () => {
+    await repos.tasks.update("seed-t7", {
+      isCompleted: true,
+      completedOn: new Date(2026, 8, 17, 8),
+    });
+    const { result } = renderWithRepos(() =>
+      useCompletedTasks(["seed-inbox", "seed-work", "seed-groceries"]),
+    );
+
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+    expect(result.current.tasks.map((task) => task.title)).toEqual([
+      "Buy milk",
+      "Review the pull request",
+    ]);
+  });
+
+  it("is pending until every list has loaded and reports a failure", async () => {
+    repos.tasks.getByList = async (listId) => {
+      if (listId === "seed-work") throw new Error("Network down");
+      return [];
+    };
+    const { result } = renderWithRepos(() => useCompletedTasks(["seed-inbox", "seed-work"]));
+
+    expect(result.current.isPending).toBe(true);
+    await waitFor(() => expect(result.current.isError).toBe(true));
   });
 });

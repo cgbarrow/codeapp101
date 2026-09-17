@@ -144,13 +144,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** `TaskRow` list for the current list, ordered by `sortOrder` with overdue first; `Checkmark` component with 200 ms completion animation and a 3 s Undo toast; completed tasks collapse into a "Completed (n)" section; `/completed` route shows all completed tasks.
 
 **Acceptance criteria:**
-- [ ] Toggle is optimistic; failure shows a toast with Retry and restores the row
-- [ ] Undo within 3 s reverts without a second network round-trip visible to the user
-- [ ] `Checkmark` and `TaskRow` ship all 8 states; touch target ≥ 44 px
+- [x] Toggle is optimistic; failure shows a toast with Retry and restores the row
+- [x] Undo within 3 s reverts without a second network round-trip visible to the user
+- [x] `Checkmark` and `TaskRow` ship all 8 states; touch target ≥ 44 px
 
 **Verification:**
-- [ ] `npm test -- TaskRow Checkmark Toast`
-- [ ] Manual: animation and undo at 320 px and 1440 px
+- [x] `npm test -- TaskRow Checkmark Toast`
+- [x] Manual: animation and undo at 320 px and 1440 px
+
+**Status: DONE 2026-09-17.** Toggle writes are serialised with a TanStack mutation scope and task caches refetch only when no task write is pending, so Undo never flickers. Also added `TaskList`, `useTaskToggle` and a Completed link in the sidebar. Manual check in `npm run dev` at 1440 px and 320 px: 44 px target, no horizontal scroll, no console errors.
 
 **Dependencies:** T5
 **Files:** `src/components/TaskRow/*`, `src/components/Checkmark/*`, `src/components/Toast/*`, `src/routes/CompletedRoute.tsx`

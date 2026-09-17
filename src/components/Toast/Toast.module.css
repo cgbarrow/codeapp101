@@ -1,0 +1,154 @@
+/* Hallmark · component: toast · genre: modern-minimal · theme: Coral
+ * states (.action, .dismiss): default · hover · focus · active · disabled · loading · error · success
+ * tones (.toast): neutral (ink surface) · error · success. The countdown pauses on hover and focus.
+ */
+
+.region {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-toast);
+  display: flex;
+  justify-content: center;
+  padding: var(--space-md);
+  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: min(100%, 28rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: calc(var(--size-target) + var(--space-xs));
+  padding-block: var(--space-2xs);
+  padding-inline: var(--space-md) var(--space-2xs);
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: var(--text-sm);
+  pointer-events: auto;
+  animation: enter var(--dur-short) var(--ease-out);
+}
+
+.toast[data-tone="error"] {
+  border-color: var(--color-error);
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+.toast[data-tone="success"] {
+  border-color: var(--color-success);
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-xs));
+  }
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Buttons ---- */
+
+.action,
+.dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-target);
+  min-height: var(--size-target);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+.action {
+  padding-inline: var(--space-sm);
+}
+
+/* On the ink surface, text-coloured controls need the paper tokens. */
+.toast[data-tone="neutral"] .action {
+  color: var(--color-paper);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media (hover: hover) {
+  .action:hover,
+  .action:global(.is-hover),
+  .dismiss:hover,
+  .dismiss:global(.is-hover) {
+    background: color-mix(in oklch, currentColor 14%, transparent);
+  }
+}
+
+.action:focus-visible,
+.action:global(.is-focus),
+.dismiss:focus-visible,
+.dismiss:global(.is-focus) {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+.action:active,
+.action:global(.is-active),
+.dismiss:active,
+.dismiss:global(.is-active) {
+  transform: translateY(1px);
+}
+
+.action:disabled,
+.dismiss:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.action[data-state="loading"] {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.action[data-state="error"] {
+  color: var(--color-error);
+}
+
+.action[data-state="success"] {
+  color: var(--color-success);
+}
+
+@media (min-width: 48rem) {
+  .region {
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}

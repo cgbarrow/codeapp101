@@ -1,0 +1,92 @@
+/* Hallmark · component: task row · genre: modern-minimal · theme: Coral
+ * states: default · hover · focus (within) · active · disabled · loading · error · success
+ * overdue: error-coloured due chip plus a visually hidden "Overdue:" label, never colour alone.
+ */
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-2xs);
+  min-height: calc(var(--size-target) + var(--space-xs));
+  padding-inline-end: var(--space-sm);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  transition:
+    background-color var(--dur-short) var(--ease-out),
+    opacity var(--dur-short) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .row:hover,
+  .row:global(.is-hover) {
+    background: var(--color-paper-2);
+  }
+}
+
+.row:focus-within,
+.row:global(.is-focus) {
+  background: var(--color-paper-2);
+}
+
+.row:active,
+.row:global(.is-active) {
+  background: var(--color-paper-3);
+}
+
+.row[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.row[data-state="loading"] {
+  cursor: progress;
+}
+
+.row[data-state="error"] {
+  background: var(--color-error-surface);
+}
+
+.row[data-state="success"] {
+  background: var(--color-success-surface);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  min-width: 0;
+  padding-block: var(--space-xs);
+}
+
+.title {
+  overflow-wrap: anywhere;
+}
+
+.row[data-completed] .title {
+  color: var(--color-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-rule-2);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+.row[data-overdue] .due {
+  color: var(--color-error);
+  font-weight: var(--weight-medium);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

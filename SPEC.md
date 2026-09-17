@@ -255,12 +255,14 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   ├── components/              → one folder per component: Foo.tsx, Foo.module.css, Foo.test.tsx
 │   │   ├── QuickAdd/
 │   │   ├── TaskRow/
+│   │   ├── TaskList/            → open tasks, collapsed Completed section
 │   │   ├── TaskDetail/
 │   │   ├── Checkmark/
 │   │   ├── ListNav/
 │   │   └── Toast/
 │   ├── features/                → domain logic, no React
 │   │   ├── lists/ensureInbox.ts, reorderLists.ts, deleteList.ts
+│   │   ├── tasks/orderTasks.ts, formatDue.ts
 │   │   ├── quickadd/parseQuickAdd.ts
 │   │   ├── recurrence/nextOccurrence.ts
 │   │   ├── reminders/scheduler.ts
@@ -275,7 +277,7 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   │   ├── mock/                → in-memory implementations + sample seed for dev + tests
 │   │   ├── queries.ts           → react-query hooks (useTasks, useToggleTask, ...)
 │   │   └── keys.ts              → query keys
-│   ├── hooks/                   → useKeyboardShortcuts, useNotifications
+│   ├── hooks/                   → useTaskToggle (Undo and Retry toasts), useKeyboardShortcuts, useNotifications
 │   ├── styles/
 │   │   ├── tokens.css           → Hallmark token block (colours, type, space, motion)
 │   │   ├── base.css             → reset, overflow-x: clip, focus rings

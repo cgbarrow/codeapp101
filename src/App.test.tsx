@@ -38,11 +38,15 @@ describe("App", () => {
   it("shows a list from its route, with the lists in the sidebar", async () => {
     renderApp(sampleRepos(), "/list/seed-groceries");
 
-    expect(
-      await screen.findByRole("heading", { level: 1, name: "Groceries" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Groceries" })).toBeInTheDocument();
     const nav = screen.getByRole("navigation", { name: "Lists" });
     expect(await within(nav).findByRole("link", { name: /Work/ })).toBeInTheDocument();
+  });
+
+  it("shows completed tasks at /completed", async () => {
+    renderApp(sampleRepos(), "/completed");
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Completed" })).toBeInTheDocument();
   });
 
   it("sends an unknown route to the Inbox", async () => {
