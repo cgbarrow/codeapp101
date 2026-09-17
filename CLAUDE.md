@@ -22,7 +22,7 @@ Points 3 and 4 are easy to skip and are the reason documentation rots. Treat the
 ## Architecture rules
 
 - **Nothing outside `src/data/` imports from `src/generated/`.** Components use the `ListRepo` / `TaskRepo` / `SubtaskRepo` interfaces in `src/data/repo.ts`.
-- **`src/generated/` is written by the `pa` CLI. Never hand-edit it.** Regenerate with `pa app refresh data-source --name <table>`.
+- **`src/generated/` is written by the `pa` CLI. Never hand-edit it.** Regenerate with `pa app refresh data-source --name <data source>`, using the names in `power.config.json` (`todolists`, `todotasks`, `todosubtasks`).
 - **Domain types are app-shaped**, not Dataverse-shaped. `Task.dueDate` is `Date | null`, not a `cb_duedate` ISO string. Mapping lives only in `src/data/dataverse/mappers.ts`.
 - **Colours and fonts come from tokens only.** No hex, OKLCH or raw `font-family` outside `src/styles/tokens.css`. The UI follows the Hallmark skill; every interactive component ships all eight states.
 - **Dataverse schema changes go through [solution/generate.py](solution/generate.py)**, never the portal alone. Regenerate, re-import, and commit the result.
@@ -31,14 +31,15 @@ Points 3 and 4 are easy to skip and are the reason documentation rots. Treat the
 
 ```bash
 npm run dev        # Vite against the in-memory data layer, no tenant needed
-pa app run         # Power Apps local host; open the "Local Play" URL
+npm run dev:dataverse  # Vite on :3000 against real Dataverse; open the printed "Local Play" URL
+npm run dev:smoke  # as above, with the Dataverse smoke-test panel in the main pane
 npm test           # vitest run
 npm run build      # tsc -b && vite build
 ```
 
 The CLI is `pa` (npm, `@microsoft/power-apps-cli`), not `pac`. It runs on macOS. `pac code` commands no longer exist.
 
-Environment ID: `dc087386-56cb-4425-82f3-4b2dd04d62d8`. Solution: `CodeApp101`, publisher prefix `cb`.
+Environment ID: `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` (the tenant's default environment; the bare GUID is the tenant ID and the CLI cannot resolve it). Dataverse org: `https://org6e4abf07.crm.dynamics.com/`. Solution: `CodeApp101`, publisher prefix `cb`.
 
 ## Ask before
 

@@ -120,7 +120,7 @@ Sharing/assignment, attachments, comments, tags/priorities, Teams tab embedding,
 | E2E | Playwright (Chromium + WebKit mobile profile) | Runs against Vite dev server with a **mocked** service layer; Local Play requires tenant auth and is a manual smoke step |
 | Lint/format | ESLint 9 (template config) + Prettier | |
 | Data | Microsoft Dataverse | Three custom tables in solution `CodeApp101` |
-| Hosting | Power Platform environment `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` (environment ID `dc087386-56cb-4425-82f3-4b2dd04d62d8`), code apps enabled | Published via `pa app push` |
+| Hosting | Power Platform environment `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` (environment ID `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8`; `dc087386-56cb-4425-82f3-4b2dd04d62d8` alone is the tenant ID), Dataverse org `https://org6e4abf07.crm.dynamics.com/`, code apps enabled | Published via `pa app push` |
 | Repo / CI | GitHub, GitHub Actions | CI: lint + typecheck + test + build. Deploy: manual workflow_dispatch using a service principal (`pa app push --non-interactive`) — Phase 2 |
 
 ### Dataverse schema (solution `CodeApp101`, publisher prefix `cb`)
@@ -180,7 +180,7 @@ Project bootstrap (first time only):
 ```bash
 npx degit github:microsoft/PowerAppsCodeApps/templates/vite .
 npm install
-pa app init --display-name "Simple Todo" --environment-id dc087386-56cb-4425-82f3-4b2dd04d62d8
+pa app init --display-name "Simple Todo" --environment-id Default-dc087386-56cb-4425-82f3-4b2dd04d62d8
 pa app add data-source --connector dataverse --table cb_todolist
 pa app add data-source --connector dataverse --table cb_todotask
 pa app add data-source --connector dataverse --table cb_todosubtask
@@ -189,6 +189,8 @@ pa app add data-source --connector dataverse --table cb_todosubtask
 Daily development:
 ```bash
 npm run dev            # vite --mode mock: loads .env.mock (VITE_USE_MOCKS=true), in-memory sample data
+npm run dev:dataverse  # vite on :3000 against real Dataverse; the Power Apps plugin prints the Local Play URL
+npm run dev:smoke      # as dev:dataverse, with the development-only Dataverse smoke-test panel
 pa app run             # Power Apps local host; open the "Local Play" URL in the tenant browser profile
 npm run typecheck      # tsc -b --noEmit
 npm run lint           # eslint . --max-warnings 0
@@ -204,7 +206,7 @@ npm run preview        # vite preview
 
 Schema refresh after changing a table in Dataverse:
 ```bash
-pa app refresh data-source --name cb_todotask
+pa app refresh data-source --name todotasks   # data source names are in power.config.json
 ```
 
 Publish:
@@ -268,7 +270,7 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   │   ├── repoContract.ts      → behaviour suite every repo implementation must pass
 │   │   ├── createRepos.ts       → picks mock or Dataverse from VITE_USE_MOCKS
 │   │   ├── RepoProvider.tsx     → context provider; useRepos.ts reads it
-│   │   ├── dataverse/           → real implementations over src/generated
+│   │   ├── dataverse/           → mappers.ts, dataverseRepos.ts, generatedServices.ts, and a strict fake of the generated services for tests
 │   │   ├── mock/                → in-memory implementations + sample seed for dev + tests
 │   │   ├── queries.ts           → react-query hooks (useTasks, useToggleTask, ...)
 │   │   └── keys.ts              → query keys
@@ -420,7 +422,7 @@ Rules:
 
 | # | Question | Decision |
 |---|---|---|
-| Q1 | Environment | `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8`; environment ID `dc087386-56cb-4425-82f3-4b2dd04d62d8`. Code apps must be enabled there (admin center → Environment → Settings → Features). |
+| Q1 | Environment | `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` is the environment ID; `dc087386-56cb-4425-82f3-4b2dd04d62d8` is the tenant ID **(corrected 2026-09-17)**. Code apps must be enabled there (admin center → Environment → Settings → Features). |
 | Q2 | Publisher / solution | Prefix `cb`, solution `CodeApp101`. |
 | Q3 | Reminders beyond the open tab | Phase 2: Power Automate scheduled flow → **Outlook only**, built together. Not in this plan. Note: a scheduled flow runs outside the app context, so it needs Power Automate Premium for the flow owner rather than being covered by the Power Apps Per User licence. Confirm with AccelerateON before designing phase 2. |
 | Q4 | Mobile player | Not required. Responsive web only; `--app-type CodeApp` (default). |

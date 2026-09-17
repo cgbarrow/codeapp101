@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "appId": null,
+  "appDisplayName": "Simple Todo",
+  "region": "prod",
+  "appType": "CodeApp",
+  "environmentId": "Default-dc087386-56cb-4425-82f3-4b2dd04d62d8",
+  "description": " ",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "localAppUrl": "http://localhost:3000",
+  "logoPath": "Default",
+  "connectionReferences": {},
+  "databaseReferences": {
+    "default.cds": {
+      "dataSources": {
+        "todolists": {
+          "entitySetName": "cb_todolists",
+          "logicalName": "cb_todolist",
+          "isHidden": false
+        },
+        "todotasks": {
+          "entitySetName": "cb_todotasks",
+          "logicalName": "cb_todotask",
+          "isHidden": false
+        },
+        "todosubtasks": {
+          "entitySetName": "cb_todosubtasks",
+          "logicalName": "cb_todosubtask",
+          "isHidden": false
+        }
+      },
+      "environmentVariableName": ""
+    }
+  }
+}

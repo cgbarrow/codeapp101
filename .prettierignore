@@ -8,3 +8,5 @@ package-lock.json
 *.md
 .claude
 .vscode
+.power
+power.config.json

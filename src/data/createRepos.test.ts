@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createRepos } from "./createRepos";
+
+vi.mock("./dataverse/generatedServices", async () => {
+  const { createFakeDataverse } = await import("./dataverse/fakeDataverse");
+  return { generatedServices: createFakeDataverse() };
+});
 
 describe("createRepos", () => {
   it("returns seeded in-memory repositories when VITE_USE_MOCKS is true", async () => {
@@ -10,7 +15,12 @@ describe("createRepos", () => {
     expect(lists.find((list) => list.isInbox)?.name).toBe("Inbox");
   });
 
-  it("refuses to fall back to fake data when mocks are off", () => {
-    expect(() => createRepos({ VITE_USE_MOCKS: undefined })).toThrow(/Dataverse/);
+  it("returns Dataverse repositories over the generated services when mocks are off", async () => {
+    const repos = createRepos({ VITE_USE_MOCKS: undefined });
+
+    const created = await repos.lists.create({ name: "Inbox", isInbox: true });
+
+    expect(created.id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(await repos.lists.getAll()).toEqual([created]);
   });
 });

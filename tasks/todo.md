@@ -92,16 +92,18 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 
 ## Task 4: Initialise the code app and wire Dataverse
 
-**Description:** Christopher runs `pa auth login` once. Then `pa app init --display-name "Simple Todo" --environment-id dc087386-56cb-4425-82f3-4b2dd04d62d8` and `pa app add data-source --connector dataverse --table …` for the three tables. Implement `src/data/dataverse/*` over the generated services, with `mappers.ts` handling column names, ISO dates, choice ints and `@odata.bind` lookups. Always pass `select`; updates send only changed columns.
+**Description:** Christopher runs `pa auth login` once. Then `pa app init --display-name "Simple Todo" --environment-id Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` and `pa app add data-source --connector dataverse --table …` for the three tables. Implement `src/data/dataverse/*` over the generated services, with `mappers.ts` handling column names, ISO dates, choice ints and `@odata.bind` lookups. Always pass `select`; updates send only changed columns.
 
 **Acceptance criteria:**
-- [ ] `power.config.json` committed with three data sources; `src/generated/` present and untouched
-- [ ] Dataverse repo passes the shared contract test suite with generated services mocked via `vi.mock`
-- [ ] In `pa app run` Local Play: create a list, create a task in it (lookup bound), toggle it, delete it — all visible in the maker portal
+- [x] `power.config.json` committed with three data sources; `src/generated/` present and untouched
+- [x] Dataverse repo passes the shared contract test suite with generated services mocked via `vi.mock`
+- [x] In `pa app run` Local Play: create a list, create a task in it (lookup bound), toggle it, delete it — all visible in the maker portal
 
 **Verification:**
-- [ ] `npm test -- src/data/dataverse`
-- [ ] Manual Local Play check recorded in `docs/smoke.md`
+- [x] `npm test -- src/data/dataverse`
+- [x] Manual Local Play check recorded in `docs/smoke.md`
+
+**Status: DONE 2026-09-17.** Environment ID is `Default-dc087386-…` (the bare GUID is the tenant ID). Local Play check via `npm run dev:smoke`, recorded in `docs/smoke.md`.
 
 **Dependencies:** T0, T3
 **Files:** `power.config.json`, `src/generated/**` (generated), `src/data/dataverse/listRepo.ts`, `src/data/dataverse/taskRepo.ts`, `src/data/dataverse/subtaskRepo.ts`, `src/data/dataverse/mappers.ts`, `src/data/dataverse/*.test.ts`

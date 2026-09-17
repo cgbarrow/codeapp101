@@ -242,6 +242,42 @@ Note that a System Administrator already holds every privilege the custom role g
 - `eslint-plugin-react-refresh` warns when a file exports both a component and a hook, and the lint runs with `--max-warnings 0`. That is why the context and `useRepos` live in `useRepos.ts`, separate from `RepoProvider.tsx`.
 - A second guard test, `src/data/boundaries.node.test.ts`, fails if anything outside `src/data` imports from `src/generated`.
 
+### Part 2 · Initialising the code app and wiring Dataverse (draft notes)
+
+*Running notes from task 4.*
+
+- `pa auth login` opens the system browser and prints `Signed in as <account>.` when done. The CLI was not installed globally here, so every command ran as `npx @microsoft/power-apps-cli …`. `pa app init` then adds `@microsoft/power-apps-cli` to `devDependencies`, pinned to the running version, so run `npm install` afterwards to update the lockfile.
+- **The environment ID of a tenant's default environment starts with `Default-`.** The GUID shown on its own is the tenant ID. Passing it to `pa app init` failed with this error:
+
+  ```
+  Network request failed for GET https://dc08738656cb442582f34b2dd04d62.d8.environment.api.powerplatform.com/powerapps/environment?api-version=1&$filter=name eq 'dc087386-56cb-4425-82f3-4b2dd04d62d8'. DNS lookup failed - unable to resolve hostname. Details: getaddrinfo ENOTFOUND dc08738656cb442582f34b2dd04d62.d8.environment.api.powerplatform.com
+    → Check your network connection, VPN/proxy, and that the target service is reachable.
+  ```
+
+  It reads like a network problem, but it isn't one: the CLI builds the hostname from the ID, and only `default<guid>…` exists. `pa app init --environment-id Default-dc087386-…` worked. Nothing is written when init fails.
+- `pa app init` only writes `power.config.json`, with `"appId": null`. Nothing appears in the environment until `pa app push`. It sets `localAppUrl` to `http://localhost:3000`.
+- `pa app add data-source --connector dataverse --table cb_todolist` prompts `Please provide the organization URL:` for every table. The URL is **make.powerapps.com → Settings → Session details → Instance url**, or `--org-url` on the command. Each run printed `Data source added successfully.`
+- The data sources are named after the entity set without the prefix: `todolists`, `todotasks`, `todosubtasks`. `pa app refresh data-source --name` takes those names, not the table's logical name.
+- Generated output: `src/generated/models/Cb_todotasksModel.ts`, `src/generated/services/Cb_todotasksService.ts` and so on, plus `.power/schemas/`. The generated services import `.power/schemas/appschemas/dataSourcesInfo.ts`, so **commit `.power/` along with `src/generated/`**, and exclude both from ESLint and Prettier.
+- What the generated models show:
+  - Lookups are written through keys named after the **relationship**, for example `"cb_todolist_cb_todotask_list@odata.bind": "/cb_todolists(<guid>)"`.
+  - Lookups are read back as `_cb_list_value`.
+  - Choice columns are typed as their integer values (`100000002`).
+  - `statecode` is required on create.
+  - Dates are ISO strings.
+- Service calls return `IOperationResult` (`success`, `data`, `error`, `skipToken`) instead of throwing on failure. The repositories check `success` and throw `error`, and follow `skipToken` until every page is read. The generated `delete` returns `void` and discards the result, so a delete that reports failure without rejecting is not detected.
+- The generated update type allows `undefined` but not `null`. Dataverse clears a column when it is sent `null`, so the repository casts at that one call.
+- The repositories read a record back with an explicit `select` after every create and update. That guarantees the lookup columns are present, whatever the create response contains; the cost is one extra request per write.
+- IDs are checked against a GUID pattern before they go into a filter or a bind path, so an ID can never change an OData query.
+- The Dataverse repositories run the same contract suite as the mock, against an in-memory fake of the generated services. The fake is strict:
+  - reads without `select` fail;
+  - unknown filter shapes fail;
+  - lookups must be bound;
+  - deletes cascade the way the solution's relationships do.
+- **Local Play does not need `pa app run`.** The `@microsoft/power-apps-vite` plugin serves `power.config.json` from the Vite dev server and prints the URL itself: `➜  Local Play:   https://apps.powerapps.com/play/e/<environment>/a/local?_localAppUrl=…`. `npm run dev:dataverse` runs `vite --port 3000 --strictPort`, which matches `localAppUrl`.
+- Vite watches the project root, so a coverage run restarted the dev server dozens of times. `server.watch.ignored` now excludes `coverage/`, `playwright-report/` and `test-results/`.
+- The list and task UI arrives later, so task 4 was verified with a development-only smoke panel (`npm run dev:smoke`, which loads `.env.smoke`). It creates a list, creates a task in it, completes the task, then deletes both. All five steps passed against the environment; see `docs/smoke.md`. Dataverse stored the completion time without its milliseconds.
+
 ---
 
 ## Verify

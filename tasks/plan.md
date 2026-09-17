@@ -4,7 +4,7 @@ Spec: [`SPEC.md`](../SPEC.md). Task checklist: [`todo.md`](todo.md).
 
 ## Overview
 
-Build a personal todo app as a Power Apps code app (React 19 + TypeScript + Vite) backed by three custom Dataverse tables in the `CodeApp101` solution, styled by Hallmark, and published to environment `dc087386-56cb-4425-82f3-4b2dd04d62d8` with the npm `pa` CLI. Work is sliced vertically: each task after the foundation delivers one user-visible capability end to end (domain logic → data layer → UI → tests).
+Build a personal todo app as a Power Apps code app (React 19 + TypeScript + Vite) backed by three custom Dataverse tables in the `CodeApp101` solution, styled by Hallmark, and published to environment `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` with the npm `pa` CLI. Work is sliced vertically: each task after the foundation delivers one user-visible capability end to end (domain logic → data layer → UI → tests).
 
 ## Architecture decisions
 

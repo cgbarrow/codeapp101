@@ -21,6 +21,7 @@ export default defineConfig({
         "src/vite-env.d.ts",
         "src/data/repo.ts",
         "src/data/repoContract.ts",
+        "src/data/dataverse/fakeDataverse.ts",
         "**/*.test.{ts,tsx}",
       ],
       thresholds: {

@@ -1,6 +1,6 @@
 # Dataverse setup for CodeApp101
 
-Environment: **Default-dc087386-56cb-4425-82f3-4b2dd04d62d8** (environment ID `dc087386-56cb-4425-82f3-4b2dd04d62d8`).
+Environment: **Default-dc087386-56cb-4425-82f3-4b2dd04d62d8** (environment ID `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8`; the bare GUID is the tenant ID).
 Solution: **CodeApp101**, publisher prefix **cb**. Schema source of truth: [`solution/generate.py`](../solution/generate.py).
 
 Two paths. Try Path A first; it takes about two minutes. Fall back to Path B only if the import is rejected.

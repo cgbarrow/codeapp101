@@ -47,7 +47,10 @@ docs/                    how-to article, setup runbook, design notes, ADRs
 src/                     application code; src/test/ holds the Vitest setup
 src/styles/              design tokens (the only place colours and fonts are defined), reset, fonts
 src/components/          one folder per component, with its CSS module and test
-src/data/                domain types, repository interfaces, in-memory repos, TanStack Query hooks
+src/data/                domain types, repository interfaces, in-memory and Dataverse repos, TanStack Query hooks
+src/generated/           written by the pa CLI from the Dataverse tables; never edited by hand
+.power/                  table schemas the generated services import; also CLI-owned
+power.config.json        code app configuration: environment and data sources
 docs/design/             theme choice and shell screenshots at six widths
 e2e/                     Playwright specs
 .github/workflows/ci.yml lint, typecheck, test and build on every pull request
@@ -60,7 +63,7 @@ npm install
 npm run dev
 ```
 
-That starts Vite in `mock` mode, which loads `.env.mock` and runs against in-memory sample data, so it needs no tenant access. Until task 4 initialises the code app, the dev server prints a harmless warning about a missing `power.config.json`, and a build without mocks stops at startup with an error saying the Dataverse repositories are not wired yet.
+That starts Vite in `mock` mode, which loads `.env.mock` and runs against in-memory sample data, so it needs no tenant access.
 
 Checks, all of which must pass before a commit:
 
@@ -88,14 +91,14 @@ To refresh the shell screenshots in `docs/design/`:
 
 ```bash
 SHELL_SCREENSHOTS=1 npx playwright test e2e/shell.spec.ts --project desktop-chromium
-``` To run against the real environment instead:
+``` To run against the real environment instead, sign in once, then start Vite without mocks:
 
 ```bash
-pa auth login
-pa app run
+npx pa auth login
+npm run dev:dataverse
 ```
 
-Then open the URL labelled **Local Play**, in the same browser profile you use for the tenant.
+Open the URL labelled **Local Play** in the same browser profile you use for the tenant. `npm run dev:smoke` does the same, with a panel that creates, completes and deletes a test list and task; see [`docs/smoke.md`](docs/smoke.md).
 
 Prerequisites, permissions and the governance controls that apply in a corporate tenant are covered in the [how-to article](docs/how-to-build-a-power-apps-code-app.md).
 
@@ -106,7 +109,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks against in-memory data (task 3). Next up is task 4, wiring Dataverse |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4). Next up is task 5, lists |
 | Documentation | Part 1 of 4 published |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.
