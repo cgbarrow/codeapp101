@@ -417,7 +417,7 @@ Rules:
 |---|---|---|
 | Q1 | Environment | `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8`; environment ID `dc087386-56cb-4425-82f3-4b2dd04d62d8`. Code apps must be enabled there (admin center → Environment → Settings → Features). |
 | Q2 | Publisher / solution | Prefix `cb`, solution `CodeApp101`. |
-| Q3 | Reminders beyond the open tab | Phase 2: Power Automate scheduled flow → **Outlook only**, built together. Not in this plan. |
+| Q3 | Reminders beyond the open tab | Phase 2: Power Automate scheduled flow → **Outlook only**, built together. Not in this plan. Note: a scheduled flow runs outside the app context, so it needs Power Automate Premium for the flow owner rather than being covered by the Power Apps Per User licence. Confirm with AccelerateON before designing phase 2. |
 | Q4 | Mobile player | Not required. Responsive web only; `--app-type CodeApp` (default). |
 | Q5 | Hallmark theme | Hallmark picks from its catalog; choice recorded in `docs/design/`. |
 | Q6 | Schema in Git | Generated solution package (`solution/generate.py` → zip). Manual steps as fallback. |
