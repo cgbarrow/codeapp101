@@ -1,2 +1,23 @@
 .DS_Store
 .vscode/
+
+# Dependencies and build output
+node_modules
+dist
+dist-ssr
+*.local
+
+# Test output
+coverage
+playwright-report
+test-results
+blob-report
+playwright/.cache
+
+# Logs
+*.log
+
+# Environment and auth (never commit)
+.env
+.env.*
+!.env.example

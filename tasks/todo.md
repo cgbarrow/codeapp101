@@ -32,13 +32,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Bootstrap from `github:microsoft/PowerAppsCodeApps/templates/vite` into the repo root, then add Prettier, Vitest + RTL + user-event + jsdom, Playwright, `@/` path alias, npm scripts from SPEC §3, `.gitignore` additions, and the CI workflow (lint, typecheck, test, build).
 
 **Acceptance criteria:**
-- [ ] `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` all pass on a clean checkout
-- [ ] A trivial component test and a trivial Playwright smoke test run green locally
-- [ ] `.github/workflows/ci.yml` runs the same four commands on pull requests
+- [x] `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` all pass on a clean checkout
+- [x] A trivial component test and a trivial Playwright smoke test run green locally
+- [x] `.github/workflows/ci.yml` runs the same four commands on pull requests
 
 **Verification:**
-- [ ] `npm run lint && npm run typecheck && npm test && npm run build`
-- [ ] `npx playwright test e2e/smoke.spec.ts`
+- [x] `npm run lint && npm run typecheck && npm test && npm run build`
+- [x] `npx playwright test e2e/smoke.spec.ts`
+
+**Status: DONE 2026-09-17.**
 
 **Dependencies:** None
 **Files:** `package.json`, `vite.config.ts`, `vitest.config.ts`, `playwright.config.ts`, `tsconfig*.json`, `.prettierrc`, `.github/workflows/ci.yml`, `src/test/setup.ts`, `e2e/smoke.spec.ts`

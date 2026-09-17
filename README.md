@@ -2,7 +2,7 @@
 
 A personal task app built as a **Power Apps code app**: an ordinary React single-page application that runs inside a Microsoft Power Platform environment, stores its data in Dataverse, and inherits Entra authentication and tenant governance without building any of it.
 
-> **Status: planning complete, build not started.** The specification, implementation plan and Dataverse schema are done, and the schema is deployed. No application code exists yet. See [Current status](#current-status).
+> **Status: build started.** The specification, plan and Dataverse schema are done and the schema is deployed. The project scaffold, test tooling and CI are in place; no features exist yet. See [Current status](#current-status).
 
 ## What it does
 
@@ -44,20 +44,35 @@ tasks/todo.md            17 tasks with acceptance criteria and verification step
 solution/generate.py     Dataverse schema of record; emits the solution package
 solution/src/            generated solution XML
 docs/                    how-to article, setup runbook, design notes, ADRs
-src/                     application code (not yet created)
-e2e/                     Playwright specs (not yet created)
+src/                     application code; src/test/ holds the Vitest setup
+e2e/                     Playwright specs
+.github/workflows/ci.yml lint, typecheck, test and build on every pull request
 ```
 
 ## Getting started
-
-Nothing to run yet. Once the scaffold lands in task 1:
 
 ```bash
 npm install
 npm run dev
 ```
 
-That starts Vite against the in-memory data layer, which needs no tenant access. To run against the real environment instead:
+That starts Vite locally and needs no tenant access. From task 3 onwards it runs against the in-memory data layer. Until task 4 initialises the code app, the dev server prints a harmless warning about a missing `power.config.json`.
+
+Checks, all of which must pass before a commit:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+End-to-end tests need the Playwright browsers once:
+
+```bash
+npx playwright install chromium webkit
+npm run e2e
+``` To run against the real environment instead:
 
 ```bash
 pa auth login
@@ -75,7 +90,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Not started, next up is task 1 |
+| Application code | Scaffold, test tooling and CI done (task 1); next up is task 2, the design foundation |
 | Documentation | Part 1 of 4 published |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

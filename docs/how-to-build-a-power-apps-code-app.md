@@ -195,6 +195,27 @@ Importing the role does not assign it. In the admin center, open the environment
 
 Note that a System Administrator already holds every privilege the custom role grants, so assigning it to yourself changes nothing functionally. It matters for verifying that a user with *only* the app's role can run the finished app, which is the honest test of whether your role definition is complete.
 
+### Part 2 · Scaffolding the project (draft notes)
+
+*Running notes from task 1. Task 17 turns these into finished prose.*
+
+- `npx degit github:microsoft/PowerAppsCodeApps/templates/vite .` refuses to write into a non-empty directory. The repo already held the spec and docs, so the template went into a scratch folder and only these files were copied: `index.html`, `package.json`, `tsconfig*.json`, `eslint.config.js`, `vite.config.ts`, `src/main.tsx`, `public/vite.svg`. The template's `README.md`, `.gitignore`, demo `App.tsx`, CSS and `src/assets` were left behind.
+- The template's `index.css` and `App.css` contain raw colour values. They were dropped rather than kept, because the design tokens arrive in task 2 and no colour may live outside `tokens.css`.
+- `npm install` in September 2026 resolved React 19.3, Vite 7.3, `@microsoft/power-apps` 1.4.0 and `@microsoft/power-apps-vite` 1.0.13, newer than the template's ranges.
+- Test tooling added as dev dependencies: `vitest`, `@vitest/coverage-v8`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `@playwright/test`, `prettier`, `eslint-config-prettier`.
+- Vitest has its own `vitest.config.ts` without the `powerApps()` plugin. Tests do not need the Power Apps host bootstrap.
+- The `@/` alias has to be declared twice: in `resolve.alias` for Vite and Vitest, and in `paths` in `tsconfig.app.json` for the type checker.
+- Playwright browsers are a separate download: `npx playwright install chromium webkit`, about 250 MB. The config runs two projects, desktop Chromium and iPhone 13 WebKit, and starts the Vite dev server itself on port 5174 with `VITE_USE_MOCKS=true`.
+- Until `pa app init` runs in task 4, every `npm run dev` prints this, and it is harmless:
+
+  ```
+  [powerApps] Error loading power.config.json:
+  ⤷Missing file. Ensure you have run 'pac code init' first.
+  ```
+
+  The message still says `pac code init`, although that command no longer exists. The replacement is `pa app init`.
+- CI (`.github/workflows/ci.yml`) runs `npm ci`, lint, typecheck, test and build on Node 24 for every pull request and push to `main`. Playwright is not in CI yet.
+
 ---
 
 ## Verify
