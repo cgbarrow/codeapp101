@@ -8,7 +8,10 @@ import {
   useCreateTask,
   useDeleteList,
   useDeleteTask,
+  useInbox,
   useLists,
+  useTaskCounts,
+  useReorderLists,
   useTasks,
   useTodayTasks,
   useToggleTask,
@@ -362,7 +365,7 @@ describe("list mutations", () => {
     }));
     await waitFor(() => expect(result.current.tasks.data).toHaveLength(1));
 
-    act(() => result.current.remove.mutate("seed-groceries"));
+    act(() => result.current.remove.mutate({ id: "seed-groceries", moveTasksTo: null }));
 
     await waitFor(() => expect(result.current.remove.isSuccess).toBe(true));
     await waitFor(() => {
@@ -378,9 +381,128 @@ describe("list mutations", () => {
     const { result } = renderWithRepos(() => ({ lists: useLists(), remove: useDeleteList() }));
     await waitFor(() => expect(result.current.lists.isSuccess).toBe(true));
 
-    act(() => result.current.remove.mutate("seed-groceries"));
+    act(() => result.current.remove.mutate({ id: "seed-groceries", moveTasksTo: null }));
 
     await waitFor(() => expect(result.current.remove.isError).toBe(true));
     expect(result.current.lists.data?.map((list) => list.id)).toContain("seed-groceries");
+  });
+});
+
+describe("list deletion with a move", () => {
+  it("moves the tasks to the Inbox and deletes the list", async () => {
+    const { result } = renderWithRepos(() => ({
+      lists: useLists(),
+      inbox: useTasks("seed-inbox"),
+      remove: useDeleteList(),
+    }));
+    await waitFor(() => expect(result.current.inbox.data).toHaveLength(1));
+
+    act(() => result.current.remove.mutate({ id: "seed-work", moveTasksTo: "seed-inbox" }));
+
+    await waitFor(() => expect(result.current.remove.isSuccess).toBe(true));
+    await waitFor(() => {
+      expect(result.current.lists.data?.map((list) => list.id)).not.toContain("seed-work");
+      expect(result.current.inbox.data).toHaveLength(4);
+    });
+  });
+});
+
+describe("useInbox", () => {
+  it("creates the Inbox once for a user with no lists, even with two consumers", async () => {
+    repos = createMockRepos({ latencyMs: 5 });
+    const { result } = renderWithRepos(() => ({
+      first: useInbox(),
+      second: useInbox(),
+      lists: useLists(),
+    }));
+
+    await waitFor(() => expect(result.current.lists.data).toHaveLength(1));
+
+    expect(result.current.first.data?.name).toBe("Inbox");
+    expect(await repos.lists.getAll()).toHaveLength(1);
+  });
+
+  it("returns the existing Inbox", async () => {
+    const { result } = renderWithRepos(() => useInbox());
+
+    await waitFor(() => expect(result.current.data?.id).toBe("seed-inbox"));
+  });
+});
+
+describe("useTaskCounts", () => {
+  it("counts open and total tasks per list", async () => {
+    const { result } = renderWithRepos(() =>
+      useTaskCounts(["seed-inbox", "seed-work", "seed-personal", "seed-groceries"]),
+    );
+
+    await waitFor(() =>
+      expect(result.current).toEqual({
+        "seed-inbox": { open: 1, total: 1 },
+        "seed-work": { open: 2, total: 3 },
+        "seed-personal": { open: 2, total: 2 },
+        "seed-groceries": { open: 1, total: 1 },
+      }),
+    );
+  });
+
+  it("leaves a list out until its tasks have loaded", () => {
+    const { result } = renderWithRepos(() => useTaskCounts(["seed-work"]));
+
+    expect(result.current).toEqual({});
+  });
+});
+
+describe("useReorderLists", () => {
+  it("shows the new order immediately and persists it", async () => {
+    const gate = deferred();
+    const update = repos.lists.update;
+    repos.lists.update = async (id, patch) => {
+      await gate.promise;
+      return update(id, patch);
+    };
+    const { result } = renderWithRepos(() => ({ lists: useLists(), reorder: useReorderLists() }));
+    await waitFor(() => expect(result.current.lists.isSuccess).toBe(true));
+
+    act(() =>
+      result.current.reorder.mutate([
+        { id: "seed-work", sortOrder: 2 },
+        { id: "seed-personal", sortOrder: 1 },
+      ]),
+    );
+
+    await waitFor(() =>
+      expect(result.current.lists.data?.map((list) => list.name)).toEqual([
+        "Inbox",
+        "Personal",
+        "Work",
+        "Groceries",
+      ]),
+    );
+    gate.resolve();
+    await waitFor(() => expect(result.current.reorder.isSuccess).toBe(true));
+    expect((await repos.lists.getAll()).map((list) => list.name)).toEqual([
+      "Inbox",
+      "Personal",
+      "Work",
+      "Groceries",
+    ]);
+  });
+
+  it("restores the previous order if saving fails", async () => {
+    repos.lists.update = async () => {
+      throw new Error("Network down");
+    };
+    const { result } = renderWithRepos(() => ({ lists: useLists(), reorder: useReorderLists() }));
+    await waitFor(() => expect(result.current.lists.isSuccess).toBe(true));
+
+    act(() => result.current.reorder.mutate([{ id: "seed-groceries", sortOrder: 0 }]));
+
+    await waitFor(() => expect(result.current.reorder.isError).toBe(true));
+    expect(result.current.lists.data?.map((list) => list.name)).toEqual([
+      "Inbox",
+      "Work",
+      "Personal",
+      "Groceries",
+    ]);
   });
 });

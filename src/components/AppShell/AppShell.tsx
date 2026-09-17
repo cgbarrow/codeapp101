@@ -62,7 +62,15 @@ export function AppShell({ sidebar, children }: AppShellProps) {
             Close lists
           </button>
         </div>
-        <div className={styles.sidebarBody}>{sidebar}</div>
+        {/* Following a link inside the sheet navigates, so the sheet gets out of the way. */}
+        <div
+          className={styles.sidebarBody}
+          onClick={(event) => {
+            if ((event.target as Element).closest("a[href]")) setSheetOpen(false);
+          }}
+        >
+          {sidebar}
+        </div>
       </nav>
 
       <main className={styles.main}>{children}</main>

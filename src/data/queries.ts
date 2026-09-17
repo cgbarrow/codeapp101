@@ -1,10 +1,14 @@
 import {
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
   type QueryClient,
   type QueryKey,
 } from "@tanstack/react-query";
+import { deleteList, type DeleteListOptions } from "@/features/lists/deleteList";
+import { ensureInbox } from "@/features/lists/ensureInbox";
+import type { SortOrderChange } from "@/features/lists/reorderLists";
 import { definedOnly, listDefaults, taskDefaults } from "./defaults";
 import { queryKeys } from "./keys";
 import type { List, ListPatch, NewList, NewTask, Task, TaskPatch } from "./repo";
@@ -49,6 +53,52 @@ function listIdOfTaskCache(key: QueryKey): string | null {
 export function useLists() {
   const { lists } = useRepos();
   return useQuery({ queryKey: queryKeys.lists, queryFn: () => lists.getAll() });
+}
+
+/**
+ * The user's Inbox, created on first run if they have none. Every consumer shares one query, and
+ * `ensureInbox` shares one attempt per repository, so the Inbox is created at most once.
+ */
+export function useInbox() {
+  const repos = useRepos();
+  const queryClient = useQueryClient();
+  return useQuery({
+    queryKey: queryKeys.inbox,
+    queryFn: async () => {
+      const inbox = await ensureInbox(repos.lists);
+      const cached = queryClient.getQueryData<List[]>(queryKeys.lists);
+      if (cached && !cached.some((list) => list.id === inbox.id)) {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.lists });
+      }
+      return inbox;
+    },
+    staleTime: Infinity,
+  });
+}
+
+export type TaskCount = { open: number; total: number };
+
+/** Open and total task counts keyed by list id. A list is absent until its tasks have loaded. */
+export function useTaskCounts(listIds: readonly string[]): Record<string, TaskCount> {
+  const { tasks } = useRepos();
+  return useQueries({
+    queries: listIds.map((listId) => ({
+      queryKey: queryKeys.tasksByList(listId),
+      queryFn: () => tasks.getByList(listId),
+    })),
+    combine: (results) => {
+      const counts: Record<string, TaskCount> = {};
+      results.forEach((result, index) => {
+        if (result.data) {
+          counts[listIds[index]] = {
+            open: result.data.filter((task) => !task.isCompleted).length,
+            total: result.data.length,
+          };
+        }
+      });
+      return counts;
+    },
+  });
 }
 
 export function useTasks(listId: string) {
@@ -222,22 +272,50 @@ export function useUpdateList() {
   });
 }
 
+export type DeleteListInput = { id: string } & DeleteListOptions;
+
+/** Deletes a list, first moving its tasks to `moveTasksTo` unless that is `null`. */
 export function useDeleteList() {
-  const { lists } = useRepos();
+  const repos = useRepos();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => lists.delete(id),
-    onMutate: async (id) => ({
+    mutationFn: ({ id, moveTasksTo }: DeleteListInput) => deleteList(repos, id, { moveTasksTo }),
+    onMutate: async ({ id }) => ({
       snapshot: await rewriteCaches<List[]>(queryClient, queryKeys.lists, (data) =>
         data.filter((list) => list.id !== id),
       ),
     }),
-    onError: (_error, _id, context) => restoreCaches(queryClient, context?.snapshot),
+    onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
     onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.lists }),
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
       ]),
+  });
+}
+
+/** Saves new sort orders for several lists at once, showing the new order immediately. */
+export function useReorderLists() {
+  const { lists } = useRepos();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (changes: SortOrderChange[]) =>
+      Promise.all(changes.map(({ id, sortOrder }) => lists.update(id, { sortOrder }))),
+    onMutate: async (changes) => {
+      const sortOrders = new Map(changes.map(({ id, sortOrder }) => [id, sortOrder]));
+      return {
+        snapshot: await rewriteCaches<List[]>(queryClient, queryKeys.lists, (data) =>
+          data
+            .map((list) =>
+              sortOrders.has(list.id) ? { ...list, sortOrder: sortOrders.get(list.id)! } : list,
+            )
+            .sort(bySortOrder),
+        ),
+      };
+    },
+    onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.lists }),
   });
 }

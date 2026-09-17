@@ -123,13 +123,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Sidebar list navigation with open-task counts, create/rename inline, archive, reorder (drag on desktop, up/down buttons on mobile), and delete with the "move tasks to Inbox or delete" choice. Inbox is created on first run if the user has none and cannot be deleted. Routes `/list/:id`.
 
 **Acceptance criteria:**
-- [ ] First load with zero lists creates "Inbox" exactly once (idempotent under React StrictMode double effects)
-- [ ] Deleting a non-empty list prompts; "Move to Inbox" reparents tasks before deleting the list
-- [ ] Keys `1`–`9` switch lists; `ListNav` ships all 8 interactive states
+- [x] First load with zero lists creates "Inbox" exactly once (idempotent under React StrictMode double effects)
+- [x] Deleting a non-empty list prompts; "Move to Inbox" reparents tasks before deleting the list
+- [x] Keys `1`–`9` switch lists; `ListNav` ships all 8 interactive states
 
 **Verification:**
-- [ ] `npm test -- ListNav`
-- [ ] Manual at 375 px: sidebar becomes a bottom sheet, reorder works with buttons
+- [x] `npm test -- ListNav`
+- [x] Manual at 375 px: sidebar becomes a bottom sheet, reorder works with buttons
+
+**Status: DONE 2026-09-17.** React Router 7 with `<HashRouter>` (SPEC §2 amended). Manual check in `npm run dev`: bottom sheet and up/down reorder at 375 px, delete with "Move to Inbox" on desktop. Drag reorder covered by component test only; scripted browser drags do not fire native drag events.
 
 **Dependencies:** T3, T2
 **Files:** `src/components/ListNav/*`, `src/routes/ListRoute.tsx`, `src/features/lists/ensureInbox.ts`, `src/data/queries.ts`

@@ -1,0 +1,30 @@
+.route {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-width: var(--size-measure);
+}
+
+.note {
+  color: var(--color-muted);
+}
+
+.link {
+  align-self: flex-start;
+  color: var(--color-accent-text);
+  font-weight: var(--weight-medium);
+  text-underline-offset: 0.2em;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.headingSkeleton {
+  width: min(12rem, 60%);
+  height: var(--text-2xl);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-3);
+}

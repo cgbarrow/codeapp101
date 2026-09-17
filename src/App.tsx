@@ -1,5 +1,9 @@
 import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes } from "react-router";
 import { AppShell } from "@/components/AppShell/AppShell";
+import { ListNav } from "@/components/ListNav/ListNav";
+import { useInbox } from "@/data/queries";
+import { ListRoute } from "@/routes/ListRoute";
 
 const DataverseSmoke = lazy(() =>
   import("@/components/DataverseSmoke/DataverseSmoke").then((module) => ({
@@ -16,14 +20,25 @@ type AppProps = {
 
 export function App({ smoke = smokeEnabled }: AppProps) {
   return (
-    <AppShell sidebar={null}>
+    <AppShell sidebar={<ListNav />}>
       {smoke ? (
         <Suspense fallback={null}>
           <DataverseSmoke />
         </Suspense>
       ) : (
-        <h1>Simple Todo</h1>
+        <Routes>
+          <Route path="/list/:id" element={<ListRoute />} />
+          <Route path="*" element={<InboxRedirect />} />
+        </Routes>
       )}
     </AppShell>
   );
+}
+
+/** Lands on the Inbox until the Today view becomes the default in task 10. */
+function InboxRedirect() {
+  const inbox = useInbox();
+  if (inbox.data) return <Navigate to={`/list/${inbox.data.id}`} replace />;
+  if (inbox.isError) return <p role="alert">Your Inbox didn't load. Reload the app to try again.</p>;
+  return null;
 }

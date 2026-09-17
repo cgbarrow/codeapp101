@@ -426,6 +426,19 @@ At this stage there is no list or task UI to click; that arrives in Part 3. So t
 
 All five passed on the first run. The logged task ID was reported back in the correct list, which confirmed the bind key and the lookup read in one step. The one surprise: Dataverse stored the completion time to the second. The app sent a timestamp with milliseconds, and it read back as `2026-09-17T12:45:11.000Z`. Nothing in this app depends on milliseconds, but a sort that does would need to know. The full record is in [`docs/smoke.md`](smoke.md).
 
+### Part 3 · Features
+
+> **Build notes, to be written up in task 17.**
+
+#### Task 5 notes: lists
+
+- **Hash routing, not browser routing.** `react-router` v7 in declarative mode, with `<HashRouter>` in `main.tsx`. A published code app is served from a fixed file URL inside the Power Apps player, and nothing rewrites `/list/abc` back to `index.html`, so a reload on a path URL would 404. Hash URLs (`#/list/abc`) never reach the server. `App` takes no router of its own, so tests wrap it in `<MemoryRouter>`.
+- **Creating the Inbox exactly once.** React StrictMode runs effects twice in development, and two users of the Inbox can mount at the same time. `ensureInbox(repo)` in `src/features/lists/ensureInbox.ts` keeps the in-flight promise in a `WeakMap` keyed by repository, so concurrent calls share one `getAll` and one `create`. The entry is removed when the promise settles, so a failed attempt can be retried. `useInbox()` wraps it in a single TanStack Query with `staleTime: Infinity`. Across page loads, Dataverse is the guard: the next load finds the Inbox and creates nothing.
+- **Deleting a list without losing tasks.** Dataverse cascades the delete to the tasks (Part 1), so "Move to Inbox" has to reparent every task first. `deleteList` moves them one at a time and deletes the list only after every move succeeds. If a move fails, the list survives and nothing is lost; any tasks already moved are safely in the Inbox.
+- **Open-task counts reuse the per-list task caches** through `useQueries`, one query per list, rather than a new repository method. Later task mutations update the counts with no extra work. The cost is one request per list on first load, which is fine at personal-list scale.
+- **Reordering writes only what changed.** `reorderLists` renumbers the visible lists 0, 1, 2… and returns only the lists whose `sortOrder` moved, so dragging one list past its neighbour sends two `PATCH` requests, not one per list.
+- **Automated browsers do not fire native drag and drop.** A scripted mouse drag in Chromium DevTools or Playwright does not produce HTML5 `dragstart`/`drop` events. The component test drives the drop with `fireEvent.dragStart`/`dragOver`/`drop`, and the up/down buttons in edit mode give keyboard and touch users the same result.
+
 ---
 
 ## Verify
@@ -608,6 +621,10 @@ The first version of the font-family check, `/font-family:\s*(?!var\()/`, report
 
 **Fix.** Add the report folders to `server.watch.ignored` in `vite.config.ts`: `coverage/`, `playwright-report/` and `test-results/`.
 
+### Lint fails with `Avoid calling setState() directly within an effect`
+
+`eslint-plugin-react-hooks` 7 adds the `react-hooks/set-state-in-effect` rule. It flagged an effect that moved focus to a control and then cleared a "pending focus" state variable. Hold the pending target in a `useRef` instead and read it in an effect that runs after every render. The actions that request focus already change other state, so a render always follows.
+
 ### The `pa` command is not found on macOS
 
 You are probably thinking of `pac`, which does need an MSI on Windows or the Visual Studio Code extension elsewhere. The code apps CLI is `pa`, an npm package, and installs the same way on every platform:
@@ -678,4 +695,4 @@ Code apps do not run in the Power Apps mobile player, so mobile means a mobile b
 
 ---
 
-*Parts 3 and 4 will be appended as the build progresses. Next up: the feature build, starting with lists in the sidebar, then tasks, fast capture with natural-language dates, and the Today view.*
+*Part 3 is in progress as build notes. Next up: tasks and the checkmark, fast capture with natural-language dates, and the Today view.*

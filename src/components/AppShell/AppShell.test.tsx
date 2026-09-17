@@ -5,7 +5,15 @@ import { AppShell } from "./AppShell";
 
 function renderShell() {
   return render(
-    <AppShell sidebar={<p>Sidebar content</p>}>
+    <AppShell
+      sidebar={
+        <>
+          <p>Sidebar content</p>
+          <a href="#/list/work">Work</a>
+          <button type="button">Edit lists</button>
+        </>
+      }
+    >
       <h1>Main content</h1>
     </AppShell>,
   );
@@ -91,5 +99,25 @@ describe("AppShell", () => {
     await user.keyboard("{Escape}");
 
     expect(screen.getByRole("button", { name: "Lists" })).not.toHaveFocus();
+  });
+
+  it("closes the sheet when a link inside it is followed", async () => {
+    const user = userEvent.setup();
+    renderShell();
+
+    await user.click(screen.getByRole("button", { name: "Lists" }));
+    await user.click(screen.getByRole("link", { name: "Work" }));
+
+    expect(screen.getByRole("button", { name: "Lists" })).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("keeps the sheet open when another control inside it is used", async () => {
+    const user = userEvent.setup();
+    renderShell();
+
+    await user.click(screen.getByRole("button", { name: "Lists" }));
+    await user.click(screen.getByRole("button", { name: "Edit lists" }));
+
+    expect(screen.getByRole("button", { name: "Lists" })).toHaveAttribute("aria-expanded", "true");
   });
 });

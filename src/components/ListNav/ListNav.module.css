@@ -1,0 +1,356 @@
+/* Hallmark · component: list navigation · genre: modern-minimal · theme: Coral
+ * states (.item, .button, .iconButton): default · hover · focus · active · disabled · loading · error · success
+ * current list: aria-current="page" (coral rule + ink weight). Drag reorder on pointer devices,
+ * up/down buttons in edit mode everywhere.
+ */
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.lists {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  padding: 0;
+  list-style: none;
+}
+
+/* ---- Row ---- */
+
+.row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  border-radius: var(--radius-md);
+  transition: background-color var(--dur-short) var(--ease-out);
+}
+
+.row[data-dragging] {
+  opacity: 0.5;
+}
+
+.row[data-drop-target]::before {
+  content: "";
+  position: absolute;
+  inset-inline: var(--space-xs);
+  top: calc(var(--space-3xs) * -1);
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.row[data-state="error"] {
+  background: var(--color-error-surface);
+}
+
+.row[data-state="success"] {
+  background: var(--color-success-surface);
+}
+
+/* ---- Item: the list link, all eight states ---- */
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--size-target);
+  padding-inline: var(--space-sm);
+  border-radius: var(--radius-md);
+  color: var(--color-ink-2);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .item:hover,
+  .item:global(.is-hover) {
+    background: var(--color-paper-3);
+    color: var(--color-ink);
+  }
+}
+
+.item:focus-visible,
+.item:global(.is-focus) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.item:active,
+.item:global(.is-active) {
+  transform: translateY(1px);
+  background: var(--color-paper-3);
+}
+
+.item[aria-current="page"] {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-weight: var(--weight-bold);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.item[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.item[data-state="loading"] {
+  cursor: progress;
+  color: var(--color-muted);
+}
+
+.row[data-state="error"] .item {
+  color: var(--color-error);
+}
+
+.row[data-state="success"] .item {
+  color: var(--color-success);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.item[aria-current="page"] .count {
+  color: var(--color-accent-text);
+}
+
+.skeleton {
+  height: var(--size-target);
+  border-radius: var(--radius-md);
+  background: var(--color-paper-3);
+  animation: pulse 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ---- Edit mode actions ---- */
+
+/* Five 44px targets fit the 17rem rail with no gap; the sheet on mobile is wider. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: var(--space-2xs);
+}
+
+/* ---- Buttons, all eight states ---- */
+
+.button,
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  min-height: var(--size-target);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+.button {
+  padding-inline: var(--space-md);
+}
+
+.iconButton {
+  min-width: var(--size-target);
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-ink-2);
+}
+
+@media (hover: hover) {
+  .button:hover,
+  .button:global(.is-hover),
+  .iconButton:hover,
+  .iconButton:global(.is-hover) {
+    background: var(--color-paper-3);
+    color: var(--color-ink);
+  }
+}
+
+.button:focus-visible,
+.button:global(.is-focus),
+.iconButton:focus-visible,
+.iconButton:global(.is-focus) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.button:active,
+.button:global(.is-active),
+.iconButton:active,
+.iconButton:global(.is-active) {
+  transform: translateY(1px);
+  background: var(--color-paper-3);
+}
+
+.button:disabled,
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: transparent;
+}
+
+.button[data-state="loading"],
+.iconButton[data-state="loading"] {
+  cursor: progress;
+  color: var(--color-muted);
+}
+
+.button[data-state="error"],
+.iconButton[data-state="error"] {
+  border-color: var(--color-error);
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+.button[data-state="success"],
+.iconButton[data-state="success"] {
+  border-color: var(--color-success);
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+.button[data-tone="danger"],
+.iconButton[data-tone="danger"] {
+  color: var(--color-error);
+}
+
+/* ---- Inputs ---- */
+
+.input {
+  width: 100%;
+  min-height: var(--size-target);
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-md);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+@media (hover: hover) {
+  .input:hover {
+    background: var(--color-paper-2);
+  }
+}
+
+.input:focus-visible,
+.input:focus {
+  outline-color: var(--color-focus);
+  border-color: var(--color-ink-2);
+}
+
+/* ---- Alerts and the delete prompt ---- */
+
+.alert,
+.prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+}
+
+.alert {
+  border: 1px solid var(--color-error);
+  background: var(--color-error-surface);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.prompt {
+  margin-bottom: var(--space-xs);
+  border: 1px solid var(--color-rule-2);
+  background: var(--color-paper);
+}
+
+.promptTitle {
+  color: var(--color-ink);
+  font-weight: var(--weight-bold);
+}
+
+.promptBody {
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+
+.promptActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* ---- Archived and toolbar ---- */
+
+.archived {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-rule);
+}
+
+.heading {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  letter-spacing: 0;
+}
+
+.archivedRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding-inline-start: var(--space-sm);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+}
+
+.addForm {
+  display: flex;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

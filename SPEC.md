@@ -111,7 +111,7 @@ Sharing/assignment, attachments, comments, tags/priorities, Teams tab embedding,
 | Bundler / dev | Vite + `@microsoft/power-apps-vite` plugin | Vite 7.x; plugin handles Power Apps host bootstrap (no manual `PowerProvider`) |
 | Power Platform SDK | `@microsoft/power-apps` | ^1.3.1 — generated Dataverse models/services, `getContext()` |
 | CLI | `@microsoft/power-apps-cli` (`pa`) | ^1.0.0, global install |
-| Routing | `react-router` v7 (declarative mode) | Routes: `/today`, `/list/:id`, `/completed` |
+| Routing | `react-router` v7 (declarative mode) | Routes: `/today`, `/list/:id`, `/completed`. **(amended 2026-09-17)** `<HashRouter>`: the published app is served from a fixed URL with no rewrites, so path URLs would 404 on reload |
 | Server state | `@tanstack/react-query` v5 | Optimistic mutations, refetch on focus/interval |
 | NLP dates | `chrono-node` | Browser-side parse; wrapped behind `parseQuickAdd()` so it can be swapped |
 | Dates | `date-fns` | Recurrence math, formatting |
@@ -251,7 +251,7 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 ├── src/
 │   ├── main.tsx                 → root render; QueryClientProvider, Router
 │   ├── App.tsx                  → shell: sidebar + outlet
-│   ├── routes/                  → TodayRoute.tsx, ListRoute.tsx, CompletedRoute.tsx
+│   ├── routes/                  → TodayRoute.tsx, ListRoute.tsx, CompletedRoute.tsx (named exports; declarative mode needs no default exports)
 │   ├── components/              → one folder per component: Foo.tsx, Foo.module.css, Foo.test.tsx
 │   │   ├── QuickAdd/
 │   │   ├── TaskRow/
@@ -260,6 +260,7 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   │   ├── ListNav/
 │   │   └── Toast/
 │   ├── features/                → domain logic, no React
+│   │   ├── lists/ensureInbox.ts, reorderLists.ts, deleteList.ts
 │   │   ├── quickadd/parseQuickAdd.ts
 │   │   ├── recurrence/nextOccurrence.ts
 │   │   ├── reminders/scheduler.ts
