@@ -370,6 +370,8 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Verification:**
 - [ ] Manual smoke checklist with dates and outcomes
 
+**Status: PUBLISHED 2026-09-17; the smoke test is outstanding and is for Christopher.** `npm run build` then `pa app push --solution-id cb31311c-e547-4888-b237-04b0ad14fd06` succeeded; app ID `5e72594e-4a1c-4c2c-9b6b-7eae8479a302`, confirmed by `pa app list`, and `power.config.json` now carries it. The solution ID is not in the repository — `pa solution list | grep -i CodeApp101` prints it. `push` uploads `./dist` and does not build, so build immediately before pushing. Remaining, all needing the tenant and a second device: `pa app share` plus the `Todo User` role for the second test user (Christopher is doing this in the maker portal), then the ten checks in `docs/smoke.md`. Expect check 6 (reminders) to fail in the player's cross-origin iframe, as flagged in task 13.
+
 **Dependencies:** T0, T4, T15
 **Files:** `docs/smoke.md`, `power.config.json`
 **Scope:** S
