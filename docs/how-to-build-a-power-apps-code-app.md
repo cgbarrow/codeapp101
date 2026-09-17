@@ -542,6 +542,12 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Hallmark audit: two missing stamps, nothing structural.** The audit's value was the stamp-versus-page check and the token-purity rule, both of which a test already enforced. Two stylesheets written late in the build had no stamp. Everything else passed.
 - **A clean clone is the only honest README test.** `git clone` into a temporary directory, `npm install`, then the four commands, all green. Steps beyond that — importing the solution, `pa auth login`, Local Play — need the tenant and belong to a person, not to CI.
 
+
+### Part 4 · Publishing and the smoke test
+
+> **Build notes, to be written up in task 17.** The smoke test itself is still outstanding;
+> its checklist and the record of the publish are in [`docs/smoke.md`](smoke.md).
+
 #### Task 16 notes: publishing to the environment
 
 - **`push` uploads, it does not build.** `pa app push` sends whatever is sitting in `buildPath` from `power.config.json`, here `./dist`. The file timestamps after a push are those of the earlier `npm run build`, so a forgotten build publishes the previous bundle silently. Run `npm run build` immediately before every push.
@@ -555,6 +561,7 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **The first push writes `appId` back into `power.config.json`.** It changes from `null` to the new app's GUID. Commit the file; it is how later pushes update the same app rather than creating a second one. `pa app list` confirms what the environment now holds.
 - **The printed play URL is not the durable one.** `push` prints a link carrying `hint` and `sourcetime` query parameters from that particular publish. Use the app's link from make.powerapps.com when sharing or bookmarking.
 - **Sharing and permissions are two separate jobs.** `pa app share --principal <email> --access play` grants access to the app. It does not grant access to the data: the `Todo User` security role still has to be assigned to the same person in the admin or maker portal. A user with one and not the other sees either a permission error at the door or an app that opens and then loads nothing.
+
 ---
 
 ## Verify
