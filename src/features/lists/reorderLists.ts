@@ -1,16 +1,14 @@
-import type { List } from "@/data/repo";
-
 export type SortOrderChange = { id: string; sortOrder: number };
 
 /**
- * Moves one list to a new position and numbers the result 0, 1, 2, ... Returns the reordered
- * lists and only the changes a repository needs to persist.
+ * Moves one item, such as a list or a subtask, to a new position and numbers the result 0, 1, 2,
+ * ... Returns the reordered items and only the changes a repository needs to persist.
  */
-export function reorderLists(
-  lists: readonly List[],
+export function reorderLists<T extends SortOrderChange>(
+  lists: readonly T[],
   fromIndex: number,
   toIndex: number,
-): { ordered: List[]; changes: SortOrderChange[] } {
+): { ordered: T[]; changes: SortOrderChange[] } {
   const moved = [...lists];
   const target = Math.min(Math.max(toIndex, 0), moved.length - 1);
   const [item] = moved.splice(fromIndex, 1);

@@ -10,9 +10,19 @@ import { deleteList, type DeleteListOptions } from "@/features/lists/deleteList"
 import { ensureInbox } from "@/features/lists/ensureInbox";
 import type { SortOrderChange } from "@/features/lists/reorderLists";
 import { orderCompletedTasks } from "@/features/tasks/orderTasks";
-import { definedOnly, listDefaults, taskDefaults } from "./defaults";
+import { definedOnly, listDefaults, subtaskDefaults, taskDefaults } from "./defaults";
 import { queryKeys } from "./keys";
-import type { List, ListPatch, NewList, NewTask, Task, TaskPatch } from "./repo";
+import type {
+  List,
+  ListPatch,
+  NewList,
+  NewSubtask,
+  NewTask,
+  Subtask,
+  SubtaskPatch,
+  Task,
+  TaskPatch,
+} from "./repo";
 import { useRepos } from "./useRepos";
 
 type Snapshot<T> = Array<[QueryKey, T | undefined]>;
@@ -149,17 +159,27 @@ export function useTodayTasks(now = new Date()) {
 
 // ---- Task mutations ----
 
+/** A task to create, optionally with subtasks, as when Undo restores a deleted task. */
+export type CreateTaskInput = NewTask & { subtasks?: Array<Omit<NewSubtask, "taskId">> };
+
 export function useCreateTask() {
-  const { tasks } = useRepos();
+  const { tasks, subtasks: subtaskRepo } = useRepos();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: queryKeys.tasks,
-    mutationFn: (input: NewTask) => tasks.create(input),
+    // Subtasks are created inside the mutation, so they are restored even if the caller unmounts.
+    mutationFn: async ({ subtasks = [], ...input }: CreateTaskInput) => {
+      const saved = await tasks.create(input);
+      for (const subtask of subtasks) await subtaskRepo.create({ ...subtask, taskId: saved.id });
+      return saved;
+    },
     onMutate: async (input) => {
+      const fields: Partial<CreateTaskInput> = { ...input };
+      delete fields.subtasks;
       const placeholder = {
         ...taskDefaults,
-        ...definedOnly(input),
+        ...definedOnly(fields),
         id: optimisticId(),
       } as Task;
       const snapshot = await rewriteCaches<Task[]>(
@@ -258,6 +278,162 @@ function applyTaskPatch(queryClient: QueryClient, id: string, patch: TaskPatch) 
     if (!belongs) return without;
     if (had) return data.map((task) => (task.id === id ? patched : task));
     return cacheListId !== null ? [...data, patched].sort(bySortOrder) : data;
+  });
+}
+
+// ---- Subtasks ----
+
+export function useSubtasks(taskId: string) {
+  const { subtasks } = useRepos();
+  return useQuery({
+    queryKey: queryKeys.subtasksByTask(taskId),
+    queryFn: () => subtasks.getByTask(taskId),
+  });
+}
+
+export type SubtaskProgress = { done: number; total: number };
+
+/** Done and total subtask counts keyed by task id. A task is absent until loaded, or with none. */
+export function useSubtaskProgress(taskIds: readonly string[]): Record<string, SubtaskProgress> {
+  const { subtasks } = useRepos();
+  return useQueries({
+    queries: taskIds.map((taskId) => ({
+      queryKey: queryKeys.subtasksByTask(taskId),
+      queryFn: () => subtasks.getByTask(taskId),
+    })),
+    combine: (results) => {
+      const progress: Record<string, SubtaskProgress> = {};
+      results.forEach((result, index) => {
+        if (result.data?.length) {
+          progress[taskIds[index]] = {
+            done: result.data.filter((subtask) => subtask.isDone).length,
+            total: result.data.length,
+          };
+        }
+      });
+      return progress;
+    },
+  });
+}
+
+/**
+ * Options shared by every subtask write. Writes run one at a time so toggles reach the server in
+ * order, and the task's subtasks refetch only once the last write has settled.
+ */
+function subtaskWriteOptions(queryClient: QueryClient) {
+  return {
+    mutationKey: queryKeys.subtasks,
+    scope: { id: "subtask-write" },
+    onSettled: (_data: unknown, _error: unknown, input: { taskId: string }) => {
+      if (queryClient.isMutating({ mutationKey: queryKeys.subtasks }) > 1) return;
+      return queryClient.invalidateQueries({ queryKey: queryKeys.subtasksByTask(input.taskId) });
+    },
+  };
+}
+
+type SubtaskContext = { snapshot: Snapshot<Subtask[]> };
+
+export function useCreateSubtask() {
+  const { subtasks } = useRepos();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...subtaskWriteOptions(queryClient),
+    mutationFn: (input: NewSubtask) => subtasks.create(input),
+    onMutate: async (input) => {
+      const placeholder = {
+        ...subtaskDefaults,
+        ...definedOnly(input),
+        id: optimisticId(),
+      } as Subtask;
+      const snapshot = await rewriteCaches<Subtask[]>(
+        queryClient,
+        queryKeys.subtasksByTask(input.taskId),
+        (data) => [...data, placeholder].sort(bySortOrder),
+      );
+      return { snapshot, placeholderId: placeholder.id };
+    },
+    onSuccess: (saved, input, context) => {
+      queryClient.setQueryData<Subtask[]>(queryKeys.subtasksByTask(input.taskId), (data) =>
+        data?.map((subtask) => (subtask.id === context.placeholderId ? saved : subtask)),
+      );
+    },
+    onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
+  });
+}
+
+export type UpdateSubtaskInput = { id: string; taskId: string; patch: SubtaskPatch };
+
+export function useUpdateSubtask() {
+  const { subtasks } = useRepos();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...subtaskWriteOptions(queryClient),
+    mutationFn: ({ id, patch }: UpdateSubtaskInput) => subtasks.update(id, patch),
+    onMutate: async ({ id, taskId, patch }): Promise<SubtaskContext> => ({
+      snapshot: await rewriteCaches<Subtask[]>(
+        queryClient,
+        queryKeys.subtasksByTask(taskId),
+        (data) =>
+          data
+            .map((subtask) => (subtask.id === id ? { ...subtask, ...definedOnly(patch) } : subtask))
+            .sort(bySortOrder),
+      ),
+    }),
+    onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
+  });
+}
+
+export type DeleteSubtaskInput = { id: string; taskId: string };
+
+export function useDeleteSubtask() {
+  const { subtasks } = useRepos();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...subtaskWriteOptions(queryClient),
+    mutationFn: ({ id }: DeleteSubtaskInput) => subtasks.delete(id),
+    onMutate: async ({ id, taskId }): Promise<SubtaskContext> => ({
+      snapshot: await rewriteCaches<Subtask[]>(
+        queryClient,
+        queryKeys.subtasksByTask(taskId),
+        (data) => data.filter((subtask) => subtask.id !== id),
+      ),
+    }),
+    onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
+  });
+}
+
+export type ReorderSubtasksInput = { taskId: string; changes: SortOrderChange[] };
+
+/** Saves new sort orders for a task's subtasks, showing the new order immediately. */
+export function useReorderSubtasks() {
+  const { subtasks } = useRepos();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...subtaskWriteOptions(queryClient),
+    mutationFn: ({ changes }: ReorderSubtasksInput) =>
+      Promise.all(changes.map(({ id, sortOrder }) => subtasks.update(id, { sortOrder }))),
+    onMutate: async ({ taskId, changes }): Promise<SubtaskContext> => {
+      const sortOrders = new Map(changes.map(({ id, sortOrder }) => [id, sortOrder]));
+      return {
+        snapshot: await rewriteCaches<Subtask[]>(
+          queryClient,
+          queryKeys.subtasksByTask(taskId),
+          (data) =>
+            data
+              .map((subtask) =>
+                sortOrders.has(subtask.id)
+                  ? { ...subtask, sortOrder: sortOrders.get(subtask.id)! }
+                  : subtask,
+              )
+              .sort(bySortOrder),
+        ),
+      };
+    },
+    onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
   });
 }
 

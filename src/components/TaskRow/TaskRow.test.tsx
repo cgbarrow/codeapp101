@@ -122,4 +122,15 @@ describe("TaskRow", () => {
     expect(screen.getByRole("listitem")).toHaveAttribute("data-selected", "true");
     expect(onSelect).toHaveBeenCalledWith(row);
   });
+
+  it("shows subtask progress as done/total, and nothing without subtasks", () => {
+    const { unmount } = renderRow({ progress: { done: 2, total: 5 } });
+
+    expect(screen.getByText("2/5")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByText("2 of 5 subtasks done")).toBeInTheDocument();
+    unmount();
+
+    renderRow();
+    expect(document.querySelector("[data-progress]")).toBeNull();
+  });
 });

@@ -152,6 +152,10 @@ button.title:disabled {
   font-size: var(--text-xs);
 }
 
+.progress {
+  font-variant-numeric: tabular-nums;
+}
+
 .row[data-overdue] .due {
   color: var(--color-error);
   font-weight: var(--weight-medium);

@@ -226,4 +226,14 @@ describe("TaskDetail", () => {
     );
     expect(screen.queryByRole("button", { name: "Undo" })).not.toBeInTheDocument();
   });
+
+  it("includes the task's subtask checklist", async () => {
+    render(<Harness listId="seed-personal" id="seed-t6" onClose={() => {}} />, {
+      wrapper: createWrapper(repos),
+    });
+
+    const region = await screen.findByRole("region", { name: "Task details" });
+    expect(await within(region).findByRole("list", { name: "Subtasks" })).toBeInTheDocument();
+    expect(within(region).getByRole("textbox", { name: "Add a subtask" })).toBeInTheDocument();
+  });
 });

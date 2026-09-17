@@ -5,18 +5,24 @@ import { createMockRepos } from "./mock/mockRepos";
 import { createSampleSeed } from "./mock/seed";
 import {
   useCreateList,
+  useCreateSubtask,
   useCreateTask,
   useDeleteList,
+  useDeleteSubtask,
   useDeleteTask,
   useInbox,
   useCompletedTasks,
   useLists,
   useTaskCounts,
   useReorderLists,
+  useReorderSubtasks,
+  useSubtaskProgress,
+  useSubtasks,
   useTasks,
   useTodayTasks,
   useToggleTask,
   useUpdateList,
+  useUpdateSubtask,
   useUpdateTask,
 } from "./queries";
 import type { Repos, Task } from "./repo";
@@ -601,5 +607,171 @@ describe("useCompletedTasks", () => {
 
     expect(result.current.isPending).toBe(true);
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+});
+
+describe("subtask queries", () => {
+  it("loads a task's subtasks in order", async () => {
+    const { result } = renderWithRepos(() => useSubtasks("seed-t6"));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data?.map((subtask) => subtask.title)).toEqual([
+      "Charger",
+      "Walking boots",
+      "Tickets",
+    ]);
+  });
+
+  it("reports done and total per task, leaving out tasks with no subtasks", async () => {
+    const { result } = renderWithRepos(() => useSubtaskProgress(["seed-t6", "seed-t1"]));
+
+    await waitFor(() => expect(result.current).toEqual({ "seed-t6": { done: 1, total: 3 } }));
+  });
+
+  it("shows a toggle in the progress immediately and rolls it back if saving fails", async () => {
+    const gate = deferred();
+    repos.subtasks.update = async () => {
+      await gate.promise;
+      throw new Error("offline");
+    };
+    const { result } = renderWithRepos(() => ({
+      progress: useSubtaskProgress(["seed-t6"]),
+      update: useUpdateSubtask(),
+    }));
+    await waitFor(() => expect(result.current.progress["seed-t6"]).toBeDefined());
+
+    act(() =>
+      result.current.update.mutate({ id: "seed-s2", taskId: "seed-t6", patch: { isDone: true } }),
+    );
+
+    await waitFor(() => expect(result.current.progress["seed-t6"]).toEqual({ done: 2, total: 3 }));
+    gate.resolve();
+    await waitFor(() => expect(result.current.update.isError).toBe(true));
+    expect(result.current.progress["seed-t6"]).toEqual({ done: 1, total: 3 });
+  });
+
+  it("adds a subtask at the end before the repository answers, then keeps the saved one", async () => {
+    const gate = deferred();
+    const create = repos.subtasks.create;
+    repos.subtasks.create = async (input) => {
+      await gate.promise;
+      return create(input);
+    };
+    const { result } = renderWithRepos(() => ({
+      subtasks: useSubtasks("seed-t6"),
+      create: useCreateSubtask(),
+    }));
+    await waitFor(() => expect(result.current.subtasks.isSuccess).toBe(true));
+
+    act(() =>
+      result.current.create.mutate({ taskId: "seed-t6", title: "Rain jacket", sortOrder: 3 }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.subtasks.data?.at(-1)).toMatchObject({
+        title: "Rain jacket",
+        id: expect.stringMatching(/^optimistic-/),
+      }),
+    );
+    gate.resolve();
+    await waitFor(() => expect(result.current.subtasks.data?.at(-1)?.id).toMatch(/^mock-subtask-/));
+    expect(await repos.subtasks.getByTask("seed-t6")).toHaveLength(4);
+  });
+
+  it("removes the placeholder when a create fails", async () => {
+    repos.subtasks.create = async () => {
+      throw new Error("offline");
+    };
+    const { result } = renderWithRepos(() => ({
+      subtasks: useSubtasks("seed-t6"),
+      create: useCreateSubtask(),
+    }));
+    await waitFor(() => expect(result.current.subtasks.isSuccess).toBe(true));
+
+    act(() => result.current.create.mutate({ taskId: "seed-t6", title: "Rain jacket" }));
+
+    await waitFor(() => expect(result.current.create.isError).toBe(true));
+    expect(result.current.subtasks.data).toHaveLength(3);
+  });
+
+  it("removes a subtask immediately and restores it if the delete fails", async () => {
+    const gate = deferred();
+    repos.subtasks.delete = async () => {
+      await gate.promise;
+      throw new Error("offline");
+    };
+    const { result } = renderWithRepos(() => ({
+      subtasks: useSubtasks("seed-t6"),
+      remove: useDeleteSubtask(),
+    }));
+    await waitFor(() => expect(result.current.subtasks.isSuccess).toBe(true));
+
+    act(() => result.current.remove.mutate({ id: "seed-s1", taskId: "seed-t6" }));
+
+    await waitFor(() => expect(result.current.subtasks.data).toHaveLength(2));
+    gate.resolve();
+    await waitFor(() => expect(result.current.remove.isError).toBe(true));
+    expect(result.current.subtasks.data?.map((subtask) => subtask.id)).toEqual([
+      "seed-s1",
+      "seed-s2",
+      "seed-s3",
+    ]);
+  });
+
+  it("shows a new subtask order immediately and persists only the changes", async () => {
+    const { result } = renderWithRepos(() => ({
+      subtasks: useSubtasks("seed-t6"),
+      reorder: useReorderSubtasks(),
+    }));
+    await waitFor(() => expect(result.current.subtasks.isSuccess).toBe(true));
+
+    act(() =>
+      result.current.reorder.mutate({
+        taskId: "seed-t6",
+        changes: [
+          { id: "seed-s3", sortOrder: 0 },
+          { id: "seed-s1", sortOrder: 1 },
+          { id: "seed-s2", sortOrder: 2 },
+        ],
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.subtasks.data?.map((subtask) => subtask.title)).toEqual([
+        "Tickets",
+        "Charger",
+        "Walking boots",
+      ]),
+    );
+    await waitFor(() => expect(result.current.reorder.isSuccess).toBe(true));
+    expect((await repos.subtasks.getByTask("seed-t6")).map((subtask) => subtask.title)).toEqual([
+      "Tickets",
+      "Charger",
+      "Walking boots",
+    ]);
+  });
+
+  it("creates a task together with its subtasks, for Undo after a delete", async () => {
+    const { result } = renderWithRepos(() => useCreateTask());
+
+    let saved: Task | undefined;
+    await act(async () => {
+      saved = await result.current.mutateAsync({
+        listId: "seed-inbox",
+        title: "Pack",
+        subtasks: [
+          { title: "Charger", isDone: true, sortOrder: 0 },
+          { title: "Tickets", isDone: false, sortOrder: 1 },
+        ],
+      });
+    });
+
+    expect(saved).not.toHaveProperty("subtasks");
+    const subtasks = await repos.subtasks.getByTask(saved!.id);
+    expect(subtasks.map(({ title, isDone }) => ({ title, isDone }))).toEqual([
+      { title: "Charger", isDone: true },
+      { title: "Tickets", isDone: false },
+    ]);
   });
 });

@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { TaskDetail } from "@/components/TaskDetail/TaskDetail";
 import { TaskRow } from "@/components/TaskRow/TaskRow";
-import { useTasks } from "@/data/queries";
+import { useSubtaskProgress, useTasks } from "@/data/queries";
 import { orderCompletedTasks, orderOpenTasks } from "@/features/tasks/orderTasks";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTaskDelete } from "@/hooks/useTaskDelete";
@@ -104,6 +104,12 @@ export function TaskList({ listId, listName, now = new Date() }: TaskListProps) 
   ).map((placed) => all.find((task) => task.id === placed.id)!);
   const completed = orderCompletedTasks(all.filter((task) => !lingering.has(task.id)));
 
+  const progress = useSubtaskProgress(
+    visibleTasks()
+      .map((task) => task.id)
+      .filter((id) => !id.startsWith("optimistic-")),
+  );
+
   function row(task: (typeof all)[number], state?: "success") {
     const isOpen = openId === task.id;
     return (
@@ -113,6 +119,7 @@ export function TaskList({ listId, listName, now = new Date() }: TaskListProps) 
         now={now}
         onToggle={toggle}
         state={state}
+        progress={progress[task.id]}
         onOpen={(opened) => setOpenId((current) => (current === opened.id ? null : opened.id))}
         isOpen={isOpen}
         detailId={detailId}

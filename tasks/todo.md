@@ -251,12 +251,14 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Inside TaskDetail, a checklist of up to 50 subtasks with add/edit/toggle/reorder/delete. TaskRow shows `done/total` progress when subtasks exist. Completing all subtasks does not complete the parent.
 
 **Acceptance criteria:**
-- [ ] Subtask CRUD goes through `SubtaskRepo` with optimistic updates
-- [ ] 51st subtask is refused with an inline message
-- [ ] Progress text updates immediately on toggle
+- [x] Subtask CRUD goes through `SubtaskRepo` with optimistic updates
+- [x] 51st subtask is refused with an inline message
+- [x] Progress text updates immediately on toggle
 
 **Verification:**
-- [ ] `npm test -- SubtaskList TaskRow`
+- [x] `npm test -- SubtaskList TaskRow`
+
+**Status: DONE 2026-09-17.** Reorder uses up/down buttons, sharing a now-generic `reorderLists`. Row progress uses one subtask query per visible task (see the how-to notes for the cost). Delete Undo from T8 now restores subtasks; `useCreateTask` takes an optional `subtasks` array. Manual check in `npm run dev` at desktop width, 375 px and 320 px: ticking updates the row, no horizontal scroll, 44 px targets, no console errors.
 
 **Dependencies:** T8
 **Files:** `src/components/SubtaskList/*`, `src/components/TaskRow/TaskRow.tsx`, `src/data/queries.ts`

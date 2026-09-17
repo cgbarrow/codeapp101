@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import { DateField, type DueValue } from "@/components/DateField/DateField";
+import { SubtaskList } from "@/components/SubtaskList/SubtaskList";
 import { useToast } from "@/components/Toast/useToast";
 import { useUpdateTask } from "@/data/queries";
 import type { Recurrence, Task, TaskPatch } from "@/data/repo";
@@ -225,6 +226,8 @@ export function TaskDetail({ task, id: regionId, onClose }: TaskDetailProps) {
               ? "Date-only tasks remind at 9:00."
               : ""}
         </p>
+
+        <SubtaskList taskId={task.id} />
 
         <div className={styles.footer}>
           <button

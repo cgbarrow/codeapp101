@@ -241,6 +241,81 @@ describe("TaskList", () => {
     });
   });
 
+  describe("subtasks", () => {
+    const packRow = () =>
+      screen.getByRole("button", { name: "Pack for the weekend" }).closest("li")!;
+
+    it("shows progress on the row and updates it as soon as a subtask is ticked", async () => {
+      const gate = deferred();
+      const update = repos.subtasks.update;
+      repos.subtasks.update = async (id, patch) => {
+        await gate.promise;
+        return update(id, patch);
+      };
+      const user = userEvent.setup();
+      renderList("seed-personal");
+
+      await waitFor(() => expect(within(packRow()).getByText("1/3")).toBeInTheDocument());
+      await user.click(screen.getByRole("button", { name: "Pack for the weekend" }));
+      await user.click(await screen.findByRole("checkbox", { name: "Complete Tickets" }));
+
+      expect(within(packRow()).getByText("2/3")).toBeInTheDocument();
+      gate.resolve();
+    });
+
+    it("leaves the task open when every subtask is done", async () => {
+      const user = userEvent.setup();
+      renderList("seed-personal");
+
+      await user.click(await screen.findByRole("button", { name: "Pack for the weekend" }));
+      await user.click(await screen.findByRole("checkbox", { name: "Complete Walking boots" }));
+      await user.click(screen.getByRole("checkbox", { name: "Complete Tickets" }));
+
+      await waitFor(() => expect(within(packRow()).getByText("3/3")).toBeInTheDocument());
+      await waitFor(async () =>
+        expect((await repos.subtasks.getByTask("seed-t6")).every((s) => s.isDone)).toBe(true),
+      );
+      expect(
+        (await repos.tasks.getByList("seed-personal")).find((t) => t.id === "seed-t6")?.isCompleted,
+      ).toBe(false);
+      expect(
+        screen.getByRole("checkbox", { name: "Complete Pack for the weekend" }),
+      ).toHaveAttribute("aria-checked", "false");
+    });
+
+    it("brings the subtasks back when a deleted task is undone", async () => {
+      const user = userEvent.setup();
+      renderList("seed-personal");
+
+      await user.click(await screen.findByRole("button", { name: "Pack for the weekend" }));
+      await screen.findByRole("checkbox", { name: "Complete Tickets" });
+      await user.click(screen.getByRole("button", { name: "Delete task" }));
+      await waitFor(async () =>
+        expect((await repos.tasks.getByList("seed-personal")).map((t) => t.title)).not.toContain(
+          "Pack for the weekend",
+        ),
+      );
+
+      await user.click(screen.getByRole("button", { name: "Undo" }));
+
+      await waitFor(() => expect(within(packRow()).getByText("1/3")).toBeInTheDocument());
+      const restored = (await repos.tasks.getByList("seed-personal")).find(
+        (t) => t.title === "Pack for the weekend",
+      )!;
+      expect(
+        (await repos.subtasks.getByTask(restored.id)).map(({ title, isDone, sortOrder }) => ({
+          title,
+          isDone,
+          sortOrder,
+        })),
+      ).toEqual([
+        { title: "Charger", isDone: true, sortOrder: 0 },
+        { title: "Walking boots", isDone: false, sortOrder: 1 },
+        { title: "Tickets", isDone: false, sortOrder: 2 },
+      ]);
+    });
+  });
+
   describe("keyboard", () => {
     const selectedTitle = () =>
       document.querySelector("li[data-selected] [data-title]")?.textContent ?? null;

@@ -477,6 +477,16 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Return focus to where it was, not to the trigger.** The "Keyboard shortcuts" button is hidden on touch-only devices (`hover: none`), and `?` can open the dialog from anywhere, so the dialog remembers the previously focused element.
 - **`t` for Today moves to task 10**, where its route is built.
 
+#### Task 11 notes: subtasks
+
+- **Progress comes from per-task subtask caches.** `useSubtaskProgress` runs one `getByTask` query per visible row through `useQueries`, the same approach as the sidebar counts, and the checklist in the detail panel reads the same cache. Ticking a subtask updates that cache optimistically, so the row's `1/3` changes in the same frame. The cost is one Dataverse request per visible task when a list first loads. Fine for a personal list; if it shows up in task 14 or 15, the fix is a repository method that filters `_cb_task_value` across many tasks in one request.
+- **Subtask writes run one at a time.** All subtask mutations share `scope: { id: "subtask-write" }` and refetch only when no other subtask write is pending, the task 6 pattern. Ticking and unticking quickly cannot reach Dataverse out of order.
+- **Undo of a task delete must carry the subtasks.** Dataverse cascades the delete (Part 1), so the Undo snapshot from task 8 now includes them. `useTaskDelete` takes them from the cache, or fetches them first. If that fetch fails, nothing is deleted and the toast offers Retry, because the app should not delete what Undo cannot restore.
+- **Create the subtasks inside the mutation, not in a callback.** Creating them in `mutate(..., { onSuccess })` would look right but fail: deleting from the detail panel unmounts the panel, and TanStack Query skips per-call callbacks once the component that called `mutate` has unmounted, so the subtasks would silently never come back. `useCreateTask` accepts an optional `subtasks` array and creates them in `mutationFn`, which always runs to completion.
+- **The 50-subtask limit is enforced in the UI.** Dataverse has no per-parent row limit. The add field refuses the 51st entry, keeps the typed text, and explains why through `aria-invalid` and `aria-describedby`.
+- **Don't create subtasks under an unsaved task.** A placeholder task has a temporary `optimistic-` id that Dataverse would reject as a lookup, so the add field is disabled until the task is saved.
+- **Check that new tests can fail.** Three deliberate breaks each failed the new tests: an off-by-one in the limit, removing the optimistic subtask update, and skipping the subtask fetch before a delete.
+
 ---
 
 ## Verify

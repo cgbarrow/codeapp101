@@ -1,5 +1,6 @@
 import { memo, type ReactNode } from "react";
 import { Checkmark } from "@/components/Checkmark/Checkmark";
+import type { SubtaskProgress } from "@/data/queries";
 import type { Task } from "@/data/repo";
 import { formatDue } from "@/features/tasks/formatDue";
 import { isOverdue } from "@/features/tasks/orderTasks";
@@ -13,6 +14,8 @@ type TaskRowProps = {
   onToggle: (task: Task) => void;
   /** Save status of this row: pending, failed, or just completed. */
   state?: TaskRowState;
+  /** Done and total subtasks, shown as `2/5` when the task has any. */
+  progress?: SubtaskProgress;
   /** Shown in views that mix lists, such as Completed. */
   listName?: string;
   /** Makes the title a disclosure button for the task's detail panel. */
@@ -31,6 +34,7 @@ export const TaskRow = memo(function TaskRow({
   now,
   onToggle,
   state,
+  progress,
   listName,
   onOpen,
   isOpen = false,
@@ -79,12 +83,22 @@ export const TaskRow = memo(function TaskRow({
             {task.title}
           </span>
         )}
-        {(task.dueDate || listName) && (
+        {(task.dueDate || progress || listName) && (
           <span className={styles.meta}>
             {task.dueDate && (
               <span className={styles.due} data-due>
                 {overdue && <span className={styles.visuallyHidden}>Overdue: </span>}
                 {formatDue(task.dueDate, task.hasTime, now)}
+              </span>
+            )}
+            {progress && (
+              <span className={styles.progress} data-progress>
+                <span aria-hidden="true">
+                  {progress.done}/{progress.total}
+                </span>
+                <span className={styles.visuallyHidden}>
+                  {progress.done} of {progress.total} subtasks done
+                </span>
               </span>
             )}
             {listName && <span className={styles.list}>{listName}</span>}

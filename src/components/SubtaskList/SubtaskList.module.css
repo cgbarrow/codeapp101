@@ -1,0 +1,229 @@
+/* Hallmark · component: subtask list · genre: modern-minimal · theme: Coral
+ * states (.input, .title, .iconButton, .textButton): default · hover · focus · active · disabled · loading · error · success
+ * layout: checkmark, title and actions on one line; the actions wrap below the title when narrow.
+ */
+
+.subtasks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.label {
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.summary {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.items:empty {
+  display: none;
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-2xs);
+  border-radius: var(--radius-md);
+}
+
+.actions {
+  display: flex;
+  margin-inline-start: auto;
+}
+
+.message {
+  min-height: 1lh;
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+/* ---- Fields: the add field is boxed; a subtask title is borderless until hovered or focused ---- */
+
+.input,
+.title {
+  min-width: 0;
+  min-height: var(--size-target);
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-md);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.input {
+  width: 100%;
+}
+
+.title {
+  flex: 1 1 8rem;
+  padding-inline: var(--space-xs);
+  border-color: transparent;
+  background: transparent;
+}
+
+.item[data-done] .title {
+  color: var(--color-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-rule-2);
+}
+
+@media (hover: hover) {
+  .input:hover:not(:disabled),
+  .input:global(.is-hover),
+  .title:hover:not(:disabled),
+  .title:global(.is-hover) {
+    background: var(--color-paper-2);
+  }
+}
+
+.input:focus-visible,
+.input:global(.is-focus),
+.title:focus-visible,
+.title:global(.is-focus) {
+  outline-color: var(--color-focus);
+  border-color: var(--color-ink-2);
+  background: var(--color-paper);
+}
+
+.input:active,
+.title:active {
+  border-color: var(--color-ink-2);
+}
+
+.input:disabled,
+.title:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.item[data-state="loading"] .title {
+  cursor: progress;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.input[data-state="success"],
+.title[data-state="success"] {
+  border-color: var(--color-success);
+}
+
+/* ---- Buttons ---- */
+
+.iconButton,
+.textButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--size-target);
+  min-height: var(--size-target);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+.textButton {
+  padding-inline: var(--space-md);
+  border-color: var(--color-rule-2);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+@media (hover: hover) {
+  .iconButton:hover:not(:disabled),
+  .iconButton:global(.is-hover),
+  .textButton:hover,
+  .textButton:global(.is-hover) {
+    background: var(--color-paper-3);
+    color: var(--color-ink);
+  }
+}
+
+.iconButton:focus-visible,
+.iconButton:global(.is-focus),
+.textButton:focus-visible,
+.textButton:global(.is-focus) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.iconButton:active,
+.iconButton:global(.is-active),
+.textButton:active,
+.textButton:global(.is-active) {
+  transform: translateY(1px);
+  background: var(--color-paper-3);
+}
+
+.iconButton:disabled,
+.textButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  background: transparent;
+}
+
+.iconButton[data-state="loading"],
+.textButton[data-state="loading"] {
+  cursor: progress;
+  color: var(--color-muted);
+}
+
+.iconButton[data-state="error"],
+.textButton[data-state="error"] {
+  border-color: var(--color-error);
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+.iconButton[data-state="success"],
+.textButton[data-state="success"] {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
