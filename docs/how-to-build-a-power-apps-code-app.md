@@ -398,7 +398,21 @@ npm run dev:dataverse
   ➜  Local Play:   https://apps.powerapps.com/play/e/Default-<tenant-id>/a/local?_localAppUrl=http://localhost:3000/&_localConnectionUrl=http://localhost:3000/__vite_powerapps_plugin__/power.config.json
 ```
 
-Open that URL in the browser profile that is signed in to the tenant. The app runs inside the real player, with real authentication, against real tables.
+Open that URL in the browser profile that is signed in to the tenant. The player supplies real authentication and a real Dataverse connection, and your code talks to real tables.
+
+**What Local Play is, and what it is not.** The URL explains it. Where a published app has its app ID, this one has `/a/local`, and `_localAppUrl=http://localhost:3000/` tells the player to fetch the app's code from the dev server on your machine. Four consequences follow:
+
+- The URL works only while your dev server is running, and only on the machine it runs on. Sending it to a colleague achieves nothing.
+- Nothing is registered in the environment. `power.config.json` still says `"appId": null`, and the app appears in neither the **Apps** list nor your solution.
+- The data is not simulated. Every create, update and delete lands in the real tables, which is the point of the exercise.
+- The app becomes a real, shareable app only when you publish it with `pa app push`. Publishing also gives `appId` a value. To have the app land inside your solution alongside the tables, pass the solution's ID; `pa solution list` shows it:
+
+  ```bash
+  npx pa solution list
+  npx pa app push --solution-id <solution-id>
+  ```
+
+  Part 4 covers publishing and sharing.
 
 At this stage there is no list or task UI to click; that arrives in Part 3. So the check was run through a small development-only panel that exercises the same repository code the app will use. `npm run dev:smoke` starts the same server in a mode that shows the panel, which steps through five operations and logs each result:
 
@@ -528,6 +542,12 @@ Network request failed for GET https://dc08738656cb442582f34b2dd04d62.d8.environ
 **Cause.** Not the network. The CLI builds an API hostname from the environment ID, and the ID passed was wrong. A tenant's Default environment has the ID `Default-<tenant-id>`; the GUID on its own is the tenant ID, and no hostname exists for it. The admin center shows the environment name and the GUID close together, which makes the mistake easy.
 
 **Fix.** Pass the full ID, including the `Default-` prefix. A failed init writes nothing, so simply run it again.
+
+### The app runs in Local Play but is not in the environment or the solution
+
+**Cause.** Nothing has been published. A Local Play URL contains `/a/local` in place of an app ID, and the player loads the code from your local dev server through `_localAppUrl`. `pa app init` only writes `power.config.json`, where `appId` stays `null` until the first publish. The data your app writes during Local Play is real, but the app itself exists only on your machine.
+
+**Fix.** This is expected during development. When you are ready to publish, run `npm run build`, then `npx pa app push --solution-id <solution-id>`, using the ID from `npx pa solution list`. Without `--solution-id`, the published app is not added to your solution, so look for it in the **Apps** list instead. Publishing is Part 4.
 
 ### The dev server prints `Missing file. Ensure you have run 'pac code init' first.`
 
