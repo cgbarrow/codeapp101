@@ -38,7 +38,10 @@ export function TodayRoute({ now = new Date() }: TodayRouteProps) {
   return (
     <section className={styles.route}>
       <h1>Today</h1>
-      {inbox.data && <QuickAdd listId={inbox.data.id} listName={inbox.data.name} now={now} />}
+      {/* The slot keeps its height before the Inbox loads, so the page does not jump. */}
+      <div className={styles.addSlot} data-add-slot>
+        {inbox.data && <QuickAdd listId={inbox.data.id} listName={inbox.data.name} now={now} />}
+      </div>
 
       {failed && (
         <div role="alert" className={styles.alert}>
@@ -53,12 +56,6 @@ export function TodayRoute({ now = new Date() }: TodayRouteProps) {
         </div>
       )}
 
-      {pending && (
-        <ul className={styles.rows} aria-label="Today's tasks" aria-busy="true">
-          <SkeletonRows count={3} />
-        </ul>
-      )}
-
       {!pending && !failed && sections.length === 0 && (
         <div className={styles.empty}>
           <p className={styles.emptyTitle}>Nothing due today.</p>
@@ -66,7 +63,12 @@ export function TodayRoute({ now = new Date() }: TodayRouteProps) {
         </div>
       )}
 
-      <div ref={containerRef} className={styles.sections}>
+      <div ref={containerRef} className={styles.sections} data-sections>
+        {pending && (
+          <ul className={styles.rows} aria-label="Today's tasks" aria-busy="true">
+            <SkeletonRows count={3} />
+          </ul>
+        )}
         {sections.map((section) => (
           <section key={section.title} className={styles.section}>
             <h2

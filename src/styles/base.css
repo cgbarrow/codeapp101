@@ -1,3 +1,7 @@
+/* Hallmark · base layer · genre: modern-minimal · theme: Coral
+ * Reset, document defaults and the reduced-motion rule. Colours and fonts come from tokens.css.
+ */
+
 *,
 *::before,
 *::after {

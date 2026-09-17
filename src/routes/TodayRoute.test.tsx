@@ -98,6 +98,17 @@ describe("TodayRoute", () => {
     );
   });
 
+  it("holds the quick add and task areas open while they load, so nothing jumps", () => {
+    renderRoute();
+
+    // Before any query resolves: the add slot and the task area are already on the page.
+    expect(document.querySelector("[data-add-slot]")).toBeInTheDocument();
+    const rows = screen.getByRole("list", { name: "Today's tasks" });
+    expect(rows).toHaveAttribute("aria-busy", "true");
+    expect(rows.querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0);
+    expect(document.querySelector("[data-sections]")).toContainElement(rows);
+  });
+
   it("shows the empty state when nothing is due", async () => {
     repos = createMockRepos({ seed: createSampleSeed(new Date(2020, 0, 1)) });
     for (const task of await repos.tasks.getOpenDueBefore(new Date(2030, 0, 1))) {

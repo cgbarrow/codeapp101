@@ -1,3 +1,7 @@
+/* Hallmark · component: list and completed routes · genre: modern-minimal · theme: Coral
+ * states (.button): default · hover · focus · active · disabled · loading · error · success
+ */
+
 .route {
   display: flex;
   flex-direction: column;

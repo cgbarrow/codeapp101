@@ -223,8 +223,8 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 ---
 
 ## Checkpoint B (after T5–T9)
-- [ ] Playwright flow on Chromium desktop and iPhone 13 WebKit: create list → quick-add "Buy milk on Friday" → chip → Enter → complete → undo → delete
-- [ ] Human review of the UI at four widths
+- [x] Playwright flow on Chromium desktop and iPhone 13 WebKit: create list → quick-add "Buy milk on Friday" → chip → Enter → complete → undo → delete (`e2e/flow.spec.ts`, task 15)
+- [ ] Human review of the UI at four widths — **for Christopher.** Screenshots in `docs/design/`, or `npm run dev` and resize
 
 ---
 
@@ -332,8 +332,8 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 ---
 
 ## Checkpoint C (after T10–T14)
-- [ ] Every S1–S8 acceptance criterion in SPEC §1 demonstrable in mock mode
-- [ ] Coverage gates met (features/data ≥ 90 %, overall ≥ 70 %)
+- [x] Every S1–S8 acceptance criterion in SPEC §1 demonstrable in mock mode — the table in `docs/smoke.md` says where each one is proved
+- [x] Coverage gates met (features/data ≥ 90 %, overall ≥ 70 %): 97 % of lines overall on 17 September 2026
 
 ---
 
@@ -342,13 +342,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Complete Playwright specs (desktop Chromium + iPhone 13 WebKit) covering the flows in Checkpoints B and C; Lighthouse on the built app; `hallmark audit` on the final UI; README with clone-to-Local-Play in 15 minutes; `docs/smoke.md` checklist; ADRs 0001–0004.
 
 **Acceptance criteria:**
-- [ ] Lighthouse mobile: Performance ≥ 90, Accessibility ≥ 95
-- [ ] Hallmark audit: zero gate failures
-- [ ] README verified by following it on a clean clone
+- [x] Lighthouse mobile: Performance ≥ 90, Accessibility ≥ 95 — 98 and 100, see `docs/design/audit-2026-09-17.md`
+- [x] Hallmark audit: zero gate failures — 0 critical, 0 major; two minor stamp gaps found and fixed
+- [x] README verified by following it on a clean clone, as far as a machine can: `git clone`, `npm install`, then lint, typecheck, test and build all green. **Steps 3–6 (import the solution, `pa auth login`, Local Play) need the tenant and are for Christopher.**
 
 **Verification:**
-- [ ] `npm run e2e`
-- [ ] Lighthouse report saved to `docs/design/lighthouse.html`
+- [x] `npm run e2e`: 36 runs green — 18 tests on desktop Chromium and the same 18 on iPhone 13 WebKit
+- [x] Lighthouse report saved to `docs/design/lighthouse.html`
+
+**Status: DONE 2026-09-17, except the human review of the UI in Checkpoint B and the tenant half of the README walk-through.** `e2e/flow.spec.ts` covers the Checkpoint B flow and "Move to Inbox"; the Checkpoint C mapping lives in `docs/smoke.md`. Playwright caught a mobile bug: the list sheet stayed open over a newly created list, because it only closed on link clicks; the shell now closes it on any route change. Lighthouse found CLS 0.152 from the Today view's loading state, fixed to 0 (Performance 98, Accessibility 100). Hallmark audit: two missing stamps, fixed. ADRs 0001–0004 written. `npm run build:mock` and `npm run preview:mock` added, because the Dataverse build cannot run outside the Power Apps host.
 
 **Dependencies:** T14
 **Files:** `e2e/*.spec.ts`, `README.md`, `docs/smoke.md`, `docs/adr/000*.md`, `docs/design/*`

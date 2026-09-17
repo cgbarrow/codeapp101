@@ -1,21 +1,35 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Link, MemoryRouter, useNavigate } from "react-router";
 import { describe, expect, it } from "vitest";
 import { AppShell } from "./AppShell";
 
+/** Stands in for the number-key shortcuts, which change list without a link. */
+function GoToList() {
+  const navigate = useNavigate();
+  return (
+    <button type="button" onClick={() => navigate("/list/personal")}>
+      Go to Personal
+    </button>
+  );
+}
+
 function renderShell() {
   return render(
-    <AppShell
-      sidebar={
-        <>
-          <p>Sidebar content</p>
-          <a href="#/list/work">Work</a>
-          <button type="button">Edit lists</button>
-        </>
-      }
-    >
-      <h1>Main content</h1>
-    </AppShell>,
+    <MemoryRouter initialEntries={["/list/inbox"]}>
+      <AppShell
+        sidebar={
+          <>
+            <p>Sidebar content</p>
+            <Link to="/list/work">Work</Link>
+            <GoToList />
+            <button type="button">Edit lists</button>
+          </>
+        }
+      >
+        <h1>Main content</h1>
+      </AppShell>
+    </MemoryRouter>,
   );
 }
 
@@ -99,6 +113,16 @@ describe("AppShell", () => {
     await user.keyboard("{Escape}");
 
     expect(screen.getByRole("button", { name: "Lists" })).not.toHaveFocus();
+  });
+
+  it("closes the sheet when the view changes without a link, such as a new list", async () => {
+    const user = userEvent.setup();
+    renderShell();
+
+    await user.click(screen.getByRole("button", { name: "Lists" }));
+    await user.click(screen.getByRole("button", { name: "Go to Personal" }));
+
+    expect(screen.getByRole("button", { name: "Lists" })).toHaveAttribute("aria-expanded", "false");
   });
 
   it("closes the sheet when a link inside it is followed", async () => {

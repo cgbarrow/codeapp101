@@ -531,6 +531,16 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Try sync without a tenant.** In mock mode each tab had its own in-memory data. The mock repositories now take a `BroadcastChannel`: every write posts the whole state, a new tab asks for it, and each tab's ids carry a random tag so two tabs never create the same id. Other tabs see a change on their next fetch, exactly as with Dataverse. `e2e/sync.spec.ts` opens two pages, ticks a task in one and fires `focus` in the other, because both pages in a headless browser count as visible.
 - **Cost to watch in task 15 and 16.** Polling applies to every query, including one subtask query per visible task (task 11), so a list of 20 tasks makes about 25 Dataverse requests a minute while visible. If that shows up in the smoke test, give subtask queries a longer interval.
 
+
+#### Task 15 notes: end-to-end suite, audits and documentation
+
+- **Audit the build, not the dev server.** `npm run build` produces the Dataverse build, which cannot run outside the Power Apps host, so auditing it locally is meaningless. `npm run build:mock` and `npm run preview:mock` build and serve the same UI with the in-memory data layer on port 4173. Lighthouse runs against that.
+- **Lighthouse via `npx`, not a dependency.** `npx lighthouse http://localhost:4173/ --output=html --output-path=docs/design/lighthouse.html` gives the mobile scores and a report to commit. The Chrome DevTools MCP server has a Lighthouse tool, but it excludes the performance category, which is half of the acceptance criterion.
+- **The first Lighthouse run found a real layout shift (CLS 0.152).** The Today view rendered its quick-add box only after the Inbox query resolved, and its loading placeholders sat above the container the tasks would fill, so the page jumped twice. The fix: a slot that reserves the quick-add height, and placeholders rendered inside the container the content lands in. CLS 0 afterwards. Run Lighthouse twice before believing a CLS number; the first run scored 0.022 by luck of timing.
+- **Playwright found a mobile bug the component tests could not.** The list sheet closed only when a link inside it was clicked, so creating a list — which navigates programmatically — left the sheet covering the new list. The shell now closes the sheet whenever the route changes, which also covers the number keys and `t`. React's `set-state-in-effect` lint rule rejects the obvious `useEffect`; the fix compares the previous path during render instead.
+- **Date-dependent assertions need care.** The Checkpoint B flow types "Buy milk on Friday" and the chip read "Tomorrow" because the test ran on a Thursday. The spec now captures the chip's text and asserts the row shows the same label.
+- **Hallmark audit: two missing stamps, nothing structural.** The audit's value was the stamp-versus-page check and the token-purity rule, both of which a test already enforced. Two stylesheets written late in the build had no stamp. Everything else passed.
+- **A clean clone is the only honest README test.** `git clone` into a temporary directory, `npm install`, then the four commands, all green. Steps beyond that — importing the solution, `pa auth login`, Local Play — need the tenant and belong to a person, not to CI.
 ---
 
 ## Verify

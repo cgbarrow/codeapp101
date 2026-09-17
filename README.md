@@ -58,7 +58,8 @@ src/data/                domain types, repository interfaces, in-memory and Data
 src/generated/           written by the pa CLI from the Dataverse tables; never edited by hand
 .power/                  table schemas the generated services import; also CLI-owned
 power.config.json        code app configuration: environment and data sources
-docs/design/             theme choice and shell screenshots at six widths
+docs/adr/                architecture decision records (0001-0004)
+docs/design/             theme choice, shell screenshots at six widths, Lighthouse report
 e2e/                     Playwright specs
 .github/workflows/ci.yml lint, typecheck, test and build on every pull request
 ```
@@ -98,16 +99,30 @@ To refresh the shell screenshots in `docs/design/`:
 
 ```bash
 SHELL_SCREENSHOTS=1 npx playwright test e2e/shell.spec.ts --project desktop-chromium
-``` To run against the real environment instead, sign in once, then start Vite without mocks:
-
-```bash
-npx pa auth login
-npm run dev:dataverse
 ```
 
-Open the URL labelled **Local Play** in the same browser profile you use for the tenant. `npm run dev:smoke` does the same, with a panel that creates, completes and deletes a test list and task; see [`docs/smoke.md`](docs/smoke.md).
+## From clone to Local Play in 15 minutes
 
-Prerequisites, permissions and the governance controls that apply in a corporate tenant are covered in the [how-to article](docs/how-to-build-a-power-apps-code-app.md).
+Local Play runs the app on your machine against the **real** Dataverse tables, with the Power Apps
+host supplying the connection. Steps 1 and 2 need nothing but Node; steps 3 to 6 need a Power
+Platform environment with code apps switched on and a Power Apps Premium licence.
+
+| | Step | Command | Time |
+|---|---|---|---|
+| 1 | Clone and install | `git clone <this repo> && cd codeapp101 && npm install` | ~2 min |
+| 2 | Check it works with no tenant at all | `npm run dev` then open the printed URL | ~1 min |
+| 3 | Import the schema | In [make.powerapps.com](https://make.powerapps.com) → Solutions → Import, choose `solution/CodeApp101_1_0_0_0.zip`, then assign yourself the `Todo User` role. Full steps and the manual fallback: [`docs/dataverse-setup.md`](docs/dataverse-setup.md) | ~5 min |
+| 4 | Sign in to the CLI | `npx pa auth login` (opens a browser) | ~1 min |
+| 5 | Point the app at your environment | Edit `power.config.json`: set `environmentId` to yours, and the three data sources to your tables. Or start fresh with `npx pa app init --display-name "Simple Todo" --environment-id <id>` and `npx pa app add data-source --connector dataverse --table <table>` for `cb_todolists`, `cb_todotasks` and `cb_todosubtasks` | ~3 min |
+| 6 | Run against Dataverse | `npm run dev:dataverse`, then open the URL labelled **Local Play** in the browser profile signed in to the tenant | ~1 min |
+
+`npm run dev:smoke` does the same as step 6 with a panel that creates, completes and deletes a test
+list and task, which is the quickest way to prove the connection; see [`docs/smoke.md`](docs/smoke.md).
+
+If the app opens but the lists never load, you are almost certainly signed in to a different profile
+than the one that opened Local Play. The [how-to article](docs/how-to-build-a-power-apps-code-app.md)
+covers prerequisites, licensing and the governance controls that apply in a corporate tenant, and
+its troubleshooting section carries the real error text for every failure hit during this build.
 
 ## Current status
 
@@ -116,8 +131,8 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); the Today view as the default landing, with `t` and the last view remembered (task 10); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13); refetching, retries, reliable failure toasts and loading placeholders (task 14). Still to do: Checkpoint B |
-| Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes started |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); the Today view as the default landing, with `t` and the last view remembered (task 10); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13); refetching, retries, reliable failure toasts and loading placeholders (task 14); end-to-end flows, Lighthouse and Hallmark audits, ADRs (task 15). Still to do: Checkpoint B |
+| Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes complete; ADRs 0001–0004 written; audits recorded in [`docs/design/audit-2026-09-17.md`](docs/design/audit-2026-09-17.md) |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.
 
@@ -126,6 +141,9 @@ Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each tas
 - **[How to build a Power Apps code app](docs/how-to-build-a-power-apps-code-app.md)** — the full build log written as a knowledge-base article, including every failure and its fix. Written for someone repeating this from scratch.
 - **[Dataverse setup](docs/dataverse-setup.md)** — the operational runbook for the schema, with a click-by-click manual fallback.
 - **[SPEC.md](SPEC.md)** — what is being built and why, with acceptance criteria.
+- **[Architecture decisions](docs/adr/)** — why the `pa` CLI, the repository pattern, TanStack Query and a generated solution package.
+- **[Audit results](docs/design/audit-2026-09-17.md)** — Lighthouse scores and the Hallmark audit of the finished UI.
+- **[Smoke checks](docs/smoke.md)** — where each acceptance criterion is proved, and the manual checklist for the published app.
 
 ## Phase two
 

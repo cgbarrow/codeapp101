@@ -10,6 +10,11 @@
   max-width: var(--size-measure);
 }
 
+/* Holds the quick add's height while the Inbox loads. */
+.addSlot {
+  min-height: calc(var(--size-target) + var(--space-xs) + 2px);
+}
+
 .sections,
 .section {
   display: flex;
@@ -18,10 +23,6 @@
 
 .sections {
   gap: var(--space-lg);
-}
-
-.sections:empty {
-  display: none;
 }
 
 .section {

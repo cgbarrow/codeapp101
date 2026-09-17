@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useLocation } from "react-router";
 import styles from "./AppShell.module.css";
 
 type AppShellProps = {
@@ -8,6 +9,8 @@ type AppShellProps = {
 
 export function AppShell({ sidebar, children }: AppShellProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { pathname } = useLocation();
+  const [lastPath, setLastPath] = useState(pathname);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const sheetId = useId();
@@ -15,6 +18,12 @@ export function AppShell({ sidebar, children }: AppShellProps) {
   function closeSheet() {
     setSheetOpen(false);
     toggleRef.current?.focus();
+  }
+
+  // Any change of view gets the sheet out of the way, whether a link, a shortcut or a new list.
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setSheetOpen(false);
   }
 
   useEffect(() => {
@@ -62,15 +71,7 @@ export function AppShell({ sidebar, children }: AppShellProps) {
             Close lists
           </button>
         </div>
-        {/* Following a link inside the sheet navigates, so the sheet gets out of the way. */}
-        <div
-          className={styles.sidebarBody}
-          onClick={(event) => {
-            if ((event.target as Element).closest("a[href]")) setSheetOpen(false);
-          }}
-        >
-          {sidebar}
-        </div>
+        <div className={styles.sidebarBody}>{sidebar}</div>
       </nav>
 
       <main className={styles.main}>{children}</main>

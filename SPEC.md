@@ -420,6 +420,7 @@ Rules:
 5. Completing a weekly recurring task creates the next instance dated +7 days with subtasks reset.
 6. Reminder: with browser permission granted and the tab open, a notification fires within 30 s of the reminder time.
 7. Lighthouse (mobile, throttled) on the built app: Performance ≥ 90, Accessibility ≥ 95; no horizontal scroll at 320 px.
+   **(met 2026-09-17)** Performance 98, Accessibility 100, CLS 0, audited on the mock-data build because the Dataverse build only runs inside the Power Apps host. Report: `docs/design/lighthouse.html`.
 8. CI green: lint 0 warnings, typecheck clean, unit + component + e2e passing, coverage gates met.
 9. Hallmark audit of the final UI returns no gate failures.
 10. README lets a new developer go from clone to Local Play in under 15 minutes.
