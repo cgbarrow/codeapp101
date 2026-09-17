@@ -241,6 +241,44 @@ describe("TaskList", () => {
     });
   });
 
+  describe("repeating tasks", () => {
+    const waterings = async () =>
+      (await repos.tasks.getByList("seed-personal")).filter((t) => t.title === "Water the plants");
+
+    it("puts the next instance in the list when a repeating task is completed", async () => {
+      const user = userEvent.setup();
+      renderList("seed-personal");
+
+      await user.click(await screen.findByRole("checkbox", { name: "Complete Water the plants" }));
+
+      await waitFor(() =>
+        expect(openTitles()).toEqual(["Water the plants", "Pack for the weekend"]),
+      );
+      const row = screen.getByRole("button", { name: "Water the plants" }).closest("li")!;
+      expect(row.querySelector("[data-due]")).not.toHaveTextContent("Today");
+      await waitFor(async () => expect(await waterings()).toHaveLength(2));
+    });
+
+    it("removes the next instance again when the completion is undone", async () => {
+      const user = userEvent.setup();
+      renderList("seed-personal");
+
+      await user.click(await screen.findByRole("checkbox", { name: "Complete Water the plants" }));
+      await user.click(screen.getByRole("button", { name: "Undo" }));
+
+      await waitFor(async () => {
+        const stored = await waterings();
+        expect(stored).toHaveLength(1);
+        expect(stored[0]).toMatchObject({ id: "seed-t5", isCompleted: false });
+      });
+      await waitFor(() =>
+        expect(openTitles()).toEqual(["Water the plants", "Pack for the weekend"]),
+      );
+      const row = screen.getByRole("button", { name: "Water the plants" }).closest("li")!;
+      expect(row.querySelector("[data-due]")).toHaveTextContent("Today");
+    });
+  });
+
   describe("subtasks", () => {
     const packRow = () =>
       screen.getByRole("button", { name: "Pack for the weekend" }).closest("li")!;

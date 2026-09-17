@@ -236,4 +236,25 @@ describe("TaskDetail", () => {
     expect(await within(region).findByRole("list", { name: "Subtasks" })).toBeInTheDocument();
     expect(within(region).getByRole("textbox", { name: "Add a subtask" })).toBeInTheDocument();
   });
+
+  it("stops a repeating task on this instance only, and hides the button otherwise", async () => {
+    const user = userEvent.setup();
+    const updatedIds: string[] = [];
+    const update = repos.tasks.update;
+    repos.tasks.update = (id, patch) => {
+      updatedIds.push(id);
+      return update(id, patch);
+    };
+    render(<Harness listId="seed-personal" id="seed-t5" onClose={() => {}} />, {
+      wrapper: createWrapper(repos),
+    });
+    await screen.findByRole("region", { name: "Task details" });
+
+    await user.click(screen.getByRole("button", { name: "Stop repeating" }));
+
+    await waitFor(() => expect(patches).toEqual([{ recurrence: "none" }]));
+    expect(updatedIds).toEqual(["seed-t5"]);
+    expect(screen.getByLabelText("Repeat")).toHaveValue("none");
+    expect(screen.queryByRole("button", { name: "Stop repeating" })).not.toBeInTheDocument();
+  });
 });

@@ -271,13 +271,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** `nextOccurrence(dueDate, recurrence)` computes daily/weekly/monthly (clamped to month end). Completing a task with recurrence ≠ none marks it complete and creates the next instance in the same list with the next due date, copied notes, reset subtasks and `recurrenceParent` set. "Stop repeating" sets recurrence to none on the current instance only.
 
 **Acceptance criteria:**
-- [ ] Unit tests: Jan 31 monthly → Feb 28/29 → Mar 31; weekly keeps weekday; DST-safe
-- [ ] Undo of a recurring completion also removes the generated instance
-- [ ] Uncompleting a recurring task does not create duplicates
+- [x] Unit tests: Jan 31 monthly → Feb 28/29 → Mar 31; weekly keeps weekday; DST-safe
+- [x] Undo of a recurring completion also removes the generated instance
+- [x] Uncompleting a recurring task does not create duplicates
 
 **Verification:**
-- [ ] `npm test -- nextOccurrence recurrence`
-- [ ] Playwright: complete a weekly task → next instance appears dated +7 days
+- [x] `npm test -- nextOccurrence recurrence`
+- [x] Playwright: complete a weekly task → next instance appears dated +7 days
+
+**Status: DONE 2026-09-17.** No `date-fns`: plain local calendar arithmetic. `recurrenceParentId` links each instance to the previous one, and `anchorDayOf` follows that link to bring a clamped monthly date back to its original day. The next due date counts from the old due date, not from today, so a late completion can create an overdue instance. The "Stop repeating" button sits in the detail footer. `e2e/recurrence.spec.ts` covers completion and Undo in Chromium and WebKit. The Undo toast still reads "Completed …", without the next date.
 
 **Dependencies:** T11
 **Files:** `src/features/recurrence/nextOccurrence.ts`, `src/features/recurrence/nextOccurrence.test.ts`, `src/features/recurrence/completeRecurring.ts`, `src/data/queries.ts`

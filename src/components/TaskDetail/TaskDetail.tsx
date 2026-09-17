@@ -230,6 +230,15 @@ export function TaskDetail({ task, id: regionId, onClose }: TaskDetailProps) {
         <SubtaskList taskId={task.id} />
 
         <div className={styles.footer}>
+          {task.recurrence !== "none" && (
+            <button
+              type="button"
+              className={styles.stop}
+              onClick={() => save({ recurrence: "none" })}
+            >
+              Stop repeating
+            </button>
+          )}
           <button
             type="button"
             className={styles.delete}

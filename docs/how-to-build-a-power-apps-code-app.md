@@ -487,6 +487,17 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Don't create subtasks under an unsaved task.** A placeholder task has a temporary `optimistic-` id that Dataverse would reject as a lookup, so the add field is disabled until the task is saved.
 - **Check that new tests can fail.** Three deliberate breaks each failed the new tests: an off-by-one in the limit, removing the optimistic subtask update, and skipping the subtask fetch before a delete.
 
+#### Task 12 notes: recurring tasks
+
+- **No date library needed.** SPEC §2 lists `date-fns`, but it was never installed, and recurrence needs only local calendar arithmetic: `new Date(year, month, day + 7, hours, minutes)`. Building dates from calendar fields, never by adding milliseconds, keeps 09:00 at 09:00 across a clock change. The DST tests use Toronto's 2026 transition dates, as in task 8.
+- **Month-end clamping needs memory.** Monthly from 31 January gives 28 February, but monthly from 28 February gives 28 March, not 31 March. The schema has no anchor-day column, and adding one means a solution change. `anchorDayOf` recovers the day instead by following `recurrenceParentId`: a due date on the last day of a month defers to its parent's anchor if clamping that anchor gives the same date. A date the user moved to mid-month is its own anchor. If the earlier instance has been deleted, the chain falls back to the date it has, so a deleted 31 January makes the chain settle on the 28th.
+- **`recurrenceParentId` points at the previous instance, not the first.** The next instance of a task is then simply "the task whose parent is this one". That makes two rules easy: completing a task that already has a next instance creates nothing, so reopening and completing again never duplicates, and Undo deletes the open instance whose parent is the undone task.
+- **The next instance is due one interval after the old due date, not after today.** SPEC S6 and §8 say "+7 days". A weekly task completed a fortnight late therefore produces an instance that is already overdue. A repeating task with no due date repeats from today.
+- **Reminders move with the task.** A preset reminder, such as one day before, is recalculated on the calendar for the new date. A custom one keeps the same distance from the due date.
+- **Show the new instance at once.** `useToggleTask` inserts a placeholder for the next instance while it saves, unless the cache already holds one. Undo sends `undo: true` in the same serialised toggle scope as task 6, so it reaches Dataverse after the create it reverses. Its optimistic step drops the placeholder, and a test watches every cache state to make sure the instance never flashes back.
+- **"Stop repeating" only sets `recurrence` to `none` on the open task.** Completed instances keep their own recurrence value and links, so history is untouched. The Repeat select can do the same thing; the button makes it easy to find.
+- **Mutation-tested.** Seven deliberate breaks each failed a test: daily by milliseconds, no anchor walk, no duplicate guard, Undo leaving the instance, subtasks copied ticked, preset reminders moved by milliseconds, and a placeholder added when an instance already existed.
+
 ---
 
 ## Verify

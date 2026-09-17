@@ -73,7 +73,7 @@ export function useTaskToggle() {
             onAction: () => {
               stopLingering(task.id);
               mutate(
-                { id: task.id, isCompleted: false },
+                { id: task.id, isCompleted: false, undo: true },
                 {
                   onError: () =>
                     toast.show({

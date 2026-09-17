@@ -9,6 +9,11 @@ import {
 import { deleteList, type DeleteListOptions } from "@/features/lists/deleteList";
 import { ensureInbox } from "@/features/lists/ensureInbox";
 import type { SortOrderChange } from "@/features/lists/reorderLists";
+import {
+  buildNextInstance,
+  createNextInstance,
+  removeNextInstance,
+} from "@/features/recurrence/completeRecurring";
 import { orderCompletedTasks } from "@/features/tasks/orderTasks";
 import { definedOnly, listDefaults, subtaskDefaults, taskDefaults } from "./defaults";
 import { queryKeys } from "./keys";
@@ -221,10 +226,19 @@ export function useUpdateTask() {
   });
 }
 
-export type ToggleTaskInput = { id: string; isCompleted: boolean };
+export type ToggleTaskInput = {
+  id: string;
+  isCompleted: boolean;
+  /** Reopening as Undo of a completion: also removes the repeat instance that completion created. */
+  undo?: boolean;
+};
 
+/**
+ * Completes or reopens a task. Completing a repeating task also creates its next instance, shown
+ * at once as a placeholder unless the task already has one.
+ */
 export function useToggleTask() {
-  const { tasks } = useRepos();
+  const repos = useRepos();
   const queryClient = useQueryClient();
   const patchFor = (isCompleted: boolean): TaskPatch => ({
     isCompleted,
@@ -235,11 +249,48 @@ export function useToggleTask() {
     mutationKey: queryKeys.tasks,
     // One write at a time, so a completion and its undo reach the server in order.
     scope: { id: "toggle-task" },
-    mutationFn: ({ id, isCompleted }: ToggleTaskInput) => tasks.update(id, patchFor(isCompleted)),
-    onMutate: async ({ id, isCompleted }) => ({
-      snapshot: await applyTaskPatch(queryClient, id, patchFor(isCompleted)),
-    }),
-    onError: (_error, _input, context) => restoreCaches(queryClient, context?.snapshot),
+    mutationFn: async ({ id, isCompleted, undo }: ToggleTaskInput) => {
+      const saved = await repos.tasks.update(id, patchFor(isCompleted));
+      if (isCompleted) await createNextInstance(repos, saved, new Date());
+      else if (undo) await removeNextInstance(repos, saved);
+      return saved;
+    },
+    onMutate: async ({ id, isCompleted, undo }) => {
+      const cached = queryClient
+        .getQueriesData<Task[]>({ queryKey: queryKeys.tasks })
+        .flatMap(([, data]) => data ?? []);
+      const existing = cached.find((task) => task.id === id);
+      const snapshot = await applyTaskPatch(queryClient, id, patchFor(isCompleted));
+
+      if (existing && isCompleted && !cached.some((task) => task.recurrenceParentId === id)) {
+        const next = buildNextInstance(
+          existing,
+          (taskId) => cached.find((task) => task.id === taskId),
+          new Date(),
+        );
+        if (next) {
+          const placeholder = { ...taskDefaults, ...next, id: optimisticId() } as Task;
+          snapshot.push(
+            ...(await rewriteCaches<Task[]>(
+              queryClient,
+              queryKeys.tasksByList(existing.listId),
+              (data) => [...data, placeholder].sort(bySortOrder),
+            )),
+          );
+        }
+      }
+      if (undo) {
+        snapshot.push(
+          ...(await rewriteCaches<Task[]>(queryClient, queryKeys.tasks, (data) =>
+            data.filter((task) => task.recurrenceParentId !== id || task.isCompleted),
+          )),
+        );
+      }
+      return { snapshot };
+    },
+    // Restore in reverse, so the oldest snapshot of each cache is applied last.
+    onError: (_error, _input, context) =>
+      restoreCaches(queryClient, context?.snapshot.slice().reverse()),
     onSettled: () => invalidateTasksWhenIdle(queryClient),
   });
 }

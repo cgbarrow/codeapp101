@@ -775,3 +775,101 @@ describe("subtask queries", () => {
     ]);
   });
 });
+
+describe("useToggleTask with a repeating task", () => {
+  // Seed task t5, "Water the plants", repeats weekly and is due today in Personal.
+  const waterings = (tasks: Task[] | undefined) =>
+    (tasks ?? []).filter((task) => task.title === "Water the plants");
+  const nextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
+
+  it("shows the next instance at once and saves it, due a week later", async () => {
+    const gate = deferred();
+    const create = repos.tasks.create;
+    repos.tasks.create = async (input) => {
+      await gate.promise;
+      return create(input);
+    };
+    const { result } = renderWithRepos(() => ({
+      tasks: useTasks("seed-personal"),
+      toggle: useToggleTask(),
+    }));
+    await waitFor(() => expect(result.current.tasks.isSuccess).toBe(true));
+
+    act(() => result.current.toggle.mutate({ id: "seed-t5", isCompleted: true }));
+
+    await waitFor(() => {
+      const next = waterings(result.current.tasks.data).find((task) => !task.isCompleted);
+      expect(next).toMatchObject({ recurrenceParentId: "seed-t5", dueDate: nextWeek });
+    });
+    gate.resolve();
+    await waitFor(() => expect(result.current.toggle.isSuccess).toBe(true));
+    const stored = waterings(await repos.tasks.getByList("seed-personal"));
+    expect(stored.map(({ isCompleted, dueDate }) => ({ isCompleted, dueDate }))).toEqual([
+      { isCompleted: true, dueDate: new Date(now.getFullYear(), now.getMonth(), now.getDate()) },
+      { isCompleted: false, dueDate: nextWeek },
+    ]);
+  });
+
+  it("removes the generated instance on Undo, without it flashing back", async () => {
+    const { result, queryClient } = renderWithRepos(() => ({
+      tasks: useTasks("seed-personal"),
+      toggle: useToggleTask(),
+    }));
+    await waitFor(() => expect(result.current.tasks.isSuccess).toBe(true));
+
+    act(() => result.current.toggle.mutate({ id: "seed-t5", isCompleted: true }));
+    act(() => result.current.toggle.mutate({ id: "seed-t5", isCompleted: false, undo: true }));
+    await waitFor(() => expect(waterings(result.current.tasks.data)).toHaveLength(1));
+    const counts: number[] = [];
+    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+      counts.push(waterings(queryClient.getQueryData(["tasks", "list", "seed-personal"])).length);
+    });
+
+    await waitFor(() => expect(queryClient.isMutating()).toBe(0));
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    unsubscribe();
+
+    expect(counts.every((count) => count === 1)).toBe(true);
+    const stored = waterings(await repos.tasks.getByList("seed-personal"));
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject({ id: "seed-t5", isCompleted: false });
+  });
+
+  it("does not create a second instance when a reopened task is completed again", async () => {
+    const { result } = renderWithRepos(() => ({
+      tasks: useTasks("seed-personal"),
+      toggle: useToggleTask(),
+    }));
+    await waitFor(() => expect(result.current.tasks.isSuccess).toBe(true));
+
+    await act(() => result.current.toggle.mutateAsync({ id: "seed-t5", isCompleted: true }));
+    await act(() => result.current.toggle.mutateAsync({ id: "seed-t5", isCompleted: false }));
+    await act(() => result.current.toggle.mutateAsync({ id: "seed-t5", isCompleted: true }));
+
+    await waitFor(() => expect(waterings(result.current.tasks.data)).toHaveLength(2));
+    expect(waterings(await repos.tasks.getByList("seed-personal"))).toHaveLength(2);
+  });
+
+  it("does not show a placeholder instance when one already exists in the cache", async () => {
+    const { result, queryClient } = renderWithRepos(() => ({
+      tasks: useTasks("seed-personal"),
+      toggle: useToggleTask(),
+    }));
+    await waitFor(() => expect(result.current.tasks.isSuccess).toBe(true));
+    await act(() => result.current.toggle.mutateAsync({ id: "seed-t5", isCompleted: true }));
+    await act(() => result.current.toggle.mutateAsync({ id: "seed-t5", isCompleted: false }));
+    await waitFor(() => expect(waterings(result.current.tasks.data)).toHaveLength(2));
+
+    const counts: number[] = [];
+    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+      counts.push(waterings(queryClient.getQueryData(["tasks", "list", "seed-personal"])).length);
+    });
+
+    act(() => result.current.toggle.mutate({ id: "seed-t5", isCompleted: true }));
+    await waitFor(() => expect(queryClient.isMutating()).toBe(0));
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    unsubscribe();
+
+    expect(Math.max(...counts)).toBe(2);
+  });
+});
