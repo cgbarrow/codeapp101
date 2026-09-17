@@ -1,7 +1,9 @@
+import { AppShell } from "@/components/AppShell/AppShell";
+
 export function App() {
   return (
-    <main>
+    <AppShell sidebar={null}>
       <h1>Simple Todo</h1>
-    </main>
+    </AppShell>
   );
 }

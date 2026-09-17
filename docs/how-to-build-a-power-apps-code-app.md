@@ -216,6 +216,18 @@ Note that a System Administrator already holds every privilege the custom role g
   The message still says `pac code init`, although that command no longer exists. The replacement is `pa app init`.
 - CI (`.github/workflows/ci.yml`) runs `npm ci`, lint, typecheck, test and build on Node 24 for every pull request and push to `main`. Playwright is not in CI yet.
 
+### Part 2 · Design foundation and app shell (draft notes)
+
+*Running notes from task 2.*
+
+- Fonts are self-hosted with Fontsource (`@fontsource-variable/geist`, `@fontsource-variable/geist-mono`) instead of a Google Fonts `<link>`. A code app runs inside the Power Apps host, and its content security policy can block third-party font CDNs; bundled `.woff2` files are served from the app's own origin. The Fontsource family names carry a `Variable` suffix: `"Geist Variable"`, not `"Geist"`.
+- All colours and font names live in `src/styles/tokens.css`. A Vitest test (`src/styles/tokens.node.test.ts`) walks `src/` and fails if a hex, `oklch()`, `rgb()` or `hsl()` value, or a `font-family` that is not a `var()`, appears anywhere else. It is cheaper than relying on review.
+- That test reads files with `node:fs`, so it needs Node types, and the app's `tsconfig.app.json` deliberately has none. The fix was a naming convention: `*.node.test.ts` files are excluded from `tsconfig.app.json` and included in `tsconfig.node.json`. Reading the CSS through Vite's `import.meta.glob(..., { query: "?raw" })` does not work under Vitest: CSS is stubbed, and the raw import comes back empty.
+- The first draft of the font-family regex, `/font-family:\s*(?!var\()/`, flagged every valid line. `\s*` backtracks to zero characters, so the lookahead sees ` var(` and matches. Put the whitespace inside the lookahead: `/font-family:(?!\s*var\()/`. Planting a deliberate violation before trusting the test is what caught it.
+- Contrast was checked numerically from the OKLCH values, not by eye. Two tokens failed and were changed: text on a coral fill came out at 3.8:1, so the accent was darkened to `oklch(56% 0.17 35)` for 4.9:1; control borders were 1.9:1, so `--color-rule-2` went to `oklch(60% 0.01 70)` for at least 3.1:1.
+- The shell's mobile bottom sheet is hidden with `visibility: hidden` as well as a transform. That removes the closed sheet from the tab order and the accessibility tree without JavaScript media queries, and the same markup becomes the persistent sidebar from 48rem.
+- `e2e/shell.spec.ts` asserts `scrollWidth - clientWidth === 0` at 320, 375, 414, 768, 1024 and 1440 px, and saves screenshots to `docs/design/` when `SHELL_SCREENSHOTS=1`. `page.evaluate` callbacks use `document`, so `tsconfig.node.json` needs `"DOM"` in `lib`.
+
 ---
 
 ## Verify

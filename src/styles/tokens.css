@@ -1,0 +1,97 @@
+/* Hallmark · pre-emit critique: P4 H4 E4 S3 R5 V3 */
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench (app shell) · theme: Coral
+ * tone: utilitarian · anchor hue: warm grey 70 / coral 35 · enrichment: none · nav: N3 side-rail (sheet < 48rem) · footer: none
+ * axes: paper light (L 97.5%) / display modern-sans (Geist) / accent warm (coral, hue 35)
+ *
+ * The only file allowed to hold colour values or font-family names. Everything else
+ * references these tokens by name.
+ */
+:root {
+  /* Paper and ink — warm grey, never #fff / #000 */
+  --color-paper: oklch(97.5% 0.006 70);
+  --color-paper-2: oklch(95% 0.008 70);
+  --color-paper-3: oklch(92% 0.009 70);
+  --color-rule: oklch(89% 0.008 70);
+  --color-rule-2: oklch(60% 0.01 70);
+  --color-muted: oklch(50% 0.01 65);
+  --color-ink-2: oklch(34% 0.012 60);
+  --color-ink: oklch(21% 0.012 60);
+
+  /* The one accent — coral. A highlighter, not a fill. */
+  --color-accent: oklch(56% 0.17 35);
+  --color-accent-text: oklch(50% 0.16 35);
+  --color-accent-contrast: oklch(99% 0.004 70);
+  --color-focus: oklch(55% 0.17 35);
+
+  /* Status */
+  --color-error: oklch(50% 0.19 25);
+  --color-error-surface: oklch(95% 0.03 25);
+  --color-success: oklch(48% 0.11 150);
+  --color-success-surface: oklch(95% 0.03 150);
+
+  /* Overlays — alpha as a modifier of ink, not a palette colour */
+  --color-scrim: oklch(21% 0.012 60 / 0.32);
+  --shadow-sheet: 0 -1px 2px oklch(21% 0.012 60 / 0.06);
+
+  /* Type — Geist throughout, Geist Mono for keyboard hints only */
+  --font-body: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-body);
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+
+  /* Major-third scale from 16px */
+  --text-xs: 0.8rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5625rem;
+  --text-xl: 1.9531rem;
+  --text-2xl: clamp(1.9531rem, 2vw + 1.25rem, 2.4414rem);
+
+  --leading-tight: 1.15;
+  --leading-body: 1.5;
+  --tracking-display: -0.025em;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 650;
+
+  /* 4pt spacing scale */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+
+  /* Radii — Coral is soft */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Sizes */
+  --size-target: 44px;
+  --size-sidebar: 17rem;
+  --size-measure: 65ch;
+  --size-sheet-max: 70dvh;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  /* Layers */
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+}

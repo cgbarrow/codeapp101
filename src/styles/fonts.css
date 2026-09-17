@@ -1,0 +1,3 @@
+/* Self-hosted so the app never depends on a font CDN under the Power Apps CSP. */
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";

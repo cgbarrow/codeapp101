@@ -53,13 +53,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Run the Hallmark design flow (page scope, modern-minimal genre, catalog theme) to produce the token block, base reset, font loading and the two-pane shell (list sidebar that collapses to a bottom sheet under 768 px, main outlet). Record the theme choice and four-width screenshots in `docs/design/`. No feature UI yet.
 
 **Acceptance criteria:**
-- [ ] `src/styles/tokens.css` defines all colour, type, space, radius and motion tokens; no other file contains a hex/OKLCH value or raw `font-family`
-- [ ] Shell renders with no horizontal scroll at 320/375/414/768/1024/1440; `html, body { overflow-x: clip }`
-- [ ] Hallmark pre-emit critique stamp present, every axis ≥ 3; headings roman; focus-visible rings on every control
+- [x] `src/styles/tokens.css` defines all colour, type, space, radius and motion tokens; no other file contains a hex/OKLCH value or raw `font-family`
+- [x] Shell renders with no horizontal scroll at 320/375/414/768/1024/1440; `html, body { overflow-x: clip }`
+- [x] Hallmark pre-emit critique stamp present, every axis ≥ 3; headings roman; focus-visible rings on every control
 
 **Verification:**
-- [ ] `npm run dev` → resize to each width (Chrome DevTools) → screenshots saved to `docs/design/`
-- [ ] Component tests for `AppShell` (sidebar toggles on mobile)
+- [x] `npm run dev` → resize to each width (Chrome DevTools) → screenshots saved to `docs/design/`
+- [x] Component tests for `AppShell` (sidebar toggles on mobile)
+
+**Status: DONE 2026-09-17.** Theme: Coral. Fonts self-hosted via Fontsource (SPEC §2 amended).
 
 **Dependencies:** T1
 **Files:** `src/styles/tokens.css`, `src/styles/base.css`, `src/styles/fonts.css`, `src/App.tsx`, `src/components/AppShell/*`, `docs/design/theme.md`

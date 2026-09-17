@@ -1,7 +1,7 @@
 # Spec: Simple Todo — Power Apps Code App
 
 Status: **APPROVED 2026-09-16** (assumptions confirmed, questions resolved — see §9). Plan lives in `tasks/plan.md`.
-Last updated: 2026-09-16
+Last updated: 2026-09-17
 
 ---
 
@@ -115,7 +115,7 @@ Sharing/assignment, attachments, comments, tags/priorities, Teams tab embedding,
 | Server state | `@tanstack/react-query` v5 | Optimistic mutations, refetch on focus/interval |
 | NLP dates | `chrono-node` | Browser-side parse; wrapped behind `parseQuickAdd()` so it can be swapped |
 | Dates | `date-fns` | Recurrence math, formatting |
-| Styling | Plain CSS with Hallmark token block (`tokens.css`), CSS Modules per component | No UI kit. Fonts via Google Fonts per chosen Hallmark theme |
+| Styling | Plain CSS with Hallmark token block (`tokens.css`), CSS Modules per component | No UI kit. Hallmark theme **Coral** (see `docs/design/theme.md`). Fonts self-hosted via `@fontsource-variable/geist` and `@fontsource-variable/geist-mono` **(amended 2026-09-17)**: bundled so the app never depends on a font CDN under the Power Apps content security policy |
 | Unit/component tests | Vitest + React Testing Library + `@testing-library/user-event` | jsdom |
 | E2E | Playwright (Chromium + WebKit mobile profile) | Runs against Vite dev server with a **mocked** service layer; Local Play requires tenant auth and is a manual smoke step |
 | Lint/format | ESLint 9 (template config) + Prettier | |
@@ -272,7 +272,8 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   ├── styles/
 │   │   ├── tokens.css           → Hallmark token block (colours, type, space, motion)
 │   │   ├── base.css             → reset, overflow-x: clip, focus rings
-│   │   └── fonts.css
+│   │   ├── fonts.css            → imports the self-hosted Fontsource faces
+│   │   └── tokens.node.test.ts  → fails if a colour or font-family appears outside tokens.css
 │   ├── generated/               → pa-generated models + services. NEVER hand-edit.
 │   └── test/                    → setup.ts, factories.ts, renderWithProviders.tsx
 ├── e2e/                         → Playwright specs

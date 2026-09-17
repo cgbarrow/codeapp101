@@ -23,7 +23,7 @@ Deliberately out of scope for version one: sharing, assignment, attachments, tag
 | Layer | Choice |
 |---|---|
 | UI | React 19, TypeScript, Vite, from the official code apps template |
-| Design | Hand-built CSS on a token system, no component library |
+| Design | Hand-built CSS on a token system, no component library; Hallmark Coral theme, Geist self-hosted |
 | Server state | TanStack Query, with optimistic updates and refetch on focus |
 | Platform | `@microsoft/power-apps` client library and the `pa` CLI |
 | Data | Three custom Dataverse tables in the `CodeApp101` solution |
@@ -45,6 +45,9 @@ solution/generate.py     Dataverse schema of record; emits the solution package
 solution/src/            generated solution XML
 docs/                    how-to article, setup runbook, design notes, ADRs
 src/                     application code; src/test/ holds the Vitest setup
+src/styles/              design tokens (the only place colours and fonts are defined), reset, fonts
+src/components/          one folder per component, with its CSS module and test
+docs/design/             theme choice and shell screenshots at six widths
 e2e/                     Playwright specs
 .github/workflows/ci.yml lint, typecheck, test and build on every pull request
 ```
@@ -72,6 +75,12 @@ End-to-end tests need the Playwright browsers once:
 ```bash
 npx playwright install chromium webkit
 npm run e2e
+```
+
+To refresh the shell screenshots in `docs/design/`:
+
+```bash
+SHELL_SCREENSHOTS=1 npx playwright test e2e/shell.spec.ts --project desktop-chromium
 ``` To run against the real environment instead:
 
 ```bash
@@ -90,7 +99,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI done (task 1); next up is task 2, the design foundation |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2). Next up is task 3, the data layer |
 | Documentation | Part 1 of 4 published |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

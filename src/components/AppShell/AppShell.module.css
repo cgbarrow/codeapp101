@@ -1,0 +1,237 @@
+/* Hallmark · component: app shell · genre: modern-minimal · theme: Coral
+ * states (.control): default · hover · focus · active · disabled · loading · error · success
+ * layout: top bar + bottom sheet below 48rem; persistent side rail from 48rem
+ */
+
+.shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+/* ---- Top bar (mobile only) ---- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: calc(var(--size-target) + var(--space-md));
+  padding-block: var(--space-xs);
+  padding-inline: max(var(--space-md), env(safe-area-inset-left))
+    max(var(--space-md), env(safe-area-inset-right));
+  background: var(--color-paper);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.wordmark {
+  color: var(--color-ink);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  white-space: nowrap;
+}
+
+/* ---- Control: a quiet outlined button, all eight states ---- */
+
+.control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: var(--size-target);
+  padding-inline: var(--space-md);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .control:hover,
+  .control:global(.is-hover) {
+    background: var(--color-paper-3);
+  }
+}
+
+.control:focus-visible,
+.control:global(.is-focus) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.control:active,
+.control:global(.is-active) {
+  transform: translateY(1px);
+  background: var(--color-paper-3);
+}
+
+.control:disabled,
+.control[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.control[data-state="loading"] {
+  cursor: progress;
+  color: var(--color-muted);
+}
+
+.control[data-state="error"] {
+  border-color: var(--color-error);
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+.control[data-state="success"] {
+  border-color: var(--color-success);
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+/* ---- Bottom sheet (mobile) ---- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--color-scrim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-in);
+}
+
+.backdrop[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity var(--dur-long) var(--ease-out);
+}
+
+.sidebar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: calc(var(--z-modal) + 1);
+  display: flex;
+  flex-direction: column;
+  max-height: var(--size-sheet-max);
+  background: var(--color-paper);
+  border-top: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-sheet);
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateY(100%);
+  visibility: hidden;
+  transition:
+    transform calc(var(--dur-long) * 0.75) var(--ease-in),
+    visibility 0s linear calc(var(--dur-long) * 0.75);
+}
+
+.sidebar[data-open="true"] {
+  transform: none;
+  visibility: visible;
+  transition:
+    transform var(--dur-long) var(--ease-out),
+    visibility 0s;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+/* In the sheet the top bar already shows the wordmark */
+.sidebarHeader .wordmark {
+  visibility: hidden;
+}
+
+.sidebarBody {
+  overflow-y: auto;
+  padding: var(--space-md);
+}
+
+.main {
+  min-width: 0;
+  padding: var(--space-lg) var(--space-md) var(--space-2xl);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar[data-open="true"] {
+    transform: none;
+    opacity: 0;
+    transition:
+      opacity 150ms linear,
+      visibility 0s linear 150ms;
+  }
+  .sidebar[data-open="true"] {
+    opacity: 1;
+    transition: opacity 150ms linear;
+  }
+}
+
+/* ---- Two panes from 48rem (768px) ---- */
+
+@media (min-width: 48rem) {
+  .shell {
+    grid-template-rows: none;
+    grid-template-columns: var(--size-sidebar) minmax(0, 1fr);
+  }
+
+  .topbar,
+  .backdrop,
+  .sidebarHeader .control {
+    display: none;
+  }
+
+  .sidebar,
+  .sidebar[data-open="true"] {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-base);
+    height: 100dvh;
+    max-height: none;
+    border-top: 0;
+    border-inline-end: 1px solid var(--color-rule);
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--color-paper-2);
+    transform: none;
+    visibility: visible;
+    opacity: 1;
+    transition: none;
+  }
+
+  .sidebarHeader {
+    min-height: calc(var(--size-target) + var(--space-md));
+    border-bottom: 0;
+    padding-inline: var(--space-lg);
+  }
+
+  .sidebarHeader .wordmark {
+    visibility: visible;
+  }
+
+  .sidebarBody {
+    padding-inline: var(--space-lg);
+  }
+
+  .main {
+    padding: var(--space-xl) clamp(var(--space-lg), 4vw, var(--space-2xl)) var(--space-3xl);
+  }
+}
