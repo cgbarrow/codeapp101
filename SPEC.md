@@ -256,7 +256,8 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   │   ├── QuickAdd/            → field, date chip, `n` shortcut
 │   │   ├── TaskRow/
 │   │   ├── TaskList/            → open tasks, collapsed Completed section
-│   │   ├── TaskDetail/
+│   │   ├── TaskDetail/          → inline editor; bottom sheet below 48rem
+│   │   ├── DateField/           → native date and time inputs
 │   │   ├── Checkmark/
 │   │   ├── ListNav/
 │   │   └── Toast/
@@ -265,7 +266,7 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   │   ├── tasks/orderTasks.ts, formatDue.ts
 │   │   ├── quickadd/parseQuickAdd.ts
 │   │   ├── recurrence/nextOccurrence.ts
-│   │   ├── reminders/scheduler.ts
+│   │   ├── reminders/computeReminderAt.ts, scheduler.ts
 │   │   └── today/selectToday.ts
 │   ├── data/                    → the ONLY code that touches generated services
 │   │   ├── repo.ts              → domain types + TaskRepo / ListRepo / SubtaskRepo interfaces
@@ -277,7 +278,7 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   │   ├── mock/                → in-memory implementations + sample seed for dev + tests
 │   │   ├── queries.ts           → react-query hooks (useTasks, useToggleTask, ...)
 │   │   └── keys.ts              → query keys
-│   ├── hooks/                   → useTaskToggle (Undo and Retry toasts), useKeyboardShortcuts, useNotifications
+│   ├── hooks/                   → useTaskToggle, useTaskDelete (Undo and Retry toasts), useKeyboardShortcuts, useNotifications
 │   ├── styles/
 │   │   ├── tokens.css           → Hallmark token block (colours, type, space, motion)
 │   │   ├── base.css             → reset, overflow-x: clip, focus rings
@@ -373,6 +374,7 @@ Rules:
 - Coverage gate: **90 % lines on `src/features` and `src/data`**, 70 % overall. CI fails below.
 - Bug fixes use Prove-It: failing test first, then fix.
 - `src/generated/**` excluded from coverage and lint.
+- Unit tests run in `America/Toronto` (`vitest.config.ts`), a zone with daylight saving, so DST cases behave the same locally and on UTC CI runners. **(amended 2026-09-17)**
 - Tests must not hit Dataverse. The mock repo is the same one used by `npm run dev` with mocks on.
 
 ---

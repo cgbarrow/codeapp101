@@ -458,6 +458,17 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Bundle cost.** `chrono-node` added about 60 kB (19 kB gzipped) to the main bundle. Worth revisiting in task 15 if Lighthouse performance falls below 90.
 - **One shortcut hook.** `useKeyboardShortcuts` owns the "not while typing, not with a modifier" rule for every single-key shortcut. The number keys from task 5 moved onto it. jsdom does not implement `isContentEditable`, so the hook also checks the `contenteditable` attribute.
 
+#### Task 8 notes: task detail
+
+- **Send only what changed.** `TaskDetail` builds each save by comparing the edited values with the task and dropping equal fields, comparing dates by time value. The tests wrap `repos.tasks.update` and assert the exact patch, so a stray `notes: ""` fails a test instead of overwriting another device's edit in Dataverse.
+- **Reminders are stored as a time, shown as an offset.** Dataverse has `cb_reminderat` and no offset column. `reminderOffsetOf` works the preset back out from the due date and reminder time, and anything else shows as Custom. Changing the due date or time moves the reminder with it. A date-only task is reminded about at 9:00 on its day, and the panel says so.
+- **"One day before" is a calendar day, not 24 hours,** so a 15:00 reminder stays at 15:00 across a clock change.
+- **Pin the test time zone.** The first DST test passed even with the rule deliberately broken: its dates were European clock-change days and the machine runs in America/Toronto, where nothing changed on them. GitHub's runners use UTC, which has no DST at all. `vitest.config.ts` now sets `test.env.TZ` to `America/Toronto`, and the test uses that zone's 2026 transition dates. After the change, breaking the rule fails the test.
+- **Delete now, undo by recreating.** Deleting sends the delete straight away, and Undo creates the task again from a snapshot, with a new id. The alternative, delaying the delete for three seconds, hides the row only in the cache: any refetch in that window, such as after ticking another task, brings the "deleted" row back. Subtasks (task 11) must be added to the snapshot.
+- **Native date and time inputs.** Each platform shows its own accessible picker. Values are read as local `YYYY-MM-DD` and `HH:MM` strings and saved on blur or Enter, not on change: typing a year into a desktop date input fires `change` for every digit.
+- **Escape on the document.** Escape was first handled on the panel, so it did nothing once focus had left, which the Playwright spec caught after a field blurred. The panel now listens on the document while it is open. Fields that use Escape themselves, such as quick add, stop it propagating.
+- **Scripted key presses do not reach native date inputs in the in-app browser**, the same limitation as Enter in task 7. `e2e/taskdetail.spec.ts` covers editing the date and time, the 44 px input height and the full-width bottom sheet, in both desktop Chromium and iPhone 13 WebKit.
+
 ---
 
 ## Verify
@@ -714,4 +725,4 @@ Code apps do not run in the Power Apps mobile player, so mobile means a mobile b
 
 ---
 
-*Part 3 is in progress as build notes. Next up: task detail and keyboard navigation.*
+*Part 3 is in progress as build notes. Next up: keyboard navigation.*

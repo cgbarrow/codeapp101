@@ -52,6 +52,7 @@
 }
 
 .body {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3xs);
@@ -61,6 +62,78 @@
 
 .title {
   overflow-wrap: anywhere;
+}
+
+/* ---- Title as disclosure button: all eight states ---- */
+
+button.title {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* The whole text column (title and due chip) is the click target; the panel below is not. */
+button.title::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+@media (hover: hover) {
+  button.title:hover,
+  button.title:global(.is-hover) {
+    text-decoration: underline;
+    text-decoration-color: var(--color-rule-2);
+    text-underline-offset: 0.2em;
+  }
+}
+
+button.title:focus-visible,
+button.title:global(.is-focus) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+button.title:active,
+button.title:global(.is-active) {
+  color: var(--color-ink-2);
+}
+
+button.title:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.row[data-state="loading"] button.title {
+  cursor: progress;
+}
+
+.row[data-state="error"] button.title {
+  color: var(--color-error);
+}
+
+.row[data-state="success"] button.title {
+  color: var(--color-success);
+}
+
+.row[data-selected] {
+  box-shadow: inset 2px 0 0 var(--color-rule-2);
+}
+
+.row[data-open] {
+  background: var(--color-paper-2);
+}
+
+.detail {
+  grid-column: 1 / -1;
+  padding-inline: var(--space-2xs) 0;
+  cursor: auto;
 }
 
 .row[data-completed] .title {

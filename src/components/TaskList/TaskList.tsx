@@ -1,7 +1,9 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { TaskDetail } from "@/components/TaskDetail/TaskDetail";
 import { TaskRow } from "@/components/TaskRow/TaskRow";
 import { useTasks } from "@/data/queries";
 import { orderCompletedTasks, orderOpenTasks } from "@/features/tasks/orderTasks";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTaskToggle } from "@/hooks/useTaskToggle";
 import styles from "./TaskList.module.css";
 
@@ -17,6 +19,31 @@ export function TaskList({ listId, listName, now = new Date() }: TaskListProps) 
   const { toggle, lingering } = useTaskToggle();
   const [showCompleted, setShowCompleted] = useState(false);
   const completedId = useId();
+  const detailId = useId();
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  /** Task whose title should take focus after the next render, when its panel closes. */
+  const returnFocusTo = useRef<string | null>(null);
+
+  useEffect(() => {
+    const id = returnFocusTo.current;
+    if (!id) return;
+    returnFocusTo.current = null;
+    containerRef.current?.querySelector<HTMLElement>(`[data-task-id="${id}"]`)?.focus();
+  });
+
+  useKeyboardShortcuts({
+    e: () => {
+      if (!selectedId || !all.some((task) => task.id === selectedId)) return false;
+      setOpenId(selectedId);
+    },
+  });
+
+  function closeDetail(id: string) {
+    setOpenId(null);
+    returnFocusTo.current = id;
+  }
 
   const all = tasks.data ?? [];
   // A just-completed task keeps its open position until its tick animation has played.
@@ -26,8 +53,28 @@ export function TaskList({ listId, listName, now = new Date() }: TaskListProps) 
   ).map((placed) => all.find((task) => task.id === placed.id)!);
   const completed = orderCompletedTasks(all.filter((task) => !lingering.has(task.id)));
 
+  function row(task: (typeof all)[number], state?: "success") {
+    const isOpen = openId === task.id;
+    return (
+      <TaskRow
+        key={task.id}
+        task={task}
+        now={now}
+        onToggle={toggle}
+        state={state}
+        onOpen={(opened) => setOpenId((current) => (current === opened.id ? null : opened.id))}
+        isOpen={isOpen}
+        detailId={detailId}
+        onSelect={(selected) => setSelectedId(selected.id)}
+        isSelected={selectedId === task.id}
+      >
+        {isOpen && <TaskDetail id={detailId} task={task} onClose={() => closeDetail(task.id)} />}
+      </TaskRow>
+    );
+  }
+
   return (
-    <div className={styles.taskList}>
+    <div ref={containerRef} className={styles.taskList}>
       {tasks.isError && (
         <div role="alert" className={styles.alert}>
           <p>{listName} didn't load.</p>
@@ -42,15 +89,7 @@ export function TaskList({ listId, listName, now = new Date() }: TaskListProps) 
           [0, 1, 2].map((index) => (
             <li key={index} className={styles.skeleton} aria-hidden="true" />
           ))}
-        {open.map((task) => (
-          <TaskRow
-            key={task.id}
-            task={task}
-            now={now}
-            onToggle={toggle}
-            state={lingering.has(task.id) ? "success" : undefined}
-          />
-        ))}
+        {open.map((task) => row(task, lingering.has(task.id) ? "success" : undefined))}
       </ul>
 
       {tasks.isSuccess && all.length === 0 && (
@@ -82,9 +121,7 @@ export function TaskList({ listId, listName, now = new Date() }: TaskListProps) 
           </h2>
           {showCompleted && (
             <ul id={completedId} className={styles.rows} aria-label="Completed tasks">
-              {completed.map((task) => (
-                <TaskRow key={task.id} task={task} now={now} onToggle={toggle} />
-              ))}
+              {completed.map((task) => row(task))}
             </ul>
           )}
         </section>

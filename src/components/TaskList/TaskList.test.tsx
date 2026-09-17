@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createMockRepos } from "@/data/mock/mockRepos";
@@ -159,5 +159,65 @@ describe("TaskList", () => {
     repos.tasks.update = update;
     await user.click(screen.getByRole("button", { name: "Retry" }));
     await waitFor(async () => expect((await stored("seed-t2"))?.isCompleted).toBe(false));
+  });
+
+  describe("task detail", () => {
+    it("opens inline from the task title and closes on a second click", async () => {
+      const user = userEvent.setup();
+      renderList();
+      const title = await screen.findByRole("button", { name: "Send the Q3 budget draft" });
+      expect(title).toHaveAttribute("aria-expanded", "false");
+
+      await user.click(title);
+
+      expect(title).toHaveAttribute("aria-expanded", "true");
+      const region = screen.getByRole("region", { name: "Task details" });
+      expect(title.closest("li")).toContainElement(region);
+      expect(title).toHaveAttribute("aria-controls", region.id);
+
+      await user.click(title);
+      expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
+    });
+
+    it("keeps one panel open at a time", async () => {
+      const user = userEvent.setup();
+      renderList();
+
+      await user.click(await screen.findByRole("button", { name: "Send the Q3 budget draft" }));
+      await user.click(screen.getByRole("button", { name: "Call Sam about the offsite" }));
+
+      const regions = screen.getAllByRole("region", { name: "Task details" });
+      expect(regions).toHaveLength(1);
+      expect(within(regions[0]).getByLabelText("Title")).toHaveValue("Call Sam about the offsite");
+    });
+
+    it("opens the selected task with e and closes with Escape, returning focus", async () => {
+      const user = userEvent.setup();
+      renderList();
+      const title = await screen.findByRole("button", { name: "Call Sam about the offsite" });
+
+      await user.keyboard("e");
+      expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
+
+      act(() => title.focus());
+      expect(title.closest("li")).toHaveAttribute("data-selected", "true");
+      await user.keyboard("e");
+      expect(screen.getByLabelText("Title")).toHaveFocus();
+
+      await user.keyboard("{Escape}");
+      expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
+      expect(title).toHaveFocus();
+    });
+
+    it("removes the row when the task is deleted from its panel", async () => {
+      const user = userEvent.setup();
+      renderList();
+
+      await user.click(await screen.findByRole("button", { name: "Send the Q3 budget draft" }));
+      await user.click(screen.getByRole("button", { name: "Delete task" }));
+
+      await waitFor(() => expect(openTitles()).toEqual(["Call Sam about the offsite"]));
+      expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
+    });
   });
 });

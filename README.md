@@ -10,7 +10,7 @@ A distraction-free todo list, designed so capturing a task takes under five seco
 
 - **Fast capture** — press `n`, type, press Enter. Typing `Buy milk on Friday` creates a task called "Buy milk" due next Friday, with the date parsed in the browser. A chip previews the date before you save; click it to keep the words in the title instead. `every Monday`, `every day` and `every month` set a repeat.
 - **Multiple lists** — Work, Personal, Groceries, and an Inbox that is created automatically. Press `1` to `9` to switch lists; drag to reorder on desktop, or use the up and down buttons in edit mode.
-- **Due dates and reminders** — deadlines, optional times, and browser notifications while the app is open.
+- **Due dates and reminders** — click a task, or select it and press `e`, to edit its title, notes, due date, time, reminder and repeat in place; on a phone the editor is a bottom sheet. Deleting offers Undo. Browser notifications while the app is open arrive in task 13.
 - **Completing tasks** — a ticked task animates, stays in place for a moment, then moves to a collapsed Completed section. Undo is offered for three seconds; `/completed` shows everything you have finished.
 - **Today view** — overdue and due-today tasks across every list, and the default landing view.
 - **Recurring tasks** — daily, weekly or monthly, with the next instance created on completion.
@@ -115,7 +115,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7). Next up is task 8, task detail |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8). Next up is task 9, keyboard navigation |
 | Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes started |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

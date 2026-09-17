@@ -9,6 +9,8 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // A zone with daylight saving, so DST tests mean the same thing locally and on UTC CI runners.
+    env: { TZ: "America/Toronto" },
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     coverage: {

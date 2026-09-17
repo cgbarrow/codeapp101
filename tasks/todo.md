@@ -186,13 +186,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Clicking a row expands an inline detail panel (no route change) with editable title, notes, due date picker, optional time, reminder offset select (none / at time / 10 min / 1 h / 1 day before), recurrence select, and Delete with undo. Overdue tasks are styled distinctly.
 
 **Acceptance criteria:**
-- [ ] Edits save on blur/Enter with only changed fields sent to the repo
-- [ ] Clearing the time sets `hasTime=false` and keeps the date; reminder offset computes `reminderAt` from due date/time
-- [ ] `e` opens detail for the selected row; Esc closes; all controls keyboard-operable
+- [x] Edits save on blur/Enter with only changed fields sent to the repo
+- [x] Clearing the time sets `hasTime=false` and keeps the date; reminder offset computes `reminderAt` from due date/time
+- [x] `e` opens detail for the selected row; Esc closes; all controls keyboard-operable
 
 **Verification:**
-- [ ] `npm test -- TaskDetail`
-- [ ] Manual at 375 px: panel is a full-width sheet, date picker usable
+- [x] `npm test -- TaskDetail`
+- [x] Manual at 375 px: panel is a full-width sheet, date picker usable
+
+**Status: DONE 2026-09-17.** Date-only reminders fire at 9:00. Delete sends at once and Undo recreates the task (new id); **T11 must add subtasks to the undo snapshot.** Clearing the due date also clears reminder and repeat. `e` opens the last focused or clicked row until T9 adds j/k. Unit tests pinned to America/Toronto for DST. The 375 px check was split: sheet layout checked in the in-app browser; date and time entry, 44 px input and full-width sheet covered by `e2e/taskdetail.spec.ts` on iPhone 13 WebKit, because scripted keys do not reach native date inputs in the in-app browser.
 
 **Dependencies:** T6
 **Files:** `src/components/TaskDetail/*`, `src/components/DateField/*`, `src/features/reminders/computeReminderAt.ts`

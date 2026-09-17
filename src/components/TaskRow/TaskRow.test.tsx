@@ -98,4 +98,28 @@ describe("TaskRow", () => {
 
     expect(screen.getByText("Groceries")).toBeInTheDocument();
   });
+
+  it("renders the title as a disclosure button when the row can open", async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    const row = task();
+    renderRow({ task: row, onOpen, isOpen: false, detailId: "detail-t1" });
+
+    const title = screen.getByRole("button", { name: "Buy milk" });
+    expect(title).toHaveAttribute("aria-expanded", "false");
+    await user.click(title);
+
+    expect(onOpen).toHaveBeenCalledWith(row);
+  });
+
+  it("marks the selected row and reports focus as selection", () => {
+    const onSelect = vi.fn();
+    const row = task();
+    renderRow({ task: row, onOpen: () => {}, onSelect, isSelected: true });
+
+    screen.getByRole("button", { name: "Buy milk" }).focus();
+
+    expect(screen.getByRole("listitem")).toHaveAttribute("data-selected", "true");
+    expect(onSelect).toHaveBeenCalledWith(row);
+  });
 });
