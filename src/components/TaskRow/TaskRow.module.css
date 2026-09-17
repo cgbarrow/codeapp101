@@ -122,8 +122,10 @@ button.title:disabled {
   color: var(--color-success);
 }
 
+/* Keyboard selection: stays visible when focus moves elsewhere, at every width. */
 .row[data-selected] {
-  box-shadow: inset 2px 0 0 var(--color-rule-2);
+  background: var(--color-paper-2);
+  box-shadow: inset 3px 0 0 var(--color-accent);
 }
 
 .row[data-open] {

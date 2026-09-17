@@ -1,0 +1,143 @@
+/* Hallmark · component: shortcut help · genre: modern-minimal · theme: Coral
+ * states (.trigger, .close): default · hover · focus · active · disabled · loading · error · success
+ * native <dialog> via showModal(): focus moves in, the page is inert, Escape closes.
+ */
+
+.trigger,
+.close {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--size-target);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+.trigger {
+  margin-top: var(--space-lg);
+  padding-inline: var(--space-sm);
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+}
+
+.close {
+  padding-inline: var(--space-md);
+  border: 1px solid var(--color-rule-2);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+@media (hover: hover) {
+  .trigger:hover,
+  .trigger:global(.is-hover),
+  .close:hover,
+  .close:global(.is-hover) {
+    background: var(--color-paper-3);
+    color: var(--color-ink);
+  }
+}
+
+.trigger:focus-visible,
+.trigger:global(.is-focus),
+.close:focus-visible,
+.close:global(.is-focus) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.trigger:active,
+.trigger:global(.is-active),
+.close:active,
+.close:global(.is-active) {
+  transform: translateY(1px);
+}
+
+.trigger:disabled,
+.close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.trigger[data-state="loading"],
+.close[data-state="loading"] {
+  cursor: progress;
+}
+
+.trigger[data-state="error"],
+.close[data-state="error"] {
+  color: var(--color-error);
+}
+
+.trigger[data-state="success"],
+.close[data-state="success"] {
+  color: var(--color-success);
+}
+
+/* Touch-only devices have no keyboard to use these with. */
+@media (hover: none) {
+  .trigger {
+    display: none;
+  }
+}
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  width: min(calc(100% - 2 * var(--space-md)), 24rem);
+  height: fit-content;
+  max-height: min(80vh, 40rem);
+  margin: auto;
+  padding: var(--space-lg);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  background: var(--color-paper);
+  color: var(--color-ink-2);
+}
+
+.dialog::backdrop {
+  background: var(--color-scrim);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.title {
+  font-size: var(--text-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table td {
+  padding-block: var(--space-2xs);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.keyCell {
+  width: 4.5rem;
+}
+
+.key {
+  display: inline-block;
+  min-width: 1.75rem;
+  padding: 0 var(--space-2xs);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  text-align: center;
+}

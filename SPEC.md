@@ -260,6 +260,7 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   │   ├── DateField/           → native date and time inputs
 │   │   ├── Checkmark/
 │   │   ├── ListNav/
+│   │   ├── ShortcutHelp/        → ? overlay (native <dialog>)
 │   │   └── Toast/
 │   ├── features/                → domain logic, no React
 │   │   ├── lists/ensureInbox.ts, reorderLists.ts, deleteList.ts

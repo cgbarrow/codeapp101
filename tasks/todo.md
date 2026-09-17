@@ -207,12 +207,14 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** `useKeyboardShortcuts` implements j/k selection, x toggle, e edit, Backspace delete (with undo), 1–9 lists, t Today, n QuickAdd, and ignores keys while typing in inputs. Selection ring uses tokens and is visible at all widths.
 
 **Acceptance criteria:**
-- [ ] Shortcuts inert when focus is in an input/textarea/contenteditable
-- [ ] Selection persists across optimistic re-renders
-- [ ] A "?" overlay lists shortcuts
+- [x] Shortcuts inert when focus is in an input/textarea/contenteditable
+- [x] Selection persists across optimistic re-renders
+- [x] A "?" overlay lists shortcuts
 
 **Verification:**
-- [ ] `npm test -- useKeyboardShortcuts`
+- [x] `npm test -- useKeyboardShortcuts`
+
+**Status: DONE 2026-09-17.** j/k move focus as well as selection; Backspace and Delete select a neighbour after deleting. `?` opens a native `<dialog>` that returns focus to where it was. **`t` moved to T10**, which builds the Today route. `e2e/keyboard.spec.ts` covers the keys and the dialog in Chromium and WebKit.
 
 **Dependencies:** T7, T8
 **Files:** `src/hooks/useKeyboardShortcuts.ts`, `src/hooks/useKeyboardShortcuts.test.ts`, `src/components/ShortcutHelp/*`

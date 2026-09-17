@@ -4,6 +4,7 @@ import { TaskRow } from "@/components/TaskRow/TaskRow";
 import { useTasks } from "@/data/queries";
 import { orderCompletedTasks, orderOpenTasks } from "@/features/tasks/orderTasks";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useTaskDelete } from "@/hooks/useTaskDelete";
 import { useTaskToggle } from "@/hooks/useTaskToggle";
 import styles from "./TaskList.module.css";
 
@@ -17,6 +18,7 @@ type TaskListProps = {
 export function TaskList({ listId, listName, now = new Date() }: TaskListProps) {
   const tasks = useTasks(listId);
   const { toggle, lingering } = useTaskToggle();
+  const removeTask = useTaskDelete();
   const [showCompleted, setShowCompleted] = useState(false);
   const completedId = useId();
   const detailId = useId();
@@ -34,11 +36,60 @@ export function TaskList({ listId, listName, now = new Date() }: TaskListProps) 
   });
 
   useKeyboardShortcuts({
+    j: () => moveSelection(1),
+    k: () => moveSelection(-1),
     e: () => {
-      if (!selectedId || !all.some((task) => task.id === selectedId)) return false;
-      setOpenId(selectedId);
+      const task = selectedTask();
+      if (!task) return false;
+      setOpenId(task.id);
     },
+    x: () => {
+      const task = selectedTask();
+      if (!task) return false;
+      toggle(task);
+    },
+    Backspace: () => deleteSelected(),
+    Delete: () => deleteSelected(),
   });
+
+  /** Tasks in the order they appear on screen, so j and k follow what the user sees. */
+  function visibleTasks() {
+    return showCompleted ? [...open, ...completed] : open;
+  }
+
+  function selectedTask() {
+    return visibleTasks().find((task) => task.id === selectedId);
+  }
+
+  function select(id: string) {
+    setSelectedId(id);
+    containerRef.current?.querySelector<HTMLElement>(`[data-task-id="${id}"]`)?.focus();
+  }
+
+  function moveSelection(step: 1 | -1) {
+    const tasks = visibleTasks();
+    if (tasks.length === 0) return false;
+    const index = tasks.findIndex((task) => task.id === selectedId);
+    const next =
+      index === -1
+        ? step === 1
+          ? 0
+          : tasks.length - 1
+        : Math.min(Math.max(index + step, 0), tasks.length - 1);
+    select(tasks[next].id);
+  }
+
+  function deleteSelected() {
+    const tasks = visibleTasks();
+    const index = tasks.findIndex((task) => task.id === selectedId);
+    if (index === -1) return false;
+    const task = tasks[index];
+    const neighbour = tasks[index + 1] ?? tasks[index - 1];
+    if (openId === task.id) setOpenId(null);
+    if (neighbour) select(neighbour.id);
+    else setSelectedId(null);
+    removeTask(task);
+  }
 
   function closeDetail(id: string) {
     setOpenId(null);

@@ -52,6 +52,13 @@ describe("App", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Completed" })).toBeInTheDocument();
   });
 
+  it("offers the keyboard shortcut list from the sidebar", async () => {
+    renderApp(sampleRepos(), "/list/seed-work");
+
+    const nav = screen.getByRole("navigation", { name: "Lists" });
+    expect(within(nav).getByRole("button", { name: "Keyboard shortcuts" })).toBeInTheDocument();
+  });
+
   it("sends an unknown route to the Inbox", async () => {
     renderApp(sampleRepos(), "/nowhere");
 

@@ -48,6 +48,16 @@ describe("useKeyboardShortcuts", () => {
     expect(onN).not.toHaveBeenCalled();
   });
 
+  it("allows Shift, which typing ? needs", async () => {
+    const user = userEvent.setup();
+    const onHelp = vi.fn();
+    renderHook(() => useKeyboardShortcuts({ "?": onHelp }));
+
+    await user.keyboard("{Shift>}?{/Shift}");
+
+    expect(onHelp).toHaveBeenCalledTimes(1);
+  });
+
   it("uses the latest handlers and stops listening on unmount", async () => {
     const user = userEvent.setup();
     const first = vi.fn();

@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { AppShell } from "@/components/AppShell/AppShell";
 import { ListNav } from "@/components/ListNav/ListNav";
+import { ShortcutHelp } from "@/components/ShortcutHelp/ShortcutHelp";
 import { useInbox } from "@/data/queries";
 import { CompletedRoute } from "@/routes/CompletedRoute";
 import { ListRoute } from "@/routes/ListRoute";
@@ -21,7 +22,14 @@ type AppProps = {
 
 export function App({ smoke = smokeEnabled }: AppProps) {
   return (
-    <AppShell sidebar={<ListNav />}>
+    <AppShell
+      sidebar={
+        <>
+          <ListNav />
+          <ShortcutHelp />
+        </>
+      }
+    >
       {smoke ? (
         <Suspense fallback={null}>
           <DataverseSmoke />

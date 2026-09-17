@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createMockRepos } from "@/data/mock/mockRepos";
 import { createSampleSeed } from "@/data/mock/seed";
 import type { Repos } from "@/data/repo";
-import { createWrapper } from "@/test/renderWithProviders";
+import { useCreateTask } from "@/data/queries";
+import { createWrapper, deferred } from "@/test/renderWithProviders";
 import { TaskList } from "./TaskList";
 
 let repos: Repos;
@@ -13,8 +14,27 @@ beforeEach(() => {
   repos = createMockRepos({ seed: createSampleSeed(new Date()) });
 });
 
+/** Adds a task through the real mutation, as quick add would, without typing into a field. */
+function AddTask() {
+  const { mutate } = useCreateTask();
+  return (
+    <button
+      type="button"
+      onClick={() => mutate({ listId: "seed-work", title: "New", sortOrder: 9 })}
+    >
+      Add task (test)
+    </button>
+  );
+}
+
 function renderList(listId = "seed-work") {
-  return render(<TaskList listId={listId} listName="Work" />, { wrapper: createWrapper(repos) });
+  return render(
+    <>
+      <TaskList listId={listId} listName="Work" />
+      <AddTask />
+    </>,
+    { wrapper: createWrapper(repos) },
+  );
 }
 
 const openTitles = () =>
@@ -218,6 +238,115 @@ describe("TaskList", () => {
 
       await waitFor(() => expect(openTitles()).toEqual(["Call Sam about the offsite"]));
       expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
+    });
+  });
+
+  describe("keyboard", () => {
+    const selectedTitle = () =>
+      document.querySelector("li[data-selected] [data-title]")?.textContent ?? null;
+
+    it("moves the selection down with j and up with k, focusing the task", async () => {
+      const user = userEvent.setup();
+      renderList();
+      await screen.findByRole("button", { name: "Call Sam about the offsite" });
+
+      await user.keyboard("j");
+      expect(selectedTitle()).toBe("Send the Q3 budget draft");
+      expect(screen.getByRole("button", { name: "Send the Q3 budget draft" })).toHaveFocus();
+
+      await user.keyboard("j");
+      expect(selectedTitle()).toBe("Call Sam about the offsite");
+      await user.keyboard("j");
+      expect(selectedTitle()).toBe("Call Sam about the offsite");
+
+      await user.keyboard("k");
+      expect(selectedTitle()).toBe("Send the Q3 budget draft");
+      await user.keyboard("k");
+      expect(selectedTitle()).toBe("Send the Q3 budget draft");
+    });
+
+    it("starts from the last task with k and continues into expanded completed tasks", async () => {
+      const user = userEvent.setup();
+      renderList();
+      await screen.findByRole("button", { name: "Call Sam about the offsite" });
+
+      await user.keyboard("k");
+      expect(selectedTitle()).toBe("Call Sam about the offsite");
+
+      await user.click(screen.getByRole("button", { name: "Completed (1)" }));
+      await user.keyboard("j");
+      expect(selectedTitle()).toBe("Review the pull request");
+    });
+
+    it("completes the selected task with x", async () => {
+      const user = userEvent.setup();
+      renderList();
+      await screen.findByRole("button", { name: "Call Sam about the offsite" });
+
+      await user.keyboard("jx");
+
+      expect(
+        screen.getByRole("checkbox", { name: "Complete Send the Q3 budget draft" }),
+      ).toHaveAttribute("aria-checked", "true");
+      expect(screen.getByText("Completed Send the Q3 budget draft")).toBeInTheDocument();
+    });
+
+    it("deletes the selected task with Backspace and selects the next one", async () => {
+      const user = userEvent.setup();
+      renderList();
+      await screen.findByRole("button", { name: "Call Sam about the offsite" });
+
+      await user.keyboard("j{Backspace}");
+
+      await waitFor(() => expect(openTitles()).toEqual(["Call Sam about the offsite"]));
+      expect(screen.getByText("Deleted Send the Q3 budget draft")).toBeInTheDocument();
+      expect(selectedTitle()).toBe("Call Sam about the offsite");
+      expect(screen.getByRole("button", { name: "Call Sam about the offsite" })).toHaveFocus();
+    });
+
+    it("selects the previous task after deleting the last one, with Delete too", async () => {
+      const user = userEvent.setup();
+      renderList();
+      await screen.findByRole("button", { name: "Call Sam about the offsite" });
+
+      await user.keyboard("jj{Delete}");
+
+      await waitFor(() => expect(openTitles()).toEqual(["Send the Q3 budget draft"]));
+      expect(selectedTitle()).toBe("Send the Q3 budget draft");
+    });
+
+    it("does nothing with x or Backspace when no task is selected", async () => {
+      const user = userEvent.setup();
+      renderList();
+      await screen.findByRole("button", { name: "Call Sam about the offsite" });
+
+      await user.keyboard("x{Backspace}");
+
+      expect(openTitles()).toHaveLength(2);
+      expect(screen.queryByText(/^Completed Send|^Deleted/)).not.toBeInTheDocument();
+    });
+
+    it("keeps the selection while another task is added and saved", async () => {
+      const user = userEvent.setup();
+      const gate = deferred();
+      const create = repos.tasks.create;
+      repos.tasks.create = async (input) => {
+        await gate.promise;
+        return create(input);
+      };
+      renderList();
+      await screen.findByRole("button", { name: "Call Sam about the offsite" });
+      await user.keyboard("jj");
+      const title = screen.getByRole("button", { name: "Call Sam about the offsite" });
+
+      await user.click(screen.getByRole("button", { name: "Add task (test)" }));
+      await waitFor(() => expect(openTitles()).toHaveLength(3));
+      expect(selectedTitle()).toBe("Call Sam about the offsite");
+      await act(async () => gate.resolve());
+      await waitFor(async () => expect(await repos.tasks.getByList("seed-work")).toHaveLength(4));
+
+      expect(selectedTitle()).toBe("Call Sam about the offsite");
+      expect(screen.getByRole("button", { name: "Call Sam about the offsite" })).toBe(title);
     });
   });
 });

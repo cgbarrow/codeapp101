@@ -15,6 +15,7 @@ A distraction-free todo list, designed so capturing a task takes under five seco
 - **Today view** — overdue and due-today tasks across every list, and the default landing view.
 - **Recurring tasks** — daily, weekly or monthly, with the next instance created on completion.
 - **Subtasks** — checklist steps inside a task, with progress shown on the row.
+- **Keyboard first** — `j`/`k` to move, `x` to complete, `e` to edit, Backspace to delete, `n` for a new task, `1`–`9` for lists, `?` for the full list.
 - **Works everywhere** — one responsive web app on phone, tablet and desktop, with Dataverse as the single source of truth.
 
 Deliberately out of scope for version one: sharing, assignment, attachments, tags, offline mode, and the Power Apps mobile player, which does not support code apps.
@@ -115,7 +116,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8). Next up is task 9, keyboard navigation |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9). Next up is Checkpoint B, then task 10, the Today view |
 | Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes started |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

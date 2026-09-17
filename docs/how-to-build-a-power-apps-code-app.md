@@ -469,6 +469,14 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Escape on the document.** Escape was first handled on the panel, so it did nothing once focus had left, which the Playwright spec caught after a field blurred. The panel now listens on the document while it is open. Fields that use Escape themselves, such as quick add, stop it propagating.
 - **Scripted key presses do not reach native date inputs in the in-app browser**, the same limitation as Enter in task 7. `e2e/taskdetail.spec.ts` covers editing the date and time, the 44 px input height and the full-width bottom sheet, in both desktop Chromium and iPhone 13 WebKit.
 
+#### Task 9 notes: keyboard navigation
+
+- **Selection moves focus.** `j` and `k` select the next or previous task in the order on screen, including completed tasks while their section is open, and focus that task's title. A screen reader announces it, the focus ring shows it, and `x`, `e` and Backspace act on what has focus. Selection is stored by task id, so it survives optimistic inserts and the placeholder being swapped for the saved row. A test holds a create open and checks the same title element keeps the selection.
+- **Delete selects a neighbour.** Backspace or Delete removes the selected task with Undo and selects the next task, or the previous one if it was last, so repeated deletes work without reaching for the mouse.
+- **Native `<dialog>` for the shortcut list, with two traps.** `showModal()` gives a focus trap, Escape handling and an inert page for free, but jsdom does not implement it. `src/test/setup.ts` adds a small stand-in that also moves focus inside, as browsers do. The first Playwright run then caught a real bug: moving focus back while the modal was still open did nothing, because a modal makes the rest of the page inert. Close the dialog first, then focus.
+- **Return focus to where it was, not to the trigger.** The "Keyboard shortcuts" button is hidden on touch-only devices (`hover: none`), and `?` can open the dialog from anywhere, so the dialog remembers the previously focused element.
+- **`t` for Today moves to task 10**, where its route is built.
+
 ---
 
 ## Verify
@@ -725,4 +733,4 @@ Code apps do not run in the Power Apps mobile player, so mobile means a mobile b
 
 ---
 
-*Part 3 is in progress as build notes. Next up: keyboard navigation.*
+*Part 3 is in progress as build notes. Next up: Checkpoint B review, then the Today view, subtasks, recurrence, reminders and sync.*
