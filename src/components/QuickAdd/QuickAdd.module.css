@@ -1,0 +1,204 @@
+/* Hallmark · component: quick add · genre: modern-minimal · theme: Coral
+ * states (.input, .add, .chip): default · hover · focus · active · disabled · loading · error · success
+ * The input's border is 1px in every state; focus is an outline in a reserved slot, so nothing shifts.
+ */
+
+.quickAdd {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2xs) var(--space-xs);
+  max-width: var(--size-measure);
+  padding: var(--space-2xs);
+  padding-inline-end: var(--space-sm);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-md);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  background: var(--color-paper);
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .quickAdd:hover,
+  .quickAdd:global(.is-hover) {
+    background: var(--color-paper-2);
+  }
+}
+
+/* The whole bar takes the focus ring when its field is focused. */
+.quickAdd:has(.input:focus-visible),
+.quickAdd:global(.is-focus) {
+  outline-color: var(--color-focus);
+  border-color: var(--color-ink-2);
+  background: var(--color-paper);
+}
+
+.quickAdd:has(.input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.quickAdd[data-state="loading"] {
+  cursor: progress;
+}
+
+.quickAdd[data-state="error"] {
+  border-color: var(--color-error);
+}
+
+.quickAdd[data-state="success"] {
+  border-color: var(--color-success);
+}
+
+.input {
+  width: 100%;
+  min-height: var(--size-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+}
+
+.input::placeholder {
+  color: var(--color-muted);
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.hint {
+  display: none;
+}
+
+/* ---- Add button ---- */
+
+.add,
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+.add {
+  width: var(--size-target);
+  height: var(--size-target);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-accent-text);
+}
+
+.chip {
+  position: relative;
+  grid-column: 2;
+  justify-self: start;
+  gap: var(--space-2xs);
+  min-height: 2rem;
+  margin-bottom: var(--space-2xs);
+  padding-inline: var(--space-sm) var(--space-xs);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-3);
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+/* Keep the chip's touch target at 44px without making it look tall. */
+.chip::before {
+  content: "";
+  position: absolute;
+  inset-block: -6px;
+  inset-inline: 0;
+}
+
+@media (hover: hover) {
+  .add:hover,
+  .add:global(.is-hover) {
+    background: var(--color-paper-3);
+  }
+
+  .chip:hover,
+  .chip:global(.is-hover) {
+    background: var(--color-rule);
+    color: var(--color-ink);
+  }
+}
+
+.add:focus-visible,
+.add:global(.is-focus),
+.chip:focus-visible,
+.chip:global(.is-focus) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.add:active,
+.add:global(.is-active),
+.chip:active,
+.chip:global(.is-active) {
+  transform: translateY(1px);
+}
+
+.add:disabled,
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.add[data-state="loading"],
+.chip[data-state="loading"] {
+  cursor: progress;
+  color: var(--color-muted);
+}
+
+.add[data-state="error"],
+.chip[data-state="error"] {
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+.add[data-state="success"],
+.chip[data-state="success"] {
+  background: var(--color-success-surface);
+  color: var(--color-success);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Pointer devices get a hint that n focuses the field. */
+@media (hover: hover) and (pointer: fine) {
+  .quickAdd {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .hint {
+    display: inline-block;
+    padding: 0 var(--space-2xs);
+    border: 1px solid var(--color-rule-2);
+    border-radius: var(--radius-sm);
+    color: var(--color-muted);
+  }
+
+  .quickAdd:focus-within .hint {
+    visibility: hidden;
+  }
+}

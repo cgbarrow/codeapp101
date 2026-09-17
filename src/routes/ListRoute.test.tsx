@@ -36,6 +36,12 @@ describe("ListRoute", () => {
     ).toBeInTheDocument();
   });
 
+  it("offers quick add for this list", async () => {
+    renderRoute("/list/seed-work");
+
+    expect(await screen.findByRole("textbox", { name: "Add a task" })).toBeInTheDocument();
+  });
+
   it("says so when the list does not exist and links back to the Inbox", async () => {
     renderRoute("/list/missing");
 

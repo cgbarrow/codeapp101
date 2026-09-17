@@ -8,7 +8,7 @@ A personal task app built as a **Power Apps code app**: an ordinary React single
 
 A distraction-free todo list, designed so capturing a task takes under five seconds.
 
-- **Fast capture** — press `n`, type, press Enter. Typing `Buy milk on Friday` creates a task called "Buy milk" due next Friday, with the date parsed in the browser.
+- **Fast capture** — press `n`, type, press Enter. Typing `Buy milk on Friday` creates a task called "Buy milk" due next Friday, with the date parsed in the browser. A chip previews the date before you save; click it to keep the words in the title instead. `every Monday`, `every day` and `every month` set a repeat.
 - **Multiple lists** — Work, Personal, Groceries, and an Inbox that is created automatically. Press `1` to `9` to switch lists; drag to reorder on desktop, or use the up and down buttons in edit mode.
 - **Due dates and reminders** — deadlines, optional times, and browser notifications while the app is open.
 - **Completing tasks** — a ticked task animates, stays in place for a moment, then moves to a collapsed Completed section. Undo is offered for three seconds; `/completed` shows everything you have finished.
@@ -27,6 +27,7 @@ Deliberately out of scope for version one: sharing, assignment, attachments, tag
 | Routing | React Router 7 with hash URLs, which survive reloads inside the Power Apps player |
 | Design | Hand-built CSS on a token system, no component library; Hallmark Coral theme, Geist self-hosted |
 | Server state | TanStack Query, with optimistic updates and refetch on focus |
+| Date parsing | `chrono-node`, in the browser, behind one `parseQuickAdd` function |
 | Platform | `@microsoft/power-apps` client library and the `pa` CLI |
 | Data | Three custom Dataverse tables in the `CodeApp101` solution |
 | Tests | Vitest and Testing Library for units and components, Playwright for end to end |
@@ -50,8 +51,8 @@ src/                     application code; src/test/ holds the Vitest setup
 src/styles/              design tokens (the only place colours and fonts are defined), reset, fonts
 src/components/          one folder per component, with its CSS module and test
 src/routes/              one component per route: /list/:id and /completed so far
-src/hooks/               React hooks shared across components, such as toggling a task with Undo
-src/features/            domain logic with no React, such as Inbox creation and list reordering
+src/hooks/               React hooks shared across components: keyboard shortcuts, toggling a task with Undo
+src/features/            domain logic with no React, such as Inbox creation, list reordering and quick-add parsing
 src/data/                domain types, repository interfaces, in-memory and Dataverse repos, TanStack Query hooks
 src/generated/           written by the pa CLI from the Dataverse tables; never edited by hand
 .power/                  table schemas the generated services import; also CLI-owned
@@ -114,7 +115,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6). Next up is task 7, quick add |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7). Next up is task 8, task detail |
 | Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes started |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

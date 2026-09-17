@@ -20,6 +20,7 @@ import {
 } from "@/data/queries";
 import type { List } from "@/data/repo";
 import { reorderLists } from "@/features/lists/reorderLists";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ArchiveIcon, DeleteIcon, DownIcon, PlusIcon, RenameIcon, UpIcon } from "./icons";
 import styles from "./ListNav.module.css";
 
@@ -29,13 +30,6 @@ type Failure = { listId: string | null; message: string; retry: () => void };
 
 const isOptimistic = (list: List) => list.id.startsWith("optimistic-");
 const listPath = (id: string) => `/list/${id}`;
-
-function isTypingTarget(target: EventTarget | null) {
-  return (
-    target instanceof HTMLElement &&
-    (target.isContentEditable || target.matches("input, textarea, select"))
-  );
-}
 
 function openTasksLabel(name: string, count: TaskCount | undefined) {
   if (!count || count.open === 0) return name;
@@ -86,18 +80,18 @@ export function ListNav() {
     return () => clearTimeout(timer);
   }, [savedId]);
 
-  useEffect(() => {
-    function onKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
-      if (!/^[1-9]$/.test(event.key) || isTypingTarget(event.target)) return;
-      const list = visible[Number(event.key) - 1];
-      if (!list || isOptimistic(list)) return;
-      event.preventDefault();
-      navigate(listPath(list.id));
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  });
+  useKeyboardShortcuts(
+    Object.fromEntries(
+      ["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((key, index) => [
+        key,
+        () => {
+          const list = visible[index];
+          if (!list || isOptimistic(list)) return false;
+          navigate(listPath(list.id));
+        },
+      ]),
+    ),
+  );
 
   /** Runs a mutation, flashing the row on success and offering a retry on failure. */
   function run(listId: string | null, failureMessage: string, attempt: (done: Callbacks) => void) {

@@ -447,6 +447,17 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Toasts pause while pointed at or focused.** A 3-second Undo is short for keyboard and screen-reader users, so the countdown stops while the pointer or focus is on the toast (WCAG 2.2.1, timing adjustable). Errors stay until dismissed and use `role="alert"`; everything else goes to a polite live region.
 - **The Completed view reuses list caches.** `/completed` gathers every list's cached tasks with `useQueries` instead of adding a repository method, the same approach as the sidebar counts.
 
+#### Task 7 notes: quick add with natural-language dates
+
+- **`chrono-node` needs guard rails for a todo title.** Its casual English parser, given a reference date and `forwardDate: true`, handles `tomorrow 3pm`, `next week`, `in 3 days`, `Sep 30`, and both `30/9` and `9/30`. It also reads ordinary words as dates. `parseQuickAdd` rejects `Now`, bare durations such as `2 hours`, a month name with no day (`Book flight for march`), and `sat` or `sun` used as words. A match must pin down a day, a weekday or an hour.
+- **Recurrence is parsed before chrono sees the text.** chrono does not understand `every day` or `every month`, and reads `every Monday` as a one-off Monday. The parser takes `every day|week|month|<weekday>` out first. A bare `weekly` stays in the title, because "Write weekly report" is not a repeating task.
+- **A bare hour from 1 to 7 means the afternoon.** chrono reads `Call mom at 5` as 5 am. People mean 5 pm.
+- **Measure the parser table against mutations.** All 38 phrases passed on the first run, which proves little. Disabling the afternoon rule, then the `Now` and `Sat` filters, made the matching cases fail, which shows the table actually checks those rules.
+- **Handle Enter in `onKeyDown`, not only through form submission.** A form's implicit submission depends on the key event carrying text. It worked with Playwright and Testing Library but not with a scripted key press in the in-app browser. The handler also skips Enter while an input method is composing, so confirming a Japanese or Chinese candidate does not save a half-typed task.
+- **Prove the optimistic row with a timing, not a guess.** `e2e/quickadd.spec.ts` records `performance.now()` on the Enter keydown and uses a `MutationObserver` to time when the new row appears. The mock data layer answers after 250 ms, so a row within 100 ms can only be the optimistic one.
+- **Bundle cost.** `chrono-node` added about 60 kB (19 kB gzipped) to the main bundle. Worth revisiting in task 15 if Lighthouse performance falls below 90.
+- **One shortcut hook.** `useKeyboardShortcuts` owns the "not while typing, not with a modifier" rule for every single-key shortcut. The number keys from task 5 moved onto it. jsdom does not implement `isContentEditable`, so the hook also checks the `contenteditable` attribute.
+
 ---
 
 ## Verify
@@ -703,4 +714,4 @@ Code apps do not run in the Power Apps mobile player, so mobile means a mobile b
 
 ---
 
-*Part 3 is in progress as build notes. Next up: fast capture with natural-language dates, task detail, and keyboard shortcuts.*
+*Part 3 is in progress as build notes. Next up: task detail and keyboard navigation.*

@@ -253,7 +253,7 @@ Import the zip via make.powerapps.com → Solutions → Import solution, then as
 │   ├── App.tsx                  → shell: sidebar + outlet
 │   ├── routes/                  → TodayRoute.tsx, ListRoute.tsx, CompletedRoute.tsx (named exports; declarative mode needs no default exports)
 │   ├── components/              → one folder per component: Foo.tsx, Foo.module.css, Foo.test.tsx
-│   │   ├── QuickAdd/
+│   │   ├── QuickAdd/            → field, date chip, `n` shortcut
 │   │   ├── TaskRow/
 │   │   ├── TaskList/            → open tasks, collapsed Completed section
 │   │   ├── TaskDetail/

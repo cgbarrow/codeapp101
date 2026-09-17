@@ -165,13 +165,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Global `n` shortcut and "+" button focus a single-line QuickAdd. `parseQuickAdd(text, now)` uses chrono-node to extract a date/time and a recurrence phrase, returns `{ title, dueDate, hasTime, recurrence }`, and the UI shows a dismissible preview chip. Enter saves into the current list (Inbox from Today); Esc cancels; input stays focused after save for rapid entry.
 
 **Acceptance criteria:**
-- [ ] Table-driven test of ≥ 30 phrases passes, including negatives ("Email May about Q3" keeps "May"; "Buy 2 milks" has no date)
-- [ ] "Buy milk on Friday" → title "Buy milk", dueDate next Friday, hasTime false; "Call Sam tomorrow 3pm" → hasTime true; "every Monday" → weekly with next Monday
-- [ ] Optimistic insert; new row visible < 100 ms after Enter in mock mode
+- [x] Table-driven test of ≥ 30 phrases passes, including negatives ("Email May about Q3" keeps "May"; "Buy 2 milks" has no date)
+- [x] "Buy milk on Friday" → title "Buy milk", dueDate next Friday, hasTime false; "Call Sam tomorrow 3pm" → hasTime true; "every Monday" → weekly with next Monday
+- [x] Optimistic insert; new row visible < 100 ms after Enter in mock mode
 
 **Verification:**
-- [ ] `npm test -- parseQuickAdd QuickAdd`
-- [ ] Playwright: type phrase → chip shows date → Enter → row with due chip
+- [x] `npm test -- parseQuickAdd QuickAdd`
+- [x] Playwright: type phrase → chip shows date → Enter → row with due chip
+
+**Status: DONE 2026-09-17.** 38-phrase table; parser adds guards for chrono false positives (`Now`, durations, bare months, `sat`/`sun`), reads bare hours 1–7 as pm, and parses `every …` itself. `e2e/quickadd.spec.ts` measures Enter-to-row inside the page and asserts < 100 ms in Chromium and WebKit. `useKeyboardShortcuts` created here and used by ListNav; task 9 extends it. `chrono-node` adds ~19 kB gzipped.
 
 **Dependencies:** T6
 **Files:** `src/features/quickadd/parseQuickAdd.ts`, `src/features/quickadd/parseQuickAdd.test.ts`, `src/components/QuickAdd/*`, `src/hooks/useKeyboardShortcuts.ts`

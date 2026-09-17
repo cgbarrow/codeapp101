@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router";
+import { QuickAdd } from "@/components/QuickAdd/QuickAdd";
 import { TaskList } from "@/components/TaskList/TaskList";
 import { useInbox, useLists } from "@/data/queries";
 import styles from "./ListRoute.module.css";
@@ -30,6 +31,7 @@ export function ListRoute() {
     <section className={styles.route}>
       <h1>{list.name}</h1>
       {list.isArchived && <p className={styles.note}>Archived</p>}
+      <QuickAdd key={`add-${list.id}`} listId={list.id} />
       <TaskList key={list.id} listId={list.id} listName={list.name} />
     </section>
   );

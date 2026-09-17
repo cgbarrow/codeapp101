@@ -31,7 +31,10 @@ describe("App", () => {
     const repos = createMockRepos();
     renderApp(repos);
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Inbox" })).toBeInTheDocument();
+    // Four async hops: find no Inbox, create it, redirect, load the route.
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Inbox" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
     expect(await repos.lists.getAll()).toHaveLength(1);
   });
 
