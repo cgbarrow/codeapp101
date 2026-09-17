@@ -477,6 +477,17 @@ All five passed on the first run. The logged task ID was reported back in the co
 - **Return focus to where it was, not to the trigger.** The "Keyboard shortcuts" button is hidden on touch-only devices (`hover: none`), and `?` can open the dialog from anywhere, so the dialog remembers the previously focused element.
 - **`t` for Today moves to task 10**, where its route is built.
 
+#### Task 10 notes: the Today view
+
+- **Today reads the per-list caches, not a filtered query.** Task 3 added `useTodayTasks`, which asks the repository for open tasks due before tomorrow. The view does not use it. Quick add, toggles and deletes update the per-list caches optimistically, and the sidebar counts and reminder scheduler already load them, so `/today` gathers them with `useTasksInLists` and filters in `selectToday`. It costs no extra requests, and a new task appears in Today in the same frame. `useCompletedTasks` now uses the same hook.
+- **End the day at the next local midnight.** `new Date(year, month, day + 1)`, never start of day plus 24 hours. On a 23-hour day that shortcut pulls tomorrow's date-only tasks into Today; on a 25-hour day it drops tasks due after 23:00. Two tests use Toronto's 2026 transition days, and swapping in the 24-hour version fails both.
+- **"Overdue" follows the row's rule.** A timed task whose time has passed today sits under Overdue, matching the red due label from task 6.
+- **Archived lists are left out** of Today, as they are from the sidebar.
+- **One set of keyboard rules for both views.** Selection, `j`/`k`/`x`/`e`/Backspace and the inline detail panel moved out of `TaskList` into `useTaskRows`, which takes the tasks in screen order. Today passes its groups flattened, so `j` moves across list groups and sections. The existing `TaskList` tests passed unchanged after the move.
+- **Quick add from Today files into the Inbox and says so.** A task typed without a date lands in the Inbox and would not show in Today, which looks like nothing happened. `QuickAdd` takes an optional `listName` and shows "Added … to Inbox." The toast is shown on Enter, not in a per-call `onSuccess`: TanStack Query runs per-call callbacks only for the latest `mutate`, so rapid entry would drop confirmations.
+- **Remember the last view in `localStorage`, guarded.** `App` saves the path of `/today`, `/completed` and `/list/:id` on every navigation. The catch-all route waits for the lists before sending the user to a remembered list, and goes to Today if that list has gone. Reads and writes are wrapped in `try`/`catch`, because storage can be blocked. App tests clear storage before each test, because jsdom keeps it across tests in a file.
+- **`t` lives in `ListNav`** with the number keys, and a Today link heads the Views list. The Playwright landing check changed with it: `e2e/smoke.spec.ts` now expects Today, and `e2e/today.spec.ts` covers grouping, the Inbox quick add, the remembered view after a reload, and `t`.
+
 #### Task 11 notes: subtasks
 
 - **Progress comes from per-task subtask caches.** `useSubtaskProgress` runs one `getByTask` query per visible row through `useQueries`, the same approach as the sidebar counts, and the checklist in the detail panel reads the same cache. Ticking a subtask updates that cache optimistically, so the row's `1/3` changes in the same frame. The cost is one Dataverse request per visible task when a list first loads. Fine for a personal list; if it shows up in task 14 or 15, the fix is a repository method that filters `_cb_task_value` across many tasks in one request.

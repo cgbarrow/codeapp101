@@ -30,6 +30,7 @@ describe("ShortcutHelp", () => {
       "eEdit",
       "⌫Delete",
       "1–9Switch list",
+      "tToday",
       "?Show shortcuts",
       "EscClose",
     ]) {

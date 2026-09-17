@@ -10,6 +10,7 @@ const SHORTCUTS: ReadonlyArray<[key: string, action: string]> = [
   ["e", "Edit"],
   ["⌫", "Delete"],
   ["1–9", "Switch list"],
+  ["t", "Today"],
   ["?", "Show shortcuts"],
   ["Esc", "Close"],
 ];

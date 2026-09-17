@@ -1,0 +1,154 @@
+/* Hallmark · component: Today view · genre: modern-minimal · theme: Coral
+ * states (.button): default · hover · focus · active · disabled · loading · error · success
+ * overdue: the section heading is error-coloured and says "Overdue"; rows add their own label.
+ */
+
+.route {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  max-width: var(--size-measure);
+}
+
+.sections,
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+.sections {
+  gap: var(--space-lg);
+}
+
+.sections:empty {
+  display: none;
+}
+
+.section {
+  gap: var(--space-sm);
+}
+
+.sectionHeading {
+  font-size: var(--text-md);
+}
+
+.sectionHeading[data-tone="overdue"] {
+  color: var(--color-error);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.groupHeading {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  margin-inline: calc(var(--space-2xs) * -1);
+  padding: 0;
+  list-style: none;
+}
+
+.skeleton {
+  height: calc(var(--size-target) + var(--space-xs));
+  border-radius: var(--radius-md);
+  background: var(--color-paper-2);
+  animation: pulse 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding-block: var(--space-lg);
+}
+
+.emptyTitle {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+}
+
+.note {
+  color: var(--color-muted);
+}
+
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+/* Retry button: all eight states */
+.button {
+  min-height: var(--size-target);
+  padding-inline: var(--space-md);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .button:hover {
+    background: var(--color-paper-3);
+  }
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button[data-state="loading"] {
+  cursor: progress;
+  color: var(--color-muted);
+}
+
+.button[data-state="error"] {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.button[data-state="success"] {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}

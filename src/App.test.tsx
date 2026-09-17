@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { App } from "@/App";
 import { createMockRepos } from "@/data/mock/mockRepos";
 import { createSampleSeed } from "@/data/mock/seed";
@@ -20,22 +20,40 @@ function renderApp(repos: Repos, path = "/", smoke = false) {
 
 const sampleRepos = () => createMockRepos({ seed: createSampleSeed(new Date(2026, 8, 17, 9, 30)) });
 
+beforeEach(() => localStorage.clear());
+
 describe("App", () => {
-  it("lands on the Inbox", async () => {
+  it("lands on Today", async () => {
     renderApp(sampleRepos());
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Inbox" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Today" })).toBeInTheDocument();
   });
 
-  it("creates the Inbox for a new user and lands on it", async () => {
+  it("creates the Inbox for a new user, for Today's quick add to file into", async () => {
     const repos = createMockRepos();
     renderApp(repos);
 
-    // Four async hops: find no Inbox, create it, redirect, load the route.
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Inbox" }, { timeout: 3000 }),
+      await screen.findByText("Nothing due today.", {}, { timeout: 3000 }),
     ).toBeInTheDocument();
     expect(await repos.lists.getAll()).toHaveLength(1);
+  });
+
+  it("returns to the last view on the next visit", async () => {
+    const first = renderApp(sampleRepos(), "/list/seed-groceries");
+    expect(await screen.findByRole("heading", { level: 1, name: "Groceries" })).toBeInTheDocument();
+    first.unmount();
+
+    renderApp(sampleRepos());
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Groceries" })).toBeInTheDocument();
+  });
+
+  it("lands on Today when the remembered list has gone", async () => {
+    localStorage.setItem("simple-todo:last-view", "/list/deleted");
+    renderApp(sampleRepos());
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Today" })).toBeInTheDocument();
   });
 
   it("shows the reminder status in the sidebar", async () => {
@@ -66,10 +84,10 @@ describe("App", () => {
     expect(within(nav).getByRole("button", { name: "Keyboard shortcuts" })).toBeInTheDocument();
   });
 
-  it("sends an unknown route to the Inbox", async () => {
+  it("sends an unknown route to the landing view", async () => {
     renderApp(sampleRepos(), "/nowhere");
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Inbox" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Today" })).toBeInTheDocument();
   });
 
   it("shows the Dataverse smoke test instead when it is switched on", async () => {

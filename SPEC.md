@@ -95,6 +95,7 @@ All ten confirmed.
 - As a user I open the app and see only today's work.
 - Acceptance:
   - Today = tasks due today or overdue, across all lists, grouped Overdue → Today, then by list.
+  - **(amended 2026-09-17)** Archived lists are left out, as in the sidebar. A timed task whose time has passed today counts as overdue. Quick add from Today confirms with "Added … to Inbox."
   - Today is the default landing view; the app remembers the last view in `localStorage`.
   - Empty state copy: "Nothing due today." with a quick-add prompt. No confetti.
 

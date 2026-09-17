@@ -233,12 +233,14 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** `/today` route (default landing) shows overdue and due-today tasks across all lists, grouped Overdue → Today, then by list. Last view is remembered in `localStorage`. Empty state: "Nothing due today." with a QuickAdd prompt.
 
 **Acceptance criteria:**
-- [ ] `selectToday(tasks, now)` unit-tested across midnight and DST boundaries
-- [ ] QuickAdd from Today lands tasks in Inbox
-- [ ] `t` navigates to Today
+- [x] `selectToday(tasks, now)` unit-tested across midnight and DST boundaries
+- [x] QuickAdd from Today lands tasks in Inbox
+- [x] `t` navigates to Today
 
 **Verification:**
-- [ ] `npm test -- selectToday TodayRoute`
+- [x] `npm test -- selectToday TodayRoute`
+
+**Status: DONE 2026-09-17.** Today filters the per-list caches (`useTasksInLists`) instead of `useTodayTasks`, so optimistic changes show at once; archived lists are left out. Selection, shortcuts and the detail panel moved from `TaskList` into `useTaskRows`, shared by both views. Quick add from Today confirms "Added … to Inbox." `e2e/smoke.spec.ts` now expects Today as the landing view; `e2e/today.spec.ts` covers grouping, Inbox quick add, the remembered view and `t` in Chromium and WebKit. Manual check in the in-app browser at 1280 px and 375 px: no horizontal scroll, no console errors.
 
 **Dependencies:** T9
 **Files:** `src/features/today/selectToday.ts`, `src/features/today/selectToday.test.ts`, `src/routes/TodayRoute.tsx`

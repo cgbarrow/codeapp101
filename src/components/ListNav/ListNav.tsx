@@ -80,8 +80,9 @@ export function ListNav() {
     return () => clearTimeout(timer);
   }, [savedId]);
 
-  useKeyboardShortcuts(
-    Object.fromEntries(
+  useKeyboardShortcuts({
+    t: () => void navigate("/today"),
+    ...Object.fromEntries(
       ["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((key, index) => [
         key,
         () => {
@@ -91,7 +92,7 @@ export function ListNav() {
         },
       ]),
     ),
-  );
+  });
 
   /** Runs a mutation, flashing the row on success and offering a retry on failure. */
   function run(listId: string | null, failureMessage: string, attempt: (done: Callbacks) => void) {
@@ -211,6 +212,11 @@ export function ListNav() {
       )}
 
       <ul className={styles.lists} aria-label="Views">
+        <li className={styles.row}>
+          <NavLink to="/today" className={styles.item}>
+            <span className={styles.name}>Today</span>
+          </NavLink>
+        </li>
         <li className={styles.row}>
           <NavLink to="/completed" className={styles.item}>
             <span className={styles.name}>Completed</span>

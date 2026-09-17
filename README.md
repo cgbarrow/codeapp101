@@ -51,9 +51,9 @@ docs/                    how-to article, setup runbook, design notes, ADRs
 src/                     application code; src/test/ holds the Vitest setup
 src/styles/              design tokens (the only place colours and fonts are defined), reset, fonts
 src/components/          one folder per component, with its CSS module and test
-src/routes/              one component per route: /list/:id and /completed so far
+src/routes/              one component per route: /today, /list/:id and /completed
 src/hooks/               React hooks shared across components: keyboard shortcuts, toggling and deleting a task with Undo, notifications
-src/features/            domain logic with no React, such as Inbox creation, reordering, quick-add parsing, recurrence and the reminder scheduler
+src/features/            domain logic with no React, such as Inbox creation, reordering, quick-add parsing, the Today selection, recurrence and the reminder scheduler
 src/data/                domain types, repository interfaces, in-memory and Dataverse repos, TanStack Query hooks
 src/generated/           written by the pa CLI from the Dataverse tables; never edited by hand
 .power/                  table schemas the generated services import; also CLI-owned
@@ -116,7 +116,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13). Still to do: Checkpoint B and task 10, the Today view |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); the Today view as the default landing, with `t` and the last view remembered (task 10); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13). Still to do: Checkpoint B |
 | Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes started |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

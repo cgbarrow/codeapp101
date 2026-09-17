@@ -1,13 +1,15 @@
-import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router";
+import { lazy, Suspense, useEffect } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router";
 import { AppShell } from "@/components/AppShell/AppShell";
 import { ListNav } from "@/components/ListNav/ListNav";
 import { ReminderStatus } from "@/components/ReminderStatus/ReminderStatus";
 import { ShortcutHelp } from "@/components/ShortcutHelp/ShortcutHelp";
-import { useInbox } from "@/data/queries";
+import { useLists } from "@/data/queries";
+import { landingPath, readLastView, saveLastView } from "@/features/today/lastView";
 import { useReminders } from "@/hooks/useNotifications";
 import { CompletedRoute } from "@/routes/CompletedRoute";
 import { ListRoute } from "@/routes/ListRoute";
+import { TodayRoute } from "@/routes/TodayRoute";
 
 const DataverseSmoke = lazy(() =>
   import("@/components/DataverseSmoke/DataverseSmoke").then((module) => ({
@@ -24,6 +26,9 @@ type AppProps = {
 
 export function App({ smoke = smokeEnabled }: AppProps) {
   useReminders();
+  const { pathname } = useLocation();
+  useEffect(() => saveLastView(pathname), [pathname]);
+
   return (
     <AppShell
       sidebar={
@@ -40,20 +45,21 @@ export function App({ smoke = smokeEnabled }: AppProps) {
         </Suspense>
       ) : (
         <Routes>
+          <Route path="/today" element={<TodayRoute />} />
           <Route path="/list/:id" element={<ListRoute />} />
           <Route path="/completed" element={<CompletedRoute />} />
-          <Route path="*" element={<InboxRedirect />} />
+          <Route path="*" element={<LandingRedirect />} />
         </Routes>
       )}
     </AppShell>
   );
 }
 
-/** Lands on the Inbox until the Today view becomes the default in task 10. */
-function InboxRedirect() {
-  const inbox = useInbox();
-  if (inbox.data) return <Navigate to={`/list/${inbox.data.id}`} replace />;
-  if (inbox.isError)
-    return <p role="alert">Your Inbox didn't load. Reload the app to try again.</p>;
-  return null;
+/** Opens the last view the user had, or Today. Waits for the lists to check a list still exists. */
+function LandingRedirect() {
+  const lists = useLists();
+  const stored = readLastView();
+  const needsLists = stored?.startsWith("/list/") ?? false;
+  if (needsLists && lists.isPending) return null;
+  return <Navigate to={landingPath(stored, lists.data ?? [])} replace />;
 }

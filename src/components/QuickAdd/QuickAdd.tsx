@@ -10,11 +10,13 @@ import styles from "./QuickAdd.module.css";
 type QuickAddProps = {
   /** The list new tasks go into. */
   listId: string;
+  /** Confirms each save with a toast naming the list, for views that do not show that list. */
+  listName?: string;
   now?: Date;
 };
 
 /** One-line capture: type, see the parsed date, press Enter. Stays focused for the next task. */
-export function QuickAdd({ listId, now = new Date() }: QuickAddProps) {
+export function QuickAdd({ listId, listName, now = new Date() }: QuickAddProps) {
   const [text, setText] = useState("");
   const [dateDismissed, setDateDismissed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -59,6 +61,7 @@ export function QuickAdd({ listId, now = new Date() }: QuickAddProps) {
       hasTime: dateDismissed ? false : parsed.hasTime,
       recurrence: dateDismissed ? "none" : parsed.recurrence,
     });
+    if (listName) toast.show({ message: `Added ${title} to ${listName}.` });
     setText("");
     setDateDismissed(false);
     inputRef.current?.focus();

@@ -100,6 +100,21 @@ describe("ListNav", () => {
       expect(location()).toBe("/list/seed-inbox");
     });
 
+    it("goes to Today with t, and links to it above the lists", async () => {
+      const user = userEvent.setup();
+      renderNav();
+      await screen.findByRole("link", { name: /Groceries/ });
+
+      await user.keyboard("t");
+
+      expect(location()).toBe("/today");
+      const views = screen.getByRole("list", { name: "Views" });
+      expect(within(views).getByRole("link", { name: "Today" })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
+    });
+
     it("ignores number keys beyond the last list, with modifiers, or while typing", async () => {
       const user = userEvent.setup();
       renderNav();

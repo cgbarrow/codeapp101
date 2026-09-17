@@ -127,8 +127,8 @@ export function useTaskCounts(listIds: readonly string[]): Record<string, TaskCo
   });
 }
 
-/** Completed tasks across the given lists, most recently completed first. */
-export function useCompletedTasks(listIds: readonly string[]) {
+/** Every task in the given lists, with the combined load state of their queries. */
+export function useTasksInLists(listIds: readonly string[]) {
   const { tasks } = useRepos();
   return useQueries({
     queries: listIds.map((listId) => ({
@@ -136,12 +136,18 @@ export function useCompletedTasks(listIds: readonly string[]) {
       queryFn: () => tasks.getByList(listId),
     })),
     combine: (results) => ({
-      tasks: orderCompletedTasks(results.flatMap((result) => result.data ?? [])),
+      tasks: results.flatMap((result) => result.data ?? []),
       isPending: results.some((result) => result.isPending),
       isError: results.some((result) => result.isError),
       refetch: () => Promise.all(results.map((result) => result.refetch())),
     }),
   });
+}
+
+/** Completed tasks across the given lists, most recently completed first. */
+export function useCompletedTasks(listIds: readonly string[]) {
+  const result = useTasksInLists(listIds);
+  return { ...result, tasks: orderCompletedTasks(result.tasks) };
 }
 
 export function useTasks(listId: string) {
