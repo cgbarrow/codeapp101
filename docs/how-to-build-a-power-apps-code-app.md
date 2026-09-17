@@ -2,7 +2,7 @@
 
 *A working log of building "Simple Todo", a personal task app hosted on Microsoft Power Platform.*
 
-Last updated: 2026-09-17 · Status: **Part 1 of 4 complete** (planning and data layer)
+Last updated: 2026-09-17 · Status: **Parts 1 and 2 of 4 complete** (planning, schema, project foundation and Dataverse wiring)
 
 ---
 
@@ -12,7 +12,7 @@ Power Apps **code apps** let you write an ordinary React single-page application
 
 This article is the running log of building one such app end to end. The app is a personal todo list: fast capture with natural-language dates, multiple lists, due dates and reminders, recurring tasks, subtasks, and a Today view. It stores everything in three custom Dataverse tables and runs in a browser on phone, tablet and desktop.
 
-The log is written as we go, so it records what actually happened, including the two failed imports and what fixed them. Where a step went wrong, the fix is in Troubleshooting rather than quietly smoothed out of the procedure.
+The log is written as we go, so it records what actually happened, including the two failed imports, the environment ID that looked like a network outage, and what fixed each of them. Where a step went wrong, the fix is in Troubleshooting rather than quietly smoothed out of the procedure.
 
 **Who this is for.** Developers comfortable with React and TypeScript who have not shipped a Power Platform app before. No low-code experience is assumed. Power Platform administrators will find the environment and permission sections useful on their own.
 
@@ -27,7 +27,7 @@ The log is written as we go, so it records what actually happened, including the
 | Part | Scope | Status |
 |---|---|---|
 | 1 | Specification, plan, Dataverse schema, environment setup | Complete |
-| 2 | Project scaffold, design system, data layer, CLI wiring | Not started |
+| 2 | Project scaffold, design system, data layer, CLI wiring | Complete |
 | 3 | Feature build: lists, tasks, capture, Today, recurrence, reminders | Not started |
 | 4 | Publish, share, smoke test, and what comes after | Not started |
 
@@ -81,6 +81,7 @@ Two related limitations are worth knowing early, because they are platform behav
 
 - Node.js LTS. Version 24 was used here.
 - Git.
+- About 250 MB of disk for the Playwright browsers used by the end-to-end tests.
 - Python 3, only if you want to regenerate the Dataverse schema package. Any tool that can produce a zip would do.
 - The `pa` CLI, installed globally or invoked through `npx`:
 
@@ -195,92 +196,227 @@ Importing the role does not assign it. In the admin center, open the environment
 
 Note that a System Administrator already holds every privilege the custom role grants, so assigning it to yourself changes nothing functionally. It matters for verifying that a user with *only* the app's role can run the finished app, which is the honest test of whether your role definition is complete.
 
-### Part 2 · Scaffolding the project (draft notes)
+### Part 2 · Project, design system and data layer
 
-*Running notes from task 1. Task 17 turns these into finished prose.*
+Part 2 turns the plan into a running application skeleton: a React project with its test tooling, a design system enforced by tests, a repository layer that the whole UI will depend on, and a verified connection to the Dataverse tables from Part 1. No features ship yet. What ships is the foundation every later task stands on, and a proof that it reaches real data.
 
-- `npx degit github:microsoft/PowerAppsCodeApps/templates/vite .` refuses to write into a non-empty directory. The repo already held the spec and docs, so the template went into a scratch folder and only these files were copied: `index.html`, `package.json`, `tsconfig*.json`, `eslint.config.js`, `vite.config.ts`, `src/main.tsx`, `public/vite.svg`. The template's `README.md`, `.gitignore`, demo `App.tsx`, CSS and `src/assets` were left behind.
-- The template's `index.css` and `App.css` contain raw colour values. They were dropped rather than kept, because the design tokens arrive in task 2 and no colour may live outside `tokens.css`.
-- `npm install` in September 2026 resolved React 19.3, Vite 7.3, `@microsoft/power-apps` 1.4.0 and `@microsoft/power-apps-vite` 1.0.13, newer than the template's ranges.
-- Test tooling added as dev dependencies: `vitest`, `@vitest/coverage-v8`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `@playwright/test`, `prettier`, `eslint-config-prettier`.
-- Vitest has its own `vitest.config.ts` without the `powerApps()` plugin. Tests do not need the Power Apps host bootstrap.
-- The `@/` alias has to be declared twice: in `resolve.alias` for Vite and Vitest, and in `paths` in `tsconfig.app.json` for the type checker.
-- Playwright browsers are a separate download: `npx playwright install chromium webkit`, about 250 MB. The config runs two projects, desktop Chromium and iPhone 13 WebKit, and starts the Vite dev server itself on port 5174 with `VITE_USE_MOCKS=true`.
-- Until `pa app init` runs in task 4, every `npm run dev` prints this, and it is harmless:
+#### Step 6: Scaffold the project from the official template
 
-  ```
-  [powerApps] Error loading power.config.json:
-  ⤷Missing file. Ensure you have run 'pac code init' first.
-  ```
+Microsoft publishes a Vite template for code apps. It is a standard React and TypeScript setup plus one addition that matters, the `@microsoft/power-apps-vite` plugin, which lets the Power Apps host load your local dev server.
 
-  The message still says `pac code init`, although that command no longer exists. The replacement is `pa app init`.
-- CI (`.github/workflows/ci.yml`) runs `npm ci`, lint, typecheck, test and build on Node 24 for every pull request and push to `main`. Playwright is not in CI yet.
+```bash
+npx degit github:microsoft/PowerAppsCodeApps/templates/vite .
+npm install
+```
 
-### Part 2 · Design foundation and app shell (draft notes)
+That command expects an empty directory, and `degit` will not write into one that already has files. This repository already held the specification and docs, so the template was fetched into a scratch folder and only the files the app needs were copied across: `index.html`, `package.json`, the three `tsconfig` files, `eslint.config.js`, `vite.config.ts`, `src/main.tsx` and `public/vite.svg`. The template's demo component, its README and its two stylesheets stayed behind. The stylesheets contain raw colour values, and in this project colours live in exactly one file, which does not exist until Step 7.
 
-*Running notes from task 2.*
+In September 2026, `npm install` resolved React 19.3, Vite 7.3, `@microsoft/power-apps` 1.4.0 and `@microsoft/power-apps-vite` 1.0.13, all newer than the ranges in the template. Expect the same drift.
 
-- Fonts are self-hosted with Fontsource (`@fontsource-variable/geist`, `@fontsource-variable/geist-mono`) instead of a Google Fonts `<link>`. A code app runs inside the Power Apps host, and its content security policy can block third-party font CDNs; bundled `.woff2` files are served from the app's own origin. The Fontsource family names carry a `Variable` suffix: `"Geist Variable"`, not `"Geist"`.
-- All colours and font names live in `src/styles/tokens.css`. A Vitest test (`src/styles/tokens.node.test.ts`) walks `src/` and fails if a hex, `oklch()`, `rgb()` or `hsl()` value, or a `font-family` that is not a `var()`, appears anywhere else. It is cheaper than relying on review.
-- That test reads files with `node:fs`, so it needs Node types, and the app's `tsconfig.app.json` deliberately has none. The fix was a naming convention: `*.node.test.ts` files are excluded from `tsconfig.app.json` and included in `tsconfig.node.json`. Reading the CSS through Vite's `import.meta.glob(..., { query: "?raw" })` does not work under Vitest: CSS is stubbed, and the raw import comes back empty.
-- The first draft of the font-family regex, `/font-family:\s*(?!var\()/`, flagged every valid line. `\s*` backtracks to zero characters, so the lookahead sees ` var(` and matches. Put the whitespace inside the lookahead: `/font-family:(?!\s*var\()/`. Planting a deliberate violation before trusting the test is what caught it.
-- Contrast was checked numerically from the OKLCH values, not by eye. Two tokens failed and were changed: text on a coral fill came out at 3.8:1, so the accent was darkened to `oklch(56% 0.17 35)` for 4.9:1; control borders were 1.9:1, so `--color-rule-2` went to `oklch(60% 0.01 70)` for at least 3.1:1.
-- The shell's mobile bottom sheet is hidden with `visibility: hidden` as well as a transform. That removes the closed sheet from the tab order and the accessibility tree without JavaScript media queries, and the same markup becomes the persistent sidebar from 48rem.
-- `e2e/shell.spec.ts` asserts `scrollWidth - clientWidth === 0` at 320, 375, 414, 768, 1024 and 1440 px, and saves screenshots to `docs/design/` when `SHELL_SCREENSHOTS=1`. `page.evaluate` callbacks use `document`, so `tsconfig.node.json` needs `"DOM"` in `lib`.
+The template ships with no tests, so add them before the first line of application code:
 
-### Part 2 · The repository layer (draft notes)
+```bash
+npm install -D vitest @vitest/coverage-v8 jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event @playwright/test prettier eslint-config-prettier
+npx playwright install chromium webkit
+```
 
-*Running notes from task 3.*
+The Playwright browsers are a separate download of roughly 250 MB. The configuration in this build runs every end-to-end spec twice, once in desktop Chromium and once in an iPhone 13 WebKit profile, because a code app on a phone is a mobile browser and nothing else.
 
-- The app never calls generated Dataverse services directly. `src/data/repo.ts` defines app-shaped types (`Task.dueDate` is `Date | null`) and three interfaces, `ListRepo`, `TaskRepo` and `SubtaskRepo`. An in-memory implementation exists first; the Dataverse one follows in task 4.
-- The shared behaviour lives in `src/data/repoContract.ts` as a function, `runRepoContract(name, makeRepos)`, not in a `.test.ts` file. Importing one test file from another registers its tests twice. The mock runs the suite in `repoContract.test.ts`, and the Dataverse repo will call the same function.
-- The contract copies Dataverse's cascade rules so that the mock cannot be more forgiving than the real thing: deleting a list deletes its tasks, and deleting a task deletes its subtasks. It also requires that dates come back as `Date` instances at the same instant.
-- Mock repos copy every object that crosses the boundary, including `Date` objects. Without that, a component that mutated a returned task would silently change the "database" and hide bugs that only show against Dataverse.
-- `npm run dev` runs `vite --mode mock`, which loads the committed `.env.mock` (`VITE_USE_MOCKS=true`). The repo's `.gitignore` ignores `.env.*`, so `.env.mock` is explicitly un-ignored; it holds no secrets. A build without mocks throws a clear error at startup rather than quietly falling back to sample data.
-- Optimistic updates snapshot every cached query under a key prefix (`["tasks"]`), rewrite them, and restore the snapshot on error. Patching every task cache, not just the current list, means a task toggled from the Today view and from its list stays consistent. Every mutation invalidates the prefix when it settles, so the server's answer always wins in the end.
-- To test optimism, the repo call is held open with a hand-settled promise (`deferred()` in `src/test/renderWithProviders.tsx`). The test checks that the cache has already changed while the mutation is still pending, then rejects the promise and checks the rollback.
-- `eslint-plugin-react-refresh` warns when a file exports both a component and a hook, and the lint runs with `--max-warnings 0`. That is why the context and `useRepos` live in `useRepos.ts`, separate from `RepoProvider.tsx`.
-- A second guard test, `src/data/boundaries.node.test.ts`, fails if anything outside `src/data` imports from `src/generated`.
+Three configuration details are worth copying.
 
-### Part 2 · Initialising the code app and wiring Dataverse (draft notes)
+**Give Vitest its own config file.** `vitest.config.ts` includes the React plugin but not `powerApps()`. Tests have no Power Apps host to talk to and do not need the plugin's bootstrap.
 
-*Running notes from task 4.*
+**Declare the path alias twice.** An `@/` import alias for `src/` goes in `resolve.alias` for Vite and Vitest, and again in `paths` in `tsconfig.app.json` for the type checker. Either one alone gives you code that runs but does not typecheck, or the reverse.
 
-- `pa auth login` opens the system browser and prints `Signed in as <account>.` when done. The CLI was not installed globally here, so every command ran as `npx @microsoft/power-apps-cli …`. `pa app init` then adds `@microsoft/power-apps-cli` to `devDependencies`, pinned to the running version, so run `npm install` afterwards to update the lockfile.
-- **The environment ID of a tenant's default environment starts with `Default-`.** The GUID shown on its own is the tenant ID. Passing it to `pa app init` failed with this error:
+**Make the four checks the definition of done.** The npm scripts are `lint` (ESLint with `--max-warnings 0`), `typecheck`, `test` and `build`, and a GitHub Actions workflow at `.github/workflows/ci.yml` runs all four on every pull request and push to `main`.
 
-  ```
-  Network request failed for GET https://dc08738656cb442582f34b2dd04d62.d8.environment.api.powerplatform.com/powerapps/environment?api-version=1&$filter=name eq 'dc087386-56cb-4425-82f3-4b2dd04d62d8'. DNS lookup failed - unable to resolve hostname. Details: getaddrinfo ENOTFOUND dc08738656cb442582f34b2dd04d62.d8.environment.api.powerplatform.com
-    → Check your network connection, VPN/proxy, and that the target service is reachable.
-  ```
+Until the code app is initialised in Step 9, every dev server start prints an error from the Power Apps plugin about a missing `power.config.json`. It is harmless. See Troubleshooting.
 
-  It reads like a network problem, but it isn't one: the CLI builds the hostname from the ID, and only `default<guid>…` exists. `pa app init --environment-id Default-dc087386-…` worked. Nothing is written when init fails.
-- `pa app init` only writes `power.config.json`, with `"appId": null`. Nothing appears in the environment until `pa app push`. It sets `localAppUrl` to `http://localhost:3000`.
-- `pa app add data-source --connector dataverse --table cb_todolist` prompts `Please provide the organization URL:` for every table. The URL is **make.powerapps.com → Settings → Session details → Instance url**, or `--org-url` on the command. Each run printed `Data source added successfully.`
-- The data sources are named after the entity set without the prefix: `todolists`, `todotasks`, `todosubtasks`. `pa app refresh data-source --name` takes those names, not the table's logical name.
-- Generated output: `src/generated/models/Cb_todotasksModel.ts`, `src/generated/services/Cb_todotasksService.ts` and so on, plus `.power/schemas/`. The generated services import `.power/schemas/appschemas/dataSourcesInfo.ts`, so **commit `.power/` along with `src/generated/`**, and exclude both from ESLint and Prettier.
-- What the generated models show:
-  - Lookups are written through keys named after the **relationship**, for example `"cb_todolist_cb_todotask_list@odata.bind": "/cb_todolists(<guid>)"`.
-  - Lookups are read back as `_cb_list_value`.
-  - Choice columns are typed as their integer values (`100000002`).
-  - `statecode` is required on create.
-  - Dates are ISO strings.
-- Service calls return `IOperationResult` (`success`, `data`, `error`, `skipToken`) instead of throwing on failure. The repositories check `success` and throw `error`, and follow `skipToken` until every page is read. The generated `delete` returns `void` and discards the result, so a delete that reports failure without rejecting is not detected.
-- The generated update type allows `undefined` but not `null`. Dataverse clears a column when it is sent `null`, so the repository casts at that one call.
-- The repositories read a record back with an explicit `select` after every create and update. That guarantees the lookup columns are present, whatever the create response contains; the cost is one extra request per write.
-- IDs are checked against a GUID pattern before they go into a filter or a bind path, so an ID can never change an OData query.
-- The Dataverse repositories run the same contract suite as the mock, against an in-memory fake of the generated services. The fake is strict:
-  - reads without `select` fail;
-  - unknown filter shapes fail;
-  - lookups must be bound;
-  - deletes cascade the way the solution's relationships do.
-- **Local Play does not need `pa app run`.** The `@microsoft/power-apps-vite` plugin serves `power.config.json` from the Vite dev server and prints the URL itself: `➜  Local Play:   https://apps.powerapps.com/play/e/<environment>/a/local?_localAppUrl=…`. `npm run dev:dataverse` runs `vite --port 3000 --strictPort`, which matches `localAppUrl`.
-- Vite watches the project root, so a coverage run restarted the dev server dozens of times. `server.watch.ignored` now excludes `coverage/`, `playwright-report/` and `test-results/`.
-- The list and task UI arrives later, so task 4 was verified with a development-only smoke panel (`npm run dev:smoke`, which loads `.env.smoke`). It creates a list, creates a task in it, completes the task, then deletes both. All five steps passed against the environment; see `docs/smoke.md`. Dataverse stored the completion time without its milliseconds.
+#### Step 7: Build the design foundation
+
+A code app has no component library unless you add one, which is freedom and also a trap: without a system, every component invents its own colours and spacing. This build uses a small token system and lets a test enforce it.
+
+**Tokens live in one file.** `src/styles/tokens.css` defines every colour, font, type size, spacing step, radius, easing and duration as a CSS custom property. Components reference them by name, `var(--color-accent)`, and never contain a colour value or a font name of their own. The theme here is warm-grey paper with one coral accent and Geist throughout; the reasoning and the full palette are in [`docs/design/theme.md`](design/theme.md).
+
+**A test enforces the rule.** `src/styles/tokens.node.test.ts` walks `src/` and fails if a hex, `oklch()`, `rgb()` or `hsl()` value, or a `font-family` that is not a `var()`, appears anywhere except `tokens.css`. Review misses these. A test does not. Before trusting a guard test like this, plant a violation and watch it fail; that is how this build found its own regex was wrong (see Troubleshooting).
+
+The test reads files with `node:fs`, which needs Node's type definitions, and the application's TypeScript config deliberately has none: browser code should not compile against Node globals. The solution is a naming convention. Files ending `.node.test.ts` are excluded from `tsconfig.app.json` and included in `tsconfig.node.json`, so each file is typechecked against the environment it actually runs in.
+
+**Self-host the fonts.** A Google Fonts `<link>` is the usual way to load a web font, but a code app runs inside the Power Apps player, and the player's content security policy is not yours to set. Fontsource packages bundle the font files into your build so they load from the app's own origin:
+
+```bash
+npm install @fontsource-variable/geist @fontsource-variable/geist-mono
+```
+
+Note that the family name these packages register is `"Geist Variable"`, not `"Geist"`.
+
+**Check contrast with numbers, not eyes.** Every text and border token was converted from OKLCH to sRGB and its WCAG contrast ratio computed. Two failed and were changed. White text on the coral fill came out at 3.8:1, below the 4.5:1 minimum, so the accent was darkened to `oklch(56% 0.17 35)` for 4.9:1. Control borders were 1.9:1, below the 3:1 required for component boundaries, so they were darkened to `oklch(60% 0.01 70)`.
+
+**The app shell.** Below 768 px, the list sidebar is a bottom sheet behind a **Lists** button; from 768 px it is a permanent side rail. The same markup does both jobs. The closed sheet is hidden with `visibility: hidden` as well as a transform, which removes it from the tab order and from screen readers without any JavaScript media queries. It closes on Escape, on the backdrop and from its own close button, and returns focus to the button that opened it.
+
+An end-to-end spec, `e2e/shell.spec.ts`, asserts there is no horizontal scroll at 320, 375, 414, 768, 1024 and 1440 px, and can save a screenshot at each width:
+
+```bash
+SHELL_SCREENSHOTS=1 npx playwright test e2e/shell.spec.ts --project desktop-chromium
+```
+
+![The app shell at 375 px with the list sheet open](design/shell-375-sheet-open.png)
+
+#### Step 8: Put a repository layer between the app and Dataverse
+
+This is the step that pays for itself for the rest of the build. Components never call Dataverse. They call three interfaces, and two implementations sit behind them.
+
+`src/data/repo.ts` defines the domain types and the contracts. The types are shaped for the application, not for the database: a task's due date is a `Date | null`, not a `cb_duedate` ISO string, and its recurrence is `"weekly"`, not `100000002`.
+
+```ts
+export interface TaskRepo {
+  getByList(listId: string): Promise<Task[]>;
+  getOpenDueBefore(end: Date): Promise<Task[]>;
+  create(input: NewTask): Promise<Task>;
+  update(id: string, patch: TaskPatch): Promise<Task>;
+  delete(id: string): Promise<void>;
+}
+```
+
+The first implementation is in memory, in `src/data/mock/`, seeded with sample lists and tasks whose dates are relative to today so that there is always something overdue and something due. It powers local development and every test, which is why most of this app can be built with no tenant connection at all.
+
+**Write the shared behaviour once, as a function.** `src/data/repoContract.ts` exports `runRepoContract(name, makeRepos)`, a suite of eighteen cases that any implementation must pass. It lives in an ordinary module rather than a `.test.ts` file because importing one test file from another registers its tests twice. The in-memory repositories run it now; the Dataverse repositories run the identical suite in Step 10.
+
+**Make the fake as strict as the real thing.** The contract includes Dataverse's cascade behaviour from the Part 1 schema: deleting a list deletes its tasks, and deleting a task deletes its subtasks. The in-memory repositories also copy every object in and out, including `Date` objects. Without that, a component that mutated a task it had been given would silently change the "database", and the bug would only appear against Dataverse.
+
+**Choose the implementation at startup.** `npm run dev` runs `vite --mode mock`, which loads a committed `.env.mock` file containing `VITE_USE_MOCKS=true`. `src/data/createRepos.ts` reads that flag and returns the in-memory or the Dataverse repositories. The file holds no secrets, and it has to be explicitly un-ignored if your `.gitignore` excludes `.env.*`, as this one does.
+
+**Optimistic updates, with rollback.** TanStack Query hooks in `src/data/queries.ts` wrap every read and write. A mutation cancels in-flight fetches, snapshots every cached query under a key prefix such as `["tasks"]`, rewrites them all, and restores the snapshot if the write fails. Rewriting every task cache rather than only the current list means a task completed from the Today view is also completed in its own list. When the write settles, the prefix is invalidated and refetched, so the server always has the final word.
+
+To test optimism, hold the repository call open. A small `deferred()` helper returns a promise the test settles by hand: the test fires the mutation, asserts the cache has already changed while the mutation is still pending, then rejects the promise and asserts the rollback.
+
+Finally, a second guard test, `src/data/boundaries.node.test.ts`, fails if anything outside `src/data/` imports from `src/generated/`. The generated code does not exist yet. The rule is in place before it does.
+
+#### Step 9: Initialise the code app and add the Dataverse tables
+
+Now the project meets the environment. Sign in first. The command opens the system browser and prints the account when it finishes:
+
+```bash
+npx @microsoft/power-apps-cli auth login
+```
+
+```
+Signed in as <you>@<tenant>.onmicrosoft.com.
+```
+
+Then initialise the app. **Use the environment ID exactly as the admin center shows it.** For a tenant's Default environment, that ID begins with `Default-`, followed by a GUID that is the tenant ID. Passing the bare GUID fails with a DNS error that looks like a network fault; see Troubleshooting.
+
+```bash
+npx @microsoft/power-apps-cli app init --display-name "Simple Todo" --environment-id Default-<tenant-id>
+```
+
+```
+Created power.config.json for Simple Todo.
+```
+
+Initialising is local. It writes `power.config.json` with `"appId": null` and a `localAppUrl` of `http://localhost:3000`, and nothing appears in the environment until the app is first published. It also adds `@microsoft/power-apps-cli` to your `devDependencies`, pinned to the version you ran, so run `npm install` afterwards to bring the lockfile up to date. From then on, `npx pa` runs the project's copy.
+
+Add each table by its logical name:
+
+```bash
+npx pa app add data-source --connector dataverse --table cb_todolist
+npx pa app add data-source --connector dataverse --table cb_todotask
+npx pa app add data-source --connector dataverse --table cb_todosubtask
+```
+
+Each command asks for the Dataverse organisation URL:
+
+```
+◆  Please provide the organization URL:
+```
+
+Find it at [make.powerapps.com](https://make.powerapps.com), with the environment selected, under **Settings → Session details → Instance url**. It has the form `https://org<id>.crm.dynamics.com/`. Pass `--org-url` to skip the prompt. Each successful run prints `Data source added successfully.`
+
+The command reads each table's schema and generates code:
+
+```
+src/generated/models/Cb_todotasksModel.ts     → row types and choice values
+src/generated/services/Cb_todotasksService.ts → create, get, getAll, update, delete
+.power/schemas/                               → table schemas the services import
+```
+
+**Commit `.power/` along with `src/generated/`.** The generated services import `.power/schemas/appschemas/dataSourcesInfo.ts`, so a clone without it does not build. Exclude both folders from ESLint and Prettier, and never edit either by hand. To regenerate after a schema change, refresh by **data source name**, which is the entity set name without the prefix, as listed in `power.config.json`:
+
+```bash
+npx pa app refresh data-source --name todotasks
+```
+
+#### Step 10: Implement the Dataverse repositories
+
+Read the generated models before writing any mapping code. They answer most of the questions the documentation leaves open:
+
+- Lookups are **written** through a key named after the relationship, not the column: `"cb_todolist_cb_todotask_list@odata.bind": "/cb_todolists(<guid>)"`.
+- Lookups are **read** back as `_cb_list_value`.
+- Choice columns are typed as their integer values, `100000000` to `100000003`.
+- `statecode` is required when creating a record.
+- Dates are ISO strings.
+
+All translation between those rows and the domain types lives in `src/data/dataverse/mappers.ts`, and nowhere else:
+
+```ts
+export function taskPatchRecord(patch: TaskPatch): TaskPatchRecord {
+  const p = definedOnly(patch);
+  const record: TaskPatchRecord = {};
+  if (p.listId !== undefined) record[LIST_BIND] = `/cb_todolists(${odataId(p.listId)})`;
+  if (p.isCompleted !== undefined) record.cb_iscompleted = p.isCompleted;
+  if (p.completedOn !== undefined) record.cb_completedon = isoOrNull(p.completedOn);
+  // …one line per column
+  return record;
+}
+```
+
+The repositories in `src/data/dataverse/dataverseRepos.ts` follow five rules.
+
+1. **Always pass `select`.** Every read names its columns. Microsoft's guidance is explicit about this, and it keeps payloads small.
+2. **Send only changed columns on update.** Sending unchanged values can trigger business logic and pollutes the audit history. The patch mapper above emits a column only when the patch contains it.
+3. **Check results; don't expect exceptions.** Generated service calls return an `IOperationResult` with `success`, `data`, `error` and, for lists, `skipToken`. A failed call can resolve rather than reject. Each repository method checks `success` and throws `error`, and list reads follow `skipToken` until every page is loaded.
+4. **Read back after writing.** After each create and update, the repository reads the record again with an explicit `select`. That guarantees lookup columns such as `_cb_list_value` are present whatever the write response contains, at the cost of one extra request per write. The optimistic UI hides the latency.
+5. **Validate IDs before they reach a query.** Every ID is checked against a GUID pattern before it goes into a filter or a bind path. An ID can then never change the meaning of an OData filter.
+
+Two details of the generated code need handling. The generated update types allow a column to be omitted but not set to `null`, and `null` is how Dataverse clears a date; the repository casts at that single call. And the generated `delete` returns `void` and discards the operation result, so a delete that reports failure without rejecting will not be noticed. There is no workaround short of editing generated code, so it is recorded as a known gap.
+
+**Test against a strict fake of the generated services.** The repositories take the services as a parameter. In tests they receive `createFakeDataverse()`, an in-memory stand-in that is deliberately unforgiving: reads without `select` throw, filter shapes the repositories are not meant to send throw, lookups must arrive as valid binds, and deletes cascade as the real relationships do. The Dataverse repositories then run the same eighteen-case contract as the in-memory ones from Step 8, plus tests of the exact filter strings, the changed-columns rule, paging, and error handling.
+
+#### Step 11: Prove it against the real environment in Local Play
+
+Tests against a fake prove the code does what you think Dataverse wants. Only Dataverse proves Dataverse wants it. Three things in this build could only be confirmed for real: that the relationship-named bind keys work, that the player's connection works from a local dev server, and that the lookup column reads back.
+
+**You do not need `pa app run` for this.** The Power Apps Vite plugin serves `power.config.json` from the dev server and prints a Local Play URL itself. Start Vite without mocks, on the port that `power.config.json` expects:
+
+```bash
+npm run dev:dataverse
+```
+
+```
+  Power Apps Vite Plugin
+
+  ➜  Local Play:   https://apps.powerapps.com/play/e/Default-<tenant-id>/a/local?_localAppUrl=http://localhost:3000/&_localConnectionUrl=http://localhost:3000/__vite_powerapps_plugin__/power.config.json
+```
+
+Open that URL in the browser profile that is signed in to the tenant. The app runs inside the real player, with real authentication, against real tables.
+
+At this stage there is no list or task UI to click; that arrives in Part 3. So the check was run through a small development-only panel that exercises the same repository code the app will use. `npm run dev:smoke` starts the same server in a mode that shows the panel, which steps through five operations and logs each result:
+
+1. Create a list.
+2. Create a task in that list, binding the lookup.
+3. Mark the task complete.
+4. Delete the task.
+5. Delete the list.
+
+> **Screenshot placeholder** — `docs/images/local-play-smoke.png`: the smoke panel in Local Play after all five steps, with the log visible.
+
+All five passed on the first run. The logged task ID was reported back in the correct list, which confirmed the bind key and the lookup read in one step. The one surprise: Dataverse stored the completion time to the second. The app sent a timestamp with milliseconds, and it read back as `2026-09-17T12:45:11.000Z`. Nothing in this app depends on milliseconds, but a sort that does would need to know. The full record is in [`docs/smoke.md`](smoke.md).
 
 ---
 
 ## Verify
+
+### After Part 1
 
 Work through these before moving on to the application build.
 
@@ -300,6 +436,29 @@ pa app list
 ```
 
 The second command confirms the CLI can reach the environment. An empty list is the correct result before anything has been published.
+
+### After Part 2
+
+**The four checks pass.** From the repository root:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+Lint must report zero warnings, not merely zero errors.
+
+**Coverage meets the gate.** `npm run test:coverage` fails if line coverage drops below 90 % in `src/data` or 70 % overall. At the end of Part 2, `src/data` was at 100 %.
+
+**The shell holds at every width.** `npm run e2e` runs the shell spec in desktop Chromium and iPhone 13 WebKit. Every width must report zero horizontal overflow.
+
+**The guard tests bite.** Temporarily add `color: #f00` to any component stylesheet, or an import from `@/generated/` to any file outside `src/data/`, and run `npm test`. The token or boundary test must fail and name the file. Remove the change afterwards.
+
+**The generated code is untouched.** `git status` should show no changes under `src/generated/`, `.power/` or `power.config.json` that you did not make through the CLI.
+
+**Real data flows.** Run `npm run dev:smoke`, open the Local Play URL, and step through the panel. Each step should log a result, and between steps the rows should appear, change and disappear in the maker portal under **Tables → Todo Lists → Data** and **Tables → Todo Tasks → Data**.
 
 ---
 
@@ -356,6 +515,78 @@ Correct form:
 Unmanaged solution imports are **not transactional**. The failed import above had already created all three tables and their system views before it stopped at the first relationship. The solution shows as failed while the tables exist in the environment.
 
 This is not a problem. Re-importing the corrected package updates the existing tables in place and continues to the components that never ran. Do not delete the tables first. The component sheet in the log file tells you exactly how far the import got.
+
+### `pa app init` fails with `DNS lookup failed - unable to resolve hostname`
+
+The full message in this build:
+
+```
+Network request failed for GET https://dc08738656cb442582f34b2dd04d62.d8.environment.api.powerplatform.com/powerapps/environment?api-version=1&$filter=name eq 'dc087386-56cb-4425-82f3-4b2dd04d62d8'. DNS lookup failed - unable to resolve hostname. Details: getaddrinfo ENOTFOUND dc08738656cb442582f34b2dd04d62.d8.environment.api.powerplatform.com
+  → Check your network connection, VPN/proxy, and that the target service is reachable.
+```
+
+**Cause.** Not the network. The CLI builds an API hostname from the environment ID, and the ID passed was wrong. A tenant's Default environment has the ID `Default-<tenant-id>`; the GUID on its own is the tenant ID, and no hostname exists for it. The admin center shows the environment name and the GUID close together, which makes the mistake easy.
+
+**Fix.** Pass the full ID, including the `Default-` prefix. A failed init writes nothing, so simply run it again.
+
+### The dev server prints `Missing file. Ensure you have run 'pac code init' first.`
+
+```
+[powerApps] Error loading power.config.json:
+            ⤷Missing file. Ensure you have run 'pac code init' first. power.config.json expected at <project>/power.config.json.
+```
+
+**Cause.** The Power Apps Vite plugin runs before the code app has been initialised. The message still names `pac code init`, a command that no longer exists.
+
+**Fix.** Nothing, until you reach Step 9. The app runs normally against the in-memory data. Once `pa app init` has written `power.config.json`, the message is replaced by the Local Play URL.
+
+### `pa app add data-source` keeps asking for the organization URL
+
+```
+◆  Please provide the organization URL:
+```
+
+**Cause.** The CLI does not derive the Dataverse organisation URL from the environment ID, and asks once per table.
+
+**Fix.** Enter the instance URL from **make.powerapps.com → Settings → Session details**, or pass `--org-url https://org<id>.crm.dynamics.com/` on each command.
+
+### A test that reads CSS through `import.meta.glob` gets an empty string
+
+Reading stylesheets with `import.meta.glob(..., { query: "?raw" })` works in Vite but not under Vitest, which stubs CSS. The test failed with:
+
+```
+TypeError: Cannot convert a Symbol value to a string
+AssertionError: expected '' to contain '--color-'
+```
+
+**Fix.** Read the files with `node:fs` instead, and name the test `*.node.test.ts` so that it is typechecked with Node's types (Step 7).
+
+### Typecheck fails with `Cannot find name '__dirname'` or `Cannot find name 'document'`
+
+```
+src/styles/tokens.test.ts(5,21): error TS2304: Cannot find name '__dirname'.
+e2e/shell.spec.ts(13,52): error TS2584: Cannot find name 'document'. Do you need to change your target library? Try changing the 'lib' compiler option to include 'dom'.
+```
+
+**Cause.** Each file was typechecked against the wrong environment. The first is a Node test inside the browser config, which has no Node types. The second is a Playwright spec whose `page.evaluate` callbacks run in the browser, inside the Node config, which has no DOM library.
+
+**Fix.** Keep Node-only tests under `tsconfig.node.json` with the `.node.test.ts` naming convention, use `import.meta.dirname` rather than `__dirname`, and add `"DOM"` to `lib` in `tsconfig.node.json` for the Playwright specs.
+
+### A guard regex flags every valid line
+
+The first version of the font-family check, `/font-family:\s*(?!var\()/`, reported `font-family: var(--font-body)` as a violation. `\s*` is allowed to match zero characters, so the negative lookahead is tested against ` var(` with its leading space, which does not start with `var(`, and the match succeeds.
+
+**Fix.** Move the whitespace inside the lookahead: `/font-family:(?!\s*var\()/`. More generally, test a guard against a planted violation *and* against known-good code before relying on it.
+
+### The dev server reloads constantly during a test run
+
+```
+[vite] (client) page reload coverage/src/data/useRepos.ts.html
+```
+
+**Cause.** Vite watches the whole project root, including the HTML report that `npm run test:coverage` writes.
+
+**Fix.** Add the report folders to `server.watch.ignored` in `vite.config.ts`: `coverage/`, `playwright-report/` and `test-results/`.
 
 ### The `pa` command is not found on macOS
 
@@ -421,7 +652,10 @@ Code apps do not run in the Power Apps mobile player, so mobile means a mobile b
 - [`tasks/plan.md`](../tasks/plan.md) and [`tasks/todo.md`](../tasks/todo.md) — implementation plan and task list
 - [`docs/dataverse-setup.md`](dataverse-setup.md) — the operational runbook for the schema, including a click-by-click manual fallback
 - [`solution/generate.py`](../solution/generate.py) — the schema generator
+- [`docs/design/theme.md`](design/theme.md) — the design theme, palette with contrast ratios, and shell screenshots
+- [`docs/smoke.md`](smoke.md) — manual checks against the real environment and their results
+- [`src/data/repoContract.ts`](../src/data/repoContract.ts) — the behaviour every repository implementation must pass
 
 ---
 
-*Parts 2 to 4 will be appended to this article as the build progresses. Next up: scaffolding the React project from the official Vite template, establishing the design system, and wiring the repository layer to Dataverse.*
+*Parts 3 and 4 will be appended as the build progresses. Next up: the feature build, starting with lists in the sidebar, then tasks, fast capture with natural-language dates, and the Today view.*

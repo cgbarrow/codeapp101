@@ -110,7 +110,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
 | Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4). Next up is task 5, lists |
-| Documentation | Part 1 of 4 published |
+| Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.
 
