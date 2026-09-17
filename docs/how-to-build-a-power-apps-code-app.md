@@ -35,7 +35,9 @@ The log is written as we go, so it records what actually happened, including the
 
 - A Microsoft 365 tenant. A Microsoft 365 developer tenant works and is what this build used.
 - A **Power Apps Premium** licence for every user who will run the finished app. Developer tenants normally include enough seats for testing.
-- **System Administrator** on the target Power Platform environment. This is the requirement most likely to bite you, and it is not the same thing as being a tenant administrator. See Troubleshooting for how to grant it to yourself.
+- The **System Administrator** security role on the target Power Platform environment. Importing a solution creates tables, and table creation requires it. Most developers building code apps already hold this role, so this is usually a box already ticked rather than a step. Confirm it before you start, because the failure arrives forty seconds into an import rather than up front.
+
+  Note that this is an environment-level Dataverse role, not a tenant administrator role. The two are independent: a Microsoft 365 Global Administrator can enable code apps on an environment and still be unable to import a solution into it.
 
 ### Environment
 
@@ -191,11 +193,13 @@ The second command confirms the CLI can reach the environment. An empty list is 
 
 ### Import fails with `SecLib::CheckPrivilege failed ... PrivilegeName: prvCreateEntity`
 
-**Cause.** Your account cannot create tables in this environment. Enabling code apps is a tenant-level toggle and grants nothing inside the environment's own security model, so it is easy to believe you have access when you do not.
+**Cause.** Your account lacks the System Administrator role on this environment, so it cannot create tables. Most developers already hold the role and never see this. It typically appears on a Default environment, or on one created by somebody else, where membership was never granted explicitly. Enabling code apps does not help: that is a tenant-level toggle and grants nothing inside the environment's own security model.
 
-**Fix.** Grant yourself System Administrator on the environment. In the admin center, open the environment and look for **Membership**, which is where the control lives in the current portal. Access → Users → Manage security roles is the documented path but is frequently unavailable to an account that is not yet an environment administrator, which is a circular problem. Membership worked in this build when the Users page did not.
+**Fix.** Assign yourself System Administrator on the environment, then import again. The documented path is the admin center, then the environment, then Access → Users → Manage security roles.
 
-If neither path is available, you are not an administrator of that environment and someone who is must grant it. On a developer tenant that is usually the account you signed up with.
+If that page offers no way to change roles, look for **Membership** on the environment instead. The Users path can be unavailable to an account that is not already an environment administrator, which is circular; Membership is where the control lives in the current portal and worked in this build when the Users page did not.
+
+If neither is available, you are not an administrator of that environment and someone who is must grant it. On a developer tenant that is usually the account you signed up with.
 
 ### Import fails with `The NavPaneDisplayOption attribute is required for the Referencing Role`
 
