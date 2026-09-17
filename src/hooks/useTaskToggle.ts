@@ -14,7 +14,7 @@ export const LINGER_MS = COMPLETION_MS + 300;
  * save fails, and a short linger so a completed row animates before it moves to Completed.
  */
 export function useTaskToggle() {
-  const { mutate } = useToggleTask();
+  const { mutateAsync } = useToggleTask();
   const toast = useToast();
   const [lingering, setLingering] = useState<ReadonlySet<string>>(new Set());
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
@@ -49,20 +49,16 @@ export function useTaskToggle() {
         );
       }
 
-      mutate(
-        { id: task.id, isCompleted },
-        {
-          onError: () => {
-            stopLingering(task.id);
-            if (undoToastId) toast.dismiss(undoToastId);
-            toast.show({
-              tone: "error",
-              message: `Couldn't ${isCompleted ? "complete" : "reopen"} ${task.title}.`,
-              action: { label: "Retry", onAction: () => toggle(task) },
-            });
-          },
-        },
-      );
+      // mutateAsync, not per-call callbacks, which a later toggle would silently replace.
+      mutateAsync({ id: task.id, isCompleted }).catch(() => {
+        stopLingering(task.id);
+        if (undoToastId) toast.dismiss(undoToastId);
+        toast.show({
+          tone: "error",
+          message: `Couldn't ${isCompleted ? "complete" : "reopen"} ${task.title}.`,
+          action: { label: "Retry", onAction: () => toggle(task) },
+        });
+      });
 
       if (isCompleted) {
         undoToastId = toast.show({
@@ -72,26 +68,22 @@ export function useTaskToggle() {
             label: "Undo",
             onAction: () => {
               stopLingering(task.id);
-              mutate(
-                { id: task.id, isCompleted: false, undo: true },
-                {
-                  onError: () =>
-                    toast.show({
-                      tone: "error",
-                      message: `Couldn't undo. ${task.title} is still completed.`,
-                      action: {
-                        label: "Retry",
-                        onAction: () => toggle({ ...task, isCompleted: true }),
-                      },
-                    }),
-                },
+              mutateAsync({ id: task.id, isCompleted: false, undo: true }).catch(() =>
+                toast.show({
+                  tone: "error",
+                  message: `Couldn't undo. ${task.title} is still completed.`,
+                  action: {
+                    label: "Retry",
+                    onAction: () => toggle({ ...task, isCompleted: true }),
+                  },
+                }),
               );
             },
           },
         });
       }
     },
-    [mutate, toast, stopLingering],
+    [mutateAsync, toast, stopLingering],
   );
 
   return { toggle, lingering };

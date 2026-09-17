@@ -16,7 +16,7 @@ A distraction-free todo list, designed so capturing a task takes under five seco
 - **Recurring tasks** — daily, weekly (same weekday) or monthly (same day, clamped to the month end, so the 31st lands on 28 February and back on 31 March). Completing one creates the next instance in the same list, with notes copied, the reminder moved along and subtasks unticked. Undo removes it again, and "Stop repeating" ends the chain on that task only.
 - **Subtasks** — up to 50 checklist steps inside a task's editor: add, rename, tick, reorder with up and down buttons, and delete. The row shows progress such as `1/3`. Ticking every step leaves the task itself open, and Undo after deleting a task brings its subtasks back.
 - **Keyboard first** — `j`/`k` to move, `x` to complete, `e` to edit, Backspace to delete, `n` for a new task, `1`–`9` for lists, `?` for the full list.
-- **Works everywhere** — one responsive web app on phone, tablet and desktop, with Dataverse as the single source of truth.
+- **Works everywhere** — one responsive web app on phone, tablet and desktop, with Dataverse as the single source of truth. A change made on one device shows on another within a minute, and at once when you switch back to the app. A failed save puts the screen back as it was and offers Retry; brief network and server errors are retried automatically.
 
 Deliberately out of scope for version one: sharing, assignment, attachments, tags, offline mode, and the Power Apps mobile player, which does not support code apps.
 
@@ -27,7 +27,7 @@ Deliberately out of scope for version one: sharing, assignment, attachments, tag
 | UI | React 19, TypeScript, Vite, from the official code apps template |
 | Routing | React Router 7 with hash URLs, which survive reloads inside the Power Apps player |
 | Design | Hand-built CSS on a token system, no component library; Hallmark Coral theme, Geist self-hosted |
-| Server state | TanStack Query, with optimistic updates and refetch on focus |
+| Server state | TanStack Query, with optimistic updates, refetch on focus and every 60 seconds, and retries for transient errors |
 | Date parsing | `chrono-node`, in the browser, behind one `parseQuickAdd` function |
 | Platform | `@microsoft/power-apps` client library and the `pa` CLI |
 | Data | Three custom Dataverse tables in the `CodeApp101` solution |
@@ -52,9 +52,9 @@ src/                     application code; src/test/ holds the Vitest setup
 src/styles/              design tokens (the only place colours and fonts are defined), reset, fonts
 src/components/          one folder per component, with its CSS module and test
 src/routes/              one component per route: /today, /list/:id and /completed
-src/hooks/               React hooks shared across components: keyboard shortcuts, toggling and deleting a task with Undo, notifications
+src/hooks/               React hooks shared across components: keyboard shortcuts, toggling and deleting a task with Undo, saving with Retry, notifications
 src/features/            domain logic with no React, such as Inbox creation, reordering, quick-add parsing, the Today selection, recurrence and the reminder scheduler
-src/data/                domain types, repository interfaces, in-memory and Dataverse repos, TanStack Query hooks
+src/data/                domain types, repository interfaces, in-memory and Dataverse repos, the query client and TanStack Query hooks
 src/generated/           written by the pa CLI from the Dataverse tables; never edited by hand
 .power/                  table schemas the generated services import; also CLI-owned
 power.config.json        code app configuration: environment and data sources
@@ -70,7 +70,7 @@ npm install
 npm run dev
 ```
 
-That starts Vite in `mock` mode, which loads `.env.mock` and runs against in-memory sample data, so it needs no tenant access.
+That starts Vite in `mock` mode, which loads `.env.mock` and runs against in-memory sample data, so it needs no tenant access. Tabs in the same browser share that data, so you can try sync: change something in one tab, then switch to another.
 
 Checks, all of which must pass before a commit:
 
@@ -116,7 +116,7 @@ Prerequisites, permissions and the governance controls that apply in a corporate
 | Specification | Complete — [`SPEC.md`](SPEC.md) |
 | Plan | Complete — [`tasks/plan.md`](tasks/plan.md) |
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
-| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); the Today view as the default landing, with `t` and the last view remembered (task 10); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13). Still to do: Checkpoint B |
+| Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); the Today view as the default landing, with `t` and the last view remembered (task 10); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13); refetching, retries, reliable failure toasts and loading placeholders (task 14). Still to do: Checkpoint B |
 | Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes started |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.

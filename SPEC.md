@@ -52,6 +52,7 @@ All ten confirmed.
 - Acceptance:
   - Dataverse is the only store. No local-only persistence except an optimistic in-flight cache.
   - Data refetches on window focus, on visibility change, and every 60 s while visible.
+  - **(amended 2026-09-17)** Reads retry twice for transient errors (408, 429, 5xx, network); writes never retry automatically and offer Retry instead. In mock mode, tabs share data over a `BroadcastChannel`.
   - Layout works at 320, 375, 414, 768, 1024, 1440 px with no horizontal scroll.
   - Concurrency: last write wins on a field; completed state uses `PATCH` with only the changed columns.
 

@@ -11,7 +11,12 @@ type RepoEnv = {
 /** Picks the repository implementation for this build from the Vite environment. */
 export function createRepos(env: RepoEnv, now = new Date()): Repos {
   if (env.VITE_USE_MOCKS === "true") {
-    return createMockRepos({ seed: createSampleSeed(now), latencyMs: 250 });
+    // Tabs share the sample data, so sync between tabs can be tried without a tenant.
+    const sync =
+      typeof BroadcastChannel === "undefined"
+        ? undefined
+        : new BroadcastChannel("simple-todo-mock");
+    return createMockRepos({ seed: createSampleSeed(now), latencyMs: 250, sync });
   }
   return createDataverseRepos(generatedServices);
 }

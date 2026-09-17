@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { SkeletonRows } from "@/components/Skeleton/SkeletonRows";
 import { useTasks } from "@/data/queries";
 import { orderCompletedTasks, orderOpenTasks } from "@/features/tasks/orderTasks";
 import { useTaskToggle } from "@/hooks/useTaskToggle";
@@ -47,10 +48,7 @@ export function TaskList({ listId, listName, now = new Date(), openRequest }: Ta
       )}
 
       <ul className={styles.rows} aria-label="Open tasks" aria-busy={tasks.isPending}>
-        {tasks.isPending &&
-          [0, 1, 2].map((index) => (
-            <li key={index} className={styles.skeleton} aria-hidden="true" />
-          ))}
+        {tasks.isPending && <SkeletonRows count={3} />}
         {open.map((task) => row(task, lingering.has(task.id) ? "success" : undefined))}
       </ul>
 

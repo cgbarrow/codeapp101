@@ -5,6 +5,7 @@ import type { NewTask } from "@/data/repo";
 import { parseQuickAdd } from "@/features/quickadd/parseQuickAdd";
 import { formatDue } from "@/features/tasks/formatDue";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useSaveWithRetry } from "@/hooks/useSaveWithRetry";
 import styles from "./QuickAdd.module.css";
 
 type QuickAddProps = {
@@ -21,7 +22,8 @@ export function QuickAdd({ listId, listName, now = new Date() }: QuickAddProps) 
   const [dateDismissed, setDateDismissed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const tasks = useTasks(listId);
-  const { mutate } = useCreateTask();
+  const { mutateAsync: create } = useCreateTask();
+  const saveWithRetry = useSaveWithRetry();
   const toast = useToast();
   const inputId = useId();
 
@@ -35,14 +37,7 @@ export function QuickAdd({ listId, listName, now = new Date() }: QuickAddProps) 
     : null;
 
   function save(input: NewTask) {
-    mutate(input, {
-      onError: () =>
-        toast.show({
-          tone: "error",
-          message: `Couldn't add ${input.title}.`,
-          action: { label: "Retry", onAction: () => save(input) },
-        }),
-    });
+    saveWithRetry(() => create(input), `Couldn't add ${input.title}.`);
   }
 
   function submit(event?: FormEvent) {

@@ -24,8 +24,8 @@ function recreateInput(task: Task, subtasks: readonly Subtask[]): CreateTaskInpu
  * loaded, otherwise fetched before the delete is sent.
  */
 export function useTaskDelete() {
-  const { mutate: deleteTask } = useDeleteTask();
-  const { mutate: createTask } = useCreateTask();
+  const { mutateAsync: deleteTask } = useDeleteTask();
+  const { mutateAsync: createTask } = useCreateTask();
   const { subtasks: subtaskRepo } = useRepos();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -43,21 +43,18 @@ export function useTaskDelete() {
         let undoToastId: string | null = null;
 
         function restore() {
-          createTask(recreateInput(task, subtasks), {
-            onError: () =>
-              toast.show({
-                tone: "error",
-                message: `Couldn't restore ${task.title}.`,
-                action: { label: "Retry", onAction: restore },
-              }),
-          });
+          createTask(recreateInput(task, subtasks)).catch(() =>
+            toast.show({
+              tone: "error",
+              message: `Couldn't restore ${task.title}.`,
+              action: { label: "Retry", onAction: restore },
+            }),
+          );
         }
 
-        deleteTask(task.id, {
-          onError: () => {
-            if (undoToastId) toast.dismiss(undoToastId);
-            failed();
-          },
+        deleteTask(task.id).catch(() => {
+          if (undoToastId) toast.dismiss(undoToastId);
+          failed();
         });
 
         undoToastId = toast.show({

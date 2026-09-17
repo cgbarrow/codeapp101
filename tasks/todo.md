@@ -315,13 +315,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Configure react-query for refetch on window focus, visibility change, and 60 s interval while visible; global error toast with Retry; loading skeletons; empty states for lists and Today; `retry` policy for transient Dataverse errors.
 
 **Acceptance criteria:**
-- [ ] Change made in one tab appears in another within 60 s and immediately on focus (mock repo shared via BroadcastChannel in dev to simulate)
-- [ ] Failed create/update/delete shows toast with Retry and rolls back
-- [ ] No spinner longer than 300 ms without a skeleton
+- [x] Change made in one tab appears in another within 60 s and immediately on focus (mock repo shared via BroadcastChannel in dev to simulate)
+- [x] Failed create/update/delete shows toast with Retry and rolls back
+- [x] No spinner longer than 300 ms without a skeleton
 
 **Verification:**
-- [ ] `npm test -- queries Toast`
-- [ ] Manual two-tab check
+- [x] `npm test -- queries Toast`
+- [x] Manual two-tab check
+
+**Status: DONE 2026-09-17.** `src/data/queryClient.ts` adds a window `focus` listener (TanStack v5 listens only for `visibilitychange`), the 60 s interval and a transient-only read retry; writes never auto-retry. Failure toasts were being lost: per-call `mutate` callbacks fire only for the latest call and not after unmount. Every write now uses `mutateAsync`, through `useSaveWithRetry` or the toggle and delete hooks, and ListNav's inline alert does the same. `SkeletonRows` replaces blanks in Completed and subtasks and the copies in TaskList and Today. No `EmptyState` component: the existing empty states (list, Today, Completed) already meet the criterion. Mock repos sync across tabs over `BroadcastChannel`; `e2e/sync.spec.ts` covers it in Chromium and WebKit. Manual two-tab check in the in-app browser: a completion in one tab showed in the other when it came to the front.
 
 **Dependencies:** T9
 **Files:** `src/data/queryClient.ts`, `src/components/Toast/*`, `src/components/EmptyState/*`, `src/components/Skeleton/*`

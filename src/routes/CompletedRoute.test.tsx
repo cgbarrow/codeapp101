@@ -54,6 +54,16 @@ describe("CompletedRoute", () => {
     expect(task.isCompleted).toBe(false);
   });
 
+  it("shows placeholder rows while tasks load", async () => {
+    renderRoute();
+
+    const list = screen.getByRole("list", { name: "Completed tasks" });
+    expect(list).toHaveAttribute("aria-busy", "true");
+    expect(list.querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0);
+    await within(list).findByText("Review the pull request");
+    expect(list.querySelectorAll("[data-skeleton]")).toHaveLength(0);
+  });
+
   it("offers a retry when tasks fail to load", async () => {
     repos.tasks.getByList = async () => {
       throw new Error("Network down");

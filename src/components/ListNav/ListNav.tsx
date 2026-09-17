@@ -94,20 +94,22 @@ export function ListNav() {
     ),
   });
 
-  /** Runs a mutation, flashing the row on success and offering a retry on failure. */
-  function run(listId: string | null, failureMessage: string, attempt: (done: Callbacks) => void) {
-    const callbacks: Callbacks = {
-      onSuccess: () => {
-        setFailure((current) => (current?.retry === retry ? null : current));
-        if (listId) setSavedId(listId);
-      },
-      onError: () => setFailure({ listId, message: failureMessage, retry }),
-    };
+  /**
+   * Runs a write, flashing the row on success and offering a retry on failure. Takes a promise from
+   * `mutateAsync`: per-call `mutate` callbacks are dropped when another write starts on the same hook.
+   */
+  function run(listId: string | null, failureMessage: string, attempt: () => Promise<unknown>) {
     function retry() {
-      attempt(callbacks);
+      attempt().then(
+        () => {
+          setFailure((current) => (current?.retry === retry ? null : current));
+          if (listId) setSavedId(listId);
+        },
+        () => setFailure({ listId, message: failureMessage, retry }),
+      );
     }
     setFailure(null);
-    attempt(callbacks);
+    retry();
   }
 
   function addList(event: FormEvent<HTMLFormElement>) {
@@ -117,18 +119,11 @@ export function ListNav() {
     const sortOrder = Math.max(-1, ...all.map((list) => list.sortOrder)) + 1;
     setAdding(false);
     pendingFocus.current = "new-list";
-    run(null, `Couldn't create ${name}.`, (done) =>
-      create.mutate(
-        { name, sortOrder },
-        {
-          onSuccess: (list) => {
-            done.onSuccess();
-            setSavedId(list.id);
-            navigate(listPath(list.id));
-          },
-          onError: done.onError,
-        },
-      ),
+    run(null, `Couldn't create ${name}.`, () =>
+      create.mutateAsync({ name, sortOrder }).then((list) => {
+        setSavedId(list.id);
+        navigate(listPath(list.id));
+      }),
     );
   }
 
@@ -137,15 +132,15 @@ export function ListNav() {
     pendingFocus.current = `rename-${list.id}`;
     const name = value.trim();
     if (!name || name === list.name) return;
-    run(list.id, `Couldn't rename ${list.name}.`, (done) =>
-      update.mutate({ id: list.id, patch: { name } }, done),
+    run(list.id, `Couldn't rename ${list.name}.`, () =>
+      update.mutateAsync({ id: list.id, patch: { name } }),
     );
   }
 
   function setArchived(list: List, isArchived: boolean) {
     const verb = isArchived ? "archive" : "restore";
-    run(list.id, `Couldn't ${verb} ${list.name}.`, (done) =>
-      update.mutate({ id: list.id, patch: { isArchived } }, done),
+    run(list.id, `Couldn't ${verb} ${list.name}.`, () =>
+      update.mutateAsync({ id: list.id, patch: { isArchived } }),
     );
   }
 
@@ -153,7 +148,7 @@ export function ListNav() {
     const { changes } = reorderLists(saved, fromIndex, toIndex);
     if (changes.length === 0) return;
     const name = saved[fromIndex].name;
-    run(saved[fromIndex].id, `Couldn't move ${name}.`, (done) => reorder.mutate(changes, done));
+    run(saved[fromIndex].id, `Couldn't move ${name}.`, () => reorder.mutateAsync(changes));
   }
 
   function requestDelete(list: List) {
@@ -173,8 +168,8 @@ export function ListNav() {
   function deleteNow(list: List, moveTasksTo: string | null) {
     setConfirmingId(null);
     if (pathname === listPath(list.id) && inboxId) navigate(listPath(inboxId));
-    run(null, `Couldn't delete ${list.name}.`, (done) =>
-      remove.mutate({ id: list.id, moveTasksTo }, done),
+    run(null, `Couldn't delete ${list.name}.`, () =>
+      remove.mutateAsync({ id: list.id, moveTasksTo }),
     );
   }
 
@@ -451,8 +446,6 @@ export function ListNav() {
     </div>
   );
 }
-
-type Callbacks = { onSuccess: () => void; onError: () => void };
 
 type IconButtonProps = {
   label: string;

@@ -1,7 +1,7 @@
 import { useId, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Checkmark } from "@/components/Checkmark/Checkmark";
 import { DeleteIcon, DownIcon, UpIcon } from "@/components/ListNav/icons";
-import { useToast } from "@/components/Toast/useToast";
+import { SkeletonRows } from "@/components/Skeleton/SkeletonRows";
 import {
   useCreateSubtask,
   useDeleteSubtask,
@@ -11,6 +11,7 @@ import {
 } from "@/data/queries";
 import type { Subtask, SubtaskPatch } from "@/data/repo";
 import { reorderLists } from "@/features/lists/reorderLists";
+import { useSaveWithRetry } from "@/hooks/useSaveWithRetry";
 import styles from "./SubtaskList.module.css";
 
 /** SPEC S7: a task holds at most this many subtasks. */
@@ -27,21 +28,17 @@ type SubtaskListProps = { taskId: string };
 export function SubtaskList({ taskId }: SubtaskListProps) {
   const id = useId();
   const subtasks = useSubtasks(taskId);
-  const { mutate: create } = useCreateSubtask();
-  const { mutate: update } = useUpdateSubtask();
-  const { mutate: remove } = useDeleteSubtask();
-  const { mutate: reorder } = useReorderSubtasks();
-  const toast = useToast();
+  const { mutateAsync: create } = useCreateSubtask();
+  const { mutateAsync: update } = useUpdateSubtask();
+  const { mutateAsync: remove } = useDeleteSubtask();
+  const { mutateAsync: reorder } = useReorderSubtasks();
+  const saveWithRetry = useSaveWithRetry();
   const [atLimit, setAtLimit] = useState(false);
 
   const items = subtasks.data ?? [];
   const saved = items.filter((subtask) => !isUnsaved(subtask.id));
   const done = items.filter((subtask) => subtask.isDone).length;
   const limitReached = atLimit && items.length >= MAX_SUBTASKS;
-
-  function failed(message: string, retry: () => void) {
-    toast.show({ tone: "error", message, action: { label: "Retry", onAction: retry } });
-  }
 
   function add(input: HTMLInputElement) {
     const title = input.value.trim();
@@ -51,40 +48,26 @@ export function SubtaskList({ taskId }: SubtaskListProps) {
       return;
     }
     const sortOrder = items.length === 0 ? 0 : items[items.length - 1].sortOrder + 1;
-    const save = () =>
-      create(
-        { taskId, title, sortOrder },
-        { onError: () => failed(`Couldn't add ${title}.`, save) },
-      );
-    save();
+    saveWithRetry(() => create({ taskId, title, sortOrder }), `Couldn't add ${title}.`);
     input.value = "";
   }
 
   function save(subtask: Subtask, patch: SubtaskPatch) {
-    const send = () =>
-      update(
-        { id: subtask.id, taskId, patch },
-        { onError: () => failed(`Couldn't save ${subtask.title}.`, send) },
-      );
-    send();
+    saveWithRetry(
+      () => update({ id: subtask.id, taskId, patch }),
+      `Couldn't save ${subtask.title}.`,
+    );
   }
 
   function deleteSubtask(subtask: Subtask) {
     setAtLimit(false);
-    const send = () =>
-      remove(
-        { id: subtask.id, taskId },
-        { onError: () => failed(`Couldn't delete ${subtask.title}.`, send) },
-      );
-    send();
+    saveWithRetry(() => remove({ id: subtask.id, taskId }), `Couldn't delete ${subtask.title}.`);
   }
 
   function move(subtask: Subtask, step: 1 | -1) {
     const from = saved.findIndex((item) => item.id === subtask.id);
     const { changes } = reorderLists(saved, from, from + step);
-    const send = () =>
-      reorder({ taskId, changes }, { onError: () => failed("Couldn't reorder subtasks.", send) });
-    send();
+    saveWithRetry(() => reorder({ taskId, changes }), "Couldn't reorder subtasks.");
   }
 
   return (
@@ -110,6 +93,7 @@ export function SubtaskList({ taskId }: SubtaskListProps) {
       )}
 
       <ul className={styles.items} aria-labelledby={`${id}-heading`} aria-busy={subtasks.isPending}>
+        {subtasks.isPending && <SkeletonRows count={2} size="compact" />}
         {items.map((subtask, index) => (
           <SubtaskItem
             key={subtask.id}

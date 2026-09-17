@@ -124,6 +124,30 @@ describe("TaskList", () => {
     await waitFor(async () => expect((await stored("seed-t2"))?.isCompleted).toBe(true));
   });
 
+  it("reports a failed completion even when another completion follows at once", async () => {
+    const user = userEvent.setup();
+    const hold = deferred();
+    const update = repos.tasks.update;
+    repos.tasks.update = async (id, patch) => {
+      if (id === "seed-t2") await hold.promise;
+      return update(id, patch);
+    };
+    renderList();
+    const first = await screen.findByRole("checkbox", {
+      name: "Complete Send the Q3 budget draft",
+    });
+    const second = screen.getByRole("checkbox", { name: "Complete Call Sam about the offsite" });
+
+    await user.click(first);
+    await user.click(second);
+    await act(async () => hold.reject(new Error("Network down")));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn't complete Send the Q3 budget draft.",
+    );
+    await waitFor(() => expect(first).toHaveAttribute("aria-checked", "false"));
+  });
+
   it("reopens a completed task without offering Undo", async () => {
     const user = userEvent.setup();
     renderList();
@@ -227,6 +251,50 @@ describe("TaskList", () => {
       await user.keyboard("{Escape}");
       expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
       expect(title).toHaveFocus();
+    });
+
+    it("reports a failed edit after the panel has closed, and rolls it back", async () => {
+      const user = userEvent.setup();
+      const hold = deferred();
+      const update = repos.tasks.update;
+      repos.tasks.update = async (id, patch) => {
+        await hold.promise;
+        return update(id, patch);
+      };
+      renderList();
+      await user.click(await screen.findByRole("button", { name: "Send the Q3 budget draft" }));
+      const title = screen.getByLabelText("Title");
+      await user.clear(title);
+      await user.type(title, "Send the Q4 budget draft{Enter}");
+      await user.keyboard("{Escape}");
+      expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
+
+      await act(async () => hold.reject(new Error("Network down")));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Couldn't save Send the Q3 budget draft.",
+      );
+      expect(openTitles()).toContain("Send the Q3 budget draft");
+    });
+
+    it("keeps offering Retry while an edit keeps failing", async () => {
+      const user = userEvent.setup();
+      repos.tasks.update = async () => {
+        throw new Error("Network down");
+      };
+      renderList();
+      await user.click(await screen.findByRole("button", { name: "Send the Q3 budget draft" }));
+      await user.type(screen.getByLabelText("Title"), "!{Enter}");
+      await user.keyboard("{Escape}");
+
+      const alert = await screen.findByRole("alert");
+      await user.click(within(alert).getByRole("button", { name: "Retry" }));
+
+      await waitFor(() => expect(screen.getAllByRole("alert")).toHaveLength(1));
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Couldn't save Send the Q3 budget draft.",
+      );
+      expect(alert).not.toBeInTheDocument();
     });
 
     it("removes the row when the task is deleted from its panel", async () => {

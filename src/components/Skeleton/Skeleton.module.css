@@ -1,0 +1,27 @@
+/* Hallmark · component: skeleton rows · genre: modern-minimal · theme: Coral
+ * not interactive: no states beyond the pulse, which stops under reduced motion.
+ */
+
+.skeleton {
+  height: calc(var(--size-target) + var(--space-xs));
+  border-radius: var(--radius-md);
+  background: var(--color-paper-2);
+  list-style: none;
+  animation: pulse 1.4s var(--ease-in-out) infinite;
+}
+
+.skeleton[data-size="compact"] {
+  height: var(--size-target);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

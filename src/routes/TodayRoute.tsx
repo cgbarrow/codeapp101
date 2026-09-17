@@ -1,4 +1,5 @@
 import { QuickAdd } from "@/components/QuickAdd/QuickAdd";
+import { SkeletonRows } from "@/components/Skeleton/SkeletonRows";
 import { useTaskRows } from "@/components/TaskList/useTaskRows";
 import { useInbox, useLists, useTasksInLists } from "@/data/queries";
 import { selectToday } from "@/features/today/selectToday";
@@ -54,9 +55,7 @@ export function TodayRoute({ now = new Date() }: TodayRouteProps) {
 
       {pending && (
         <ul className={styles.rows} aria-label="Today's tasks" aria-busy="true">
-          {[0, 1, 2].map((index) => (
-            <li key={index} className={styles.skeleton} aria-hidden="true" />
-          ))}
+          <SkeletonRows count={3} />
         </ul>
       )}
 

@@ -22,19 +22,6 @@
   display: none;
 }
 
-.skeleton {
-  height: calc(var(--size-target) + var(--space-xs));
-  border-radius: var(--radius-md);
-  background: var(--color-paper-2);
-  animation: pulse 1.4s var(--ease-in-out) infinite;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.55;
-  }
-}
-
 .empty {
   color: var(--color-muted);
 }
@@ -151,10 +138,4 @@
   border-radius: var(--radius-md);
   background: var(--color-error-surface);
   color: var(--color-error);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-  }
 }

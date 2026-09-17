@@ -1,7 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import { DateField, type DueValue } from "@/components/DateField/DateField";
 import { SubtaskList } from "@/components/SubtaskList/SubtaskList";
-import { useToast } from "@/components/Toast/useToast";
 import { useUpdateTask } from "@/data/queries";
 import type { Recurrence, Task, TaskPatch } from "@/data/repo";
 import {
@@ -11,6 +10,7 @@ import {
   type ReminderOffset,
 } from "@/features/reminders/computeReminderAt";
 import { useNotificationPermission } from "@/hooks/useNotifications";
+import { useSaveWithRetry } from "@/hooks/useSaveWithRetry";
 import { useTaskDelete } from "@/hooks/useTaskDelete";
 import styles from "./TaskDetail.module.css";
 
@@ -50,9 +50,9 @@ type TaskDetailProps = {
 export function TaskDetail({ task, id: regionId, onClose }: TaskDetailProps) {
   const id = useId();
   const titleRef = useRef<HTMLInputElement>(null);
-  const { mutate: update } = useUpdateTask();
+  const { mutateAsync: update } = useUpdateTask();
+  const saveWithRetry = useSaveWithRetry();
   const removeTask = useTaskDelete();
-  const toast = useToast();
   const offset = reminderOffsetOf(task);
   const notifications = useNotificationPermission();
 
@@ -79,17 +79,7 @@ export function TaskDetail({ task, id: regionId, onClose }: TaskDetailProps) {
   function save(next: TaskPatch) {
     const patch = changedFields(task, next);
     if (Object.keys(patch).length === 0) return;
-    update(
-      { id: task.id, patch },
-      {
-        onError: () =>
-          toast.show({
-            tone: "error",
-            message: `Couldn't save ${task.title}.`,
-            action: { label: "Retry", onAction: () => update({ id: task.id, patch }) },
-          }),
-      },
-    );
+    saveWithRetry(() => update({ id: task.id, patch }), `Couldn't save ${task.title}.`);
   }
 
   function saveTitle(input: HTMLInputElement) {

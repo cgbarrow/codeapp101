@@ -27,6 +27,15 @@ const titles = () =>
 const stored = () => repos.subtasks.getByTask("seed-t6");
 
 describe("SubtaskList", () => {
+  it("shows placeholder rows while subtasks load", async () => {
+    render(<SubtaskList taskId="seed-t6" />, { wrapper: createWrapper(repos) });
+
+    const list = screen.getByRole("list", { name: "Subtasks" });
+    expect(list.querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0);
+    await within(list).findByRole("checkbox", { name: "Complete Charger" });
+    expect(list.querySelectorAll("[data-skeleton]")).toHaveLength(0);
+  });
+
   it("shows each subtask with its done state and a progress summary", async () => {
     await renderList();
 

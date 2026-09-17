@@ -1,3 +1,4 @@
+import { SkeletonRows } from "@/components/Skeleton/SkeletonRows";
 import { TaskRow } from "@/components/TaskRow/TaskRow";
 import { useCompletedTasks, useLists } from "@/data/queries";
 import { useTaskToggle } from "@/hooks/useTaskToggle";
@@ -30,6 +31,7 @@ export function CompletedRoute() {
         </div>
       )}
       <ul className={styles.rows} aria-label="Completed tasks" aria-busy={pending}>
+        {pending && !failed && <SkeletonRows count={3} />}
         {completed.tasks.map((task) => (
           <TaskRow
             key={task.id}
