@@ -2,8 +2,10 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { AppShell } from "@/components/AppShell/AppShell";
 import { ListNav } from "@/components/ListNav/ListNav";
+import { ReminderStatus } from "@/components/ReminderStatus/ReminderStatus";
 import { ShortcutHelp } from "@/components/ShortcutHelp/ShortcutHelp";
 import { useInbox } from "@/data/queries";
+import { useReminders } from "@/hooks/useNotifications";
 import { CompletedRoute } from "@/routes/CompletedRoute";
 import { ListRoute } from "@/routes/ListRoute";
 
@@ -21,11 +23,13 @@ type AppProps = {
 };
 
 export function App({ smoke = smokeEnabled }: AppProps) {
+  useReminders();
   return (
     <AppShell
       sidebar={
         <>
           <ListNav />
+          <ReminderStatus />
           <ShortcutHelp />
         </>
       }

@@ -38,6 +38,13 @@ describe("App", () => {
     expect(await repos.lists.getAll()).toHaveLength(1);
   });
 
+  it("shows the reminder status in the sidebar", async () => {
+    renderApp(sampleRepos());
+
+    const nav = screen.getByRole("navigation", { name: "Lists" });
+    expect(within(nav).getByRole("group", { name: "Reminders" })).toBeInTheDocument();
+  });
+
   it("shows a list from its route, with the lists in the sidebar", async () => {
     renderApp(sampleRepos(), "/list/seed-groceries");
 

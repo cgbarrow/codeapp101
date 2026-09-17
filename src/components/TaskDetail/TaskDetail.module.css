@@ -63,6 +63,11 @@
   margin-top: var(--space-xs);
 }
 
+.note {
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
 .hint {
   min-height: 1lh;
   color: var(--color-muted);

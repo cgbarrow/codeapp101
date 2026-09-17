@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it } from "vitest";
 import { createMockRepos } from "@/data/mock/mockRepos";
@@ -51,6 +51,32 @@ describe("ListRoute", () => {
     expect(screen.getByRole("link", { name: "Go to Inbox" })).toHaveAttribute(
       "href",
       "/list/seed-inbox",
+    );
+  });
+});
+
+describe("ListRoute opening a task from a notification", () => {
+  it("opens the task named in the location state, once", async () => {
+    const Providers = createWrapper(
+      createMockRepos({ seed: createSampleSeed(new Date(2026, 8, 17, 9, 30)) }),
+    );
+    render(
+      <Providers>
+        <MemoryRouter
+          initialEntries={[{ pathname: "/list/seed-work", state: { openTaskId: "seed-t3" } }]}
+        >
+          <Routes>
+            <Route path="/list/:id" element={<ListRoute />} />
+          </Routes>
+        </MemoryRouter>
+      </Providers>,
+    );
+
+    const region = await screen.findByRole("region", { name: "Task details" });
+    expect(within(region).getByLabelText("Title")).toHaveValue("Call Sam about the offsite");
+    expect(screen.getByRole("button", { name: "Call Sam about the offsite" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
     );
   });
 });

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockRepos } from "@/data/mock/mockRepos";
 import { createSampleSeed } from "@/data/mock/seed";
 import { useTasks } from "@/data/queries";
@@ -256,5 +256,57 @@ describe("TaskDetail", () => {
     expect(updatedIds).toEqual(["seed-t5"]);
     expect(screen.getByLabelText("Repeat")).toHaveValue("none");
     expect(screen.queryByRole("button", { name: "Stop repeating" })).not.toBeInTheDocument();
+  });
+
+  describe("reminder permission", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    function stubNotification(permission: NotificationPermission, answer = permission) {
+      const fake = {
+        permission,
+        requestPermission: vi.fn(async () => {
+          fake.permission = answer;
+          return answer;
+        }),
+      };
+      vi.stubGlobal("Notification", fake);
+      return fake;
+    }
+
+    it("asks for notification permission when a reminder is first set, not on open", async () => {
+      const user = userEvent.setup();
+      const fake = stubNotification("default", "granted");
+      await renderDetail("seed-t2");
+
+      expect(fake.requestPermission).not.toHaveBeenCalled();
+      await user.selectOptions(screen.getByLabelText("Reminder"), "At time of task");
+
+      expect(fake.requestPermission).toHaveBeenCalledTimes(1);
+    });
+
+    it("notes inline that a reminder will not alert when notifications are blocked", async () => {
+      stubNotification("denied");
+      await renderDetail("seed-t3");
+
+      expect(
+        screen.getByText("Notifications are blocked, so this reminder won't alert you."),
+      ).toBeInTheDocument();
+    });
+
+    it("notes inline when the browser cannot show notifications", async () => {
+      vi.stubGlobal("Notification", undefined);
+      await renderDetail("seed-t3");
+
+      expect(screen.getByText("This browser can't show reminders.")).toBeInTheDocument();
+    });
+
+    it("adds no note when notifications are allowed", async () => {
+      stubNotification("granted");
+      await renderDetail("seed-t3");
+
+      expect(screen.queryByText(/won't alert|can't show/)).not.toBeInTheDocument();
+    });
   });
 });

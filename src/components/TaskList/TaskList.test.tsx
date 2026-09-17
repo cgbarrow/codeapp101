@@ -241,6 +241,45 @@ describe("TaskList", () => {
     });
   });
 
+  describe("open requests", () => {
+    it("opens and selects the requested task, and again for a new request", async () => {
+      const user = userEvent.setup();
+      const { rerender } = render(
+        <TaskList
+          listId="seed-work"
+          listName="Work"
+          openRequest={{ taskId: "seed-t2", key: "a" }}
+        />,
+        { wrapper: createWrapper(repos) },
+      );
+
+      const region = await screen.findByRole("region", { name: "Task details" });
+      expect(within(region).getByLabelText("Title")).toHaveValue("Send the Q3 budget draft");
+      await user.keyboard("{Escape}");
+      expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
+
+      rerender(
+        <TaskList
+          listId="seed-work"
+          listName="Work"
+          openRequest={{ taskId: "seed-t2", key: "a" }}
+        />,
+      );
+      expect(screen.queryByRole("region", { name: "Task details" })).not.toBeInTheDocument();
+
+      rerender(
+        <TaskList
+          listId="seed-work"
+          listName="Work"
+          openRequest={{ taskId: "seed-t3", key: "b" }}
+        />,
+      );
+      expect(
+        within(await screen.findByRole("region", { name: "Task details" })).getByLabelText("Title"),
+      ).toHaveValue("Call Sam about the offsite");
+    });
+  });
+
   describe("repeating tasks", () => {
     const waterings = async () =>
       (await repos.tasks.getByList("seed-personal")).filter((t) => t.title === "Water the plants");

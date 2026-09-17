@@ -292,13 +292,15 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** `useNotifications` requests permission on first reminder set (not on load), and a 30 s scheduler checks cached reminders and fires `new Notification(title, { body })` once per reminder, persisting fired IDs in `sessionStorage`. Settings row shows permission state.
 
 **Acceptance criteria:**
-- [ ] Scheduler unit-tested with fake timers: fires once, not before time, not twice
-- [ ] Graceful when `Notification` is unavailable or denied (inline note, no errors)
-- [ ] Clicking the notification focuses the tab and opens the task
+- [x] Scheduler unit-tested with fake timers: fires once, not before time, not twice
+- [x] Graceful when `Notification` is unavailable or denied (inline note, no errors)
+- [x] Clicking the notification focuses the tab and opens the task
 
 **Verification:**
-- [ ] `npm test -- scheduler useNotifications`
-- [ ] Manual: set reminder 1 min ahead, notification appears
+- [x] `npm test -- scheduler useNotifications`
+- [ ] Manual: set reminder 1 min ahead, notification appears. **Open:** the in-app browser reports `denied`, so this needs Christopher in desktop Chrome with `npm run dev`. `e2e/reminders.spec.ts` covers the same flow in Chromium and WebKit with a recording `Notification` stand-in and Playwright's clock.
+
+**Status: DONE 2026-09-17, except the manual check above.** Only reminders that come due after the app opened (less one 30 s interval) fire. The scheduler reads the task caches the sidebar counts already load. Permission is asked for when a reminder is chosen, and the status row sits in the sidebar. **Risk for T16:** a published app runs in a cross-origin iframe, where Chromium refuses notification permission; expect the "blocked" state there and record the result in `docs/smoke.md`.
 
 **Dependencies:** T8
 **Files:** `src/features/reminders/scheduler.ts`, `src/features/reminders/scheduler.test.ts`, `src/hooks/useNotifications.ts`, `src/components/ReminderStatus/*`

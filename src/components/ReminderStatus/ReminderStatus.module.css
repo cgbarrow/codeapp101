@@ -1,0 +1,85 @@
+/* Hallmark · component: reminder status · genre: modern-minimal · theme: Coral
+ * states (.button): default · hover · focus · active · disabled · loading · error · success
+ * permission (data-permission): granted · default · denied · unsupported
+ */
+
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+  margin-top: var(--space-md);
+  padding-inline: var(--space-sm);
+}
+
+.label {
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.message {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.status[data-permission="denied"] .message {
+  color: var(--color-error);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-target);
+  padding-inline: var(--space-md);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .button:hover,
+  .button:global(.is-hover) {
+    background: var(--color-paper-3);
+  }
+}
+
+.button:focus-visible,
+.button:global(.is-focus) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.button:active,
+.button:global(.is-active) {
+  transform: translateY(1px);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button[data-state="loading"] {
+  cursor: progress;
+  color: var(--color-muted);
+}
+
+.button[data-state="error"] {
+  border-color: var(--color-error);
+  background: var(--color-error-surface);
+  color: var(--color-error);
+}
+
+.button[data-state="success"] {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}

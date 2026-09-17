@@ -10,6 +10,7 @@ import {
   reminderOffsetOf,
   type ReminderOffset,
 } from "@/features/reminders/computeReminderAt";
+import { useNotificationPermission } from "@/hooks/useNotifications";
 import { useTaskDelete } from "@/hooks/useTaskDelete";
 import styles from "./TaskDetail.module.css";
 
@@ -19,6 +20,12 @@ const REPEATS: ReadonlyArray<{ value: Recurrence; label: string }> = [
   { value: "weekly", label: "Weekly" },
   { value: "monthly", label: "Monthly" },
 ];
+
+/** Why a reminder that is set will not alert, if it won't. */
+const REMINDER_NOTES: Partial<Record<string, string>> = {
+  denied: "Notifications are blocked, so this reminder won't alert you.",
+  unsupported: "This browser can't show reminders.",
+};
 
 const sameValue = (a: unknown, b: unknown) =>
   a instanceof Date || b instanceof Date
@@ -47,6 +54,7 @@ export function TaskDetail({ task, id: regionId, onClose }: TaskDetailProps) {
   const removeTask = useTaskDelete();
   const toast = useToast();
   const offset = reminderOffsetOf(task);
+  const notifications = useNotificationPermission();
 
   const closeRef = useRef(onClose);
   useEffect(() => {
@@ -177,15 +185,12 @@ export function TaskDetail({ task, id: regionId, onClose }: TaskDetailProps) {
               value={offset}
               disabled={scheduleDisabled}
               aria-describedby={`${id}-schedule-hint`}
-              onChange={(event) =>
-                save({
-                  reminderAt: computeReminderAt(
-                    task.dueDate,
-                    task.hasTime,
-                    event.target.value as ReminderOffset,
-                  ),
-                })
-              }
+              onChange={(event) => {
+                const chosen = event.target.value as ReminderOffset;
+                // Ask while handling the user's choice: browsers ignore requests without one.
+                if (chosen !== "none") void notifications.request();
+                save({ reminderAt: computeReminderAt(task.dueDate, task.hasTime, chosen) });
+              }}
             >
               {REMINDER_OFFSETS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -219,6 +224,9 @@ export function TaskDetail({ task, id: regionId, onClose }: TaskDetailProps) {
             </select>
           </div>
         </div>
+        {task.reminderAt && REMINDER_NOTES[notifications.permission] && (
+          <p className={styles.note}>{REMINDER_NOTES[notifications.permission]}</p>
+        )}
         <p id={`${id}-schedule-hint`} className={styles.hint}>
           {scheduleDisabled
             ? "Set a due date to add a reminder or repeat."

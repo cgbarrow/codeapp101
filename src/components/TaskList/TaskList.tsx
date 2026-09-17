@@ -8,14 +8,18 @@ import { useTaskDelete } from "@/hooks/useTaskDelete";
 import { useTaskToggle } from "@/hooks/useTaskToggle";
 import styles from "./TaskList.module.css";
 
+/** Asks the list to open one task's detail panel. A new `key` repeats the request. */
+export type OpenTaskRequest = { taskId: string; key: string };
+
 type TaskListProps = {
   listId: string;
   listName: string;
   now?: Date;
+  openRequest?: OpenTaskRequest;
 };
 
 /** The tasks of one list: open tasks first, completed ones in a collapsed section. */
-export function TaskList({ listId, listName, now = new Date() }: TaskListProps) {
+export function TaskList({ listId, listName, now = new Date(), openRequest }: TaskListProps) {
   const tasks = useTasks(listId);
   const { toggle, lingering } = useTaskToggle();
   const removeTask = useTaskDelete();
@@ -24,6 +28,12 @@ export function TaskList({ listId, listName, now = new Date() }: TaskListProps) 
   const detailId = useId();
   const [openId, setOpenId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [handledRequest, setHandledRequest] = useState<string | null>(null);
+  if (openRequest && openRequest.key !== handledRequest) {
+    setHandledRequest(openRequest.key);
+    setOpenId(openRequest.taskId);
+    setSelectedId(openRequest.taskId);
+  }
   const containerRef = useRef<HTMLDivElement>(null);
   /** Task whose title should take focus after the next render, when its panel closes. */
   const returnFocusTo = useRef<string | null>(null);
