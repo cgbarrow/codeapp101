@@ -22,7 +22,16 @@ function createChannels(count: number) {
   });
 }
 
-const settle = () => new Promise((resolve) => setTimeout(resolve, 10));
+/**
+ * Let the queued deliveries run. A late-joining tab costs two hops — its hello out, the other
+ * tab's state back — and each hop is a whole timer tick, ~15.6 ms on Windows. Counting hops
+ * rather than waiting a fixed 10 ms keeps this deterministic on every platform.
+ */
+const settle = async () => {
+  for (let hop = 0; hop < 4; hop += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+};
 const seed = () => createSampleSeed(new Date(2026, 8, 17, 9, 30));
 
 describe("mock repositories shared between tabs", () => {

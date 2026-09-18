@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const srcDir = join(import.meta.dirname, "..");
@@ -12,15 +12,21 @@ function codeFiles(dir: string): string[] {
   });
 }
 
+/** Path below src, with forward slashes on every platform so the prefixes below match on Windows. */
+const relativeToSrc = (file: string) => relative(srcDir, file).split(sep).join("/");
+
 const importsGenerated =
   /from\s+["'][^"']*\/generated(\/|["'])|import\(\s*["'][^"']*\/generated(\/|["'])/;
 
 describe("architecture boundaries", () => {
   it("only src/data imports from src/generated", () => {
     const offenders = codeFiles(srcDir)
-      .map((file) => relative(srcDir, file))
-      .filter((file) => !file.startsWith("data/") && !file.startsWith("generated/"))
-      .filter((file) => importsGenerated.test(readFileSync(join(srcDir, file), "utf8")));
+      .filter((file) => {
+        const path = relativeToSrc(file);
+        return !path.startsWith("data/") && !path.startsWith("generated/");
+      })
+      .filter((file) => importsGenerated.test(readFileSync(file, "utf8")))
+      .map(relativeToSrc);
 
     expect(offenders).toEqual([]);
   });

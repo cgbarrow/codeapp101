@@ -734,6 +734,73 @@ The first version of the font-family check, `/font-family:\s*(?!var\()/`, report
 
 **Fix.** Move the whitespace inside the lookahead: `/font-family:(?!\s*var\()/`. More generally, test a guard against a planted violation *and* against known-good code before relying on it.
 
+### Tests that pass on macOS fail on a Windows clone
+
+Five tests failed the first time the suite ran on Windows, on three unrelated causes. None was a
+regression in the app; all three were assumptions the tests had made about the machine.
+
+**Path separators.** The two guards that walk `src/` compared `path.relative()` output against
+forward-slash literals, so on Windows every file they were meant to exempt looked like a violation:
+
+```
+AssertionError: expected [ …(5) ] to deeply equal []
++   "data\dataverse\dataverseRepos.ts",
++   "data\dataverse\mappers.ts",
+```
+
+Normalise once, where the path is made relative, rather than at each comparison:
+`relative(srcDir, file).split(sep).join("/")`.
+
+**The default locale.** `formatDue` takes an optional locale and falls back to the runtime's, which
+is right for the app and wrong for an assertion. Two component tests hard-coded the US form:
+
+```
+AssertionError: expected { body: 'Today, 3:00 p.m.', tag: 't3' }
+              to match object { body: 'Today, 3:00 PM', tag: 't3' }
+```
+
+Node takes its default locale from the operating system and, unlike on macOS and Linux, **ignores
+`LANG` and `LC_ALL` on Windows** — so the `env` block in `vitest.config.ts` that pins `TZ` cannot
+pin the locale the same way. Pin it in `src/test/setup.ts` instead, with a Proxy that supplies a
+default only when the caller passed none:
+
+```ts
+type FormatArgs = [Intl.LocalesArgument?, Intl.DateTimeFormatOptions?];
+Intl.DateTimeFormat = new Proxy(Intl.DateTimeFormat, {
+  construct: (target, [locales, options]: FormatArgs) => new target(locales ?? "en-US", options),
+  apply: (target, _thisArg, [locales, options]: FormatArgs) =>
+    new target(locales ?? "en-US", options),
+});
+```
+
+A Proxy rather than a wrapper function: `Intl.DateTimeFormat.prototype` is read-only to TypeScript,
+so assigning it fails typecheck with `error TS2540: Cannot assign to 'prototype' because it is a
+read-only property`, and the Proxy keeps the prototype, `supportedLocalesOf` and `instanceof`
+without any of that.
+
+**Timer granularity.** The mock cross-tab sync test for a late-joining tab failed:
+
+```
+AssertionError: expected [ 'seed-t1' ] to not include 'seed-t1'
+```
+
+A tab that opens late broadcasts `hello` and applies the `state` another tab sends back, which is
+two chained timer hops. The test waited for them with `setTimeout(resolve, 10)`. Windows timers
+have about 15.6 ms of granularity, so the 10 ms wait and the first hop landed on the same tick and
+the reply arrived after the assertion had already run. Wait for a number of hops instead of a
+number of milliseconds:
+
+```ts
+const settle = async () => {
+  for (let hop = 0; hop < 4; hop += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+};
+```
+
+The general lesson: a test that waits a fixed number of milliseconds for a chain of asynchronous
+steps is a test that passes on the machine it was written on.
+
 ### The dev server reloads constantly during a test run
 
 ```

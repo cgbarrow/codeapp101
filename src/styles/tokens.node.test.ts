@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const srcDir = join(import.meta.dirname, "..");
@@ -13,12 +13,15 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
+/** Path below src, with forward slashes on every platform so the names below match on Windows. */
+const relativeToSrc = (file: string) => relative(srcDir, file).split(sep).join("/");
+
 const rawColour = /#[0-9a-f]{3,8}\b|\boklch\(|\brgba?\(|\bhsla?\(/i;
 const rawFontFamily = /font-family:(?!\s*var\()/i;
 
 describe("design tokens", () => {
   it("scans the stylesheets it is meant to police", () => {
-    const scanned = sourceFiles(srcDir).map((file) => relative(srcDir, file));
+    const scanned = sourceFiles(srcDir).map(relativeToSrc);
 
     expect(scanned).toEqual(
       expect.arrayContaining([
@@ -36,7 +39,7 @@ describe("design tokens", () => {
         const text = readFileSync(file, "utf8");
         return rawColour.test(text) || rawFontFamily.test(text);
       })
-      .map((file) => relative(srcDir, file));
+      .map(relativeToSrc);
 
     expect(offenders).toEqual([]);
   });
