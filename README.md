@@ -2,7 +2,7 @@
 
 A personal task app built as a **Power Apps code app**: an ordinary React single-page application that runs inside a Microsoft Power Platform environment, stores its data in Dataverse, and inherits Entra authentication and tenant governance without building any of it.
 
-> **Status: published, smoke test outstanding.** Every feature is built, tested and audited, and the app is published to the environment. What remains is the manual smoke test against real Dataverse on a phone and a desktop, and the how-to article's final prose. See [Current status](#current-status).
+> **Status: published, smoke test outstanding.** Every feature is built, tested and audited, the app is published to the environment, and the how-to article is written end to end. What remains needs the tenant: the manual smoke test against real Dataverse on a phone and a desktop, and three screenshots the article still marks as placeholders. See [Current status](#current-status).
 
 ## What it does
 
@@ -133,7 +133,7 @@ its troubleshooting section carries the real error text for every failure hit du
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
 | Published app | Pushed to the `CodeApp101` solution, 17 September 2026 — app ID `5e72594e-4a1c-4c2c-9b6b-7eae8479a302`. Sharing and the [smoke checklist](docs/smoke.md) outstanding |
 | Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); the Today view as the default landing, with `t` and the last view remembered (task 10); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13); refetching, retries, reliable failure toasts and loading placeholders (task 14); end-to-end flows, Lighthouse and Hallmark audits, ADRs (task 15); published to the environment (task 16). Still to do: Checkpoint B, and the manual smoke test of the published app |
-| Documentation | Parts 1 and 2 of 4 written: planning, schema, project foundation, Dataverse wiring. Part 3 build notes complete; ADRs 0001–0004 written; audits recorded in [`docs/design/audit-2026-09-17.md`](docs/design/audit-2026-09-17.md) |
+| Documentation | [How-to article](docs/how-to-build-a-power-apps-code-app.md) complete: all four parts, 25 steps, with Verify and Troubleshooting sections for each part (task 17). Outstanding: three screenshots that need the tenant, and the `pa` command blocks that cannot be re-run without changing the environment. ADRs 0001–0004 written; audits recorded in [`docs/design/audit-2026-09-17.md`](docs/design/audit-2026-09-17.md) |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.
 

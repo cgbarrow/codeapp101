@@ -383,14 +383,26 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Description:** Turn the running notes in `docs/how-to-build-a-power-apps-code-app.md` into finished Parts 2 to 4, matching the voice and structure of Part 1. Capture the screenshots listed as placeholders. Verify every command in the article actually runs as written.
 
 **Acceptance criteria:**
-- [ ] Parts 2, 3 and 4 complete, each following Overview → Prerequisites → Procedure → Verify → Troubleshooting → Related information
+- [x] Parts 2, 3 and 4 complete, each following Overview → Prerequisites → Procedure → Verify → Troubleshooting → Related information
 - [ ] Every placeholder in `docs/images/` replaced with a real screenshot, or the placeholder removed
 - [ ] Every command block copy-pasted and run once on a clean checkout to confirm it works
-- [ ] Troubleshooting entries carry the real error text encountered, not a paraphrase
+- [x] Troubleshooting entries carry the real error text encountered, not a paraphrase
 
 **Verification:**
 - [ ] A reader who has never used Power Platform can follow it start to finish
 - [ ] No unresolved placeholder text remains
+
+**Status: DONE 2026-09-18, except the three screenshots and the tenant half of the command check — both for Christopher.**
+
+Part 3 became Steps 12–22 and Part 4 Steps 23–25, continuing Part 2's numbering, so the article now runs Step 1 to Step 25 with no "Task n notes" headings left. The six-section shape is the article's, not each part's: Overview, Prerequisites, Procedure, Verify, Troubleshooting and Related information are top-level, the parts sit under Procedure, and Verify now has an "After Part 3" and an "After Part 4" to match Parts 1 and 2. Part 4 ends with a "What comes after" step covering the Power Automate phase, service-principal deployment and the subtask query cost.
+
+Two troubleshooting entries were added from this machine, both with real error text: the Windows PowerShell execution policy that makes every `npx pa` block in the article fail with `npx.ps1 cannot be loaded`, and the three test-portability failures found when the suite first ran on Windows (path separators, the default locale, and timer granularity). Those fixes landed in commit `d9cea84`, before the article work.
+
+**Outstanding, all needing the tenant:**
+
+- The three screenshot placeholders — `import-solution.png`, `local-play-smoke.png`, `publisher-list.png` — are still in place, and `docs/images/` does not exist. Capture them or delete the placeholders; either satisfies the criterion.
+- `pa auth login`, `pa auth status`, `pa app list` and `pa solution list` were all run on this machine on 18 September 2026 and work as written. `pa app init`, `pa app add data-source` and `pa app push` cannot be re-run without changing the environment — `init` and `add data-source` would rewrite `power.config.json` and `src/generated/`, and `push` republishes — so their blocks stand on the original build's record.
+- Whether a newcomer can follow it start to finish is a human judgement and belongs with the Checkpoint B review.
 
 **Dependencies:** T16
 **Files:** `docs/how-to-build-a-power-apps-code-app.md`, `docs/images/*`

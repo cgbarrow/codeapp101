@@ -2,7 +2,7 @@
 
 *A working log of building "Simple Todo", a personal task app hosted on Microsoft Power Platform.*
 
-Last updated: 2026-09-17 · Status: **Parts 1 and 2 of 4 complete** (planning, schema, project foundation and Dataverse wiring)
+Last updated: 2026-09-18 · Status: **All four parts written.** The app is built, published and documented; the manual smoke test against the tenant is the one thing outstanding, and Part 4 says so where it matters.
 
 ---
 
@@ -22,14 +22,14 @@ The log is written as we go, so it records what actually happened, including the
 
 
 
-**What this article covers so far:**
+**What this article covers:**
 
 | Part | Scope | Status |
 |---|---|---|
 | 1 | Specification, plan, Dataverse schema, environment setup | Complete |
 | 2 | Project scaffold, design system, data layer, CLI wiring | Complete |
-| 3 | Feature build: lists, tasks, capture, Today, recurrence, reminders | Not started |
-| 4 | Publish, share, smoke test, and what comes after | Not started |
+| 3 | Feature build: lists, tasks, capture, Today, recurrence, reminders | Complete |
+| 4 | Publish, share, smoke test, and what comes after | Written; smoke test outstanding |
 
 **A note on terminology.** Two different command-line tools sound alike. `pac` is the older .NET Power Platform CLI, distributed as an MSI on Windows and through a Visual Studio Code extension elsewhere. `pa` is the newer npm-based Power Apps CLI that became generally available in August 2026 and replaced the `pac code` command group entirely. Code apps use `pa`. Because it is an npm package, it runs anywhere Node.js does, including macOS, with no extension required. Articles written before mid-2026 will show `pac code` commands that no longer exist.
 
@@ -428,139 +428,304 @@ All five passed on the first run. The logged task ID was reported back in the co
 
 ### Part 3 · Features
 
-> **Build notes, to be written up in task 17.**
+Part 3 is where the app becomes an app. Eleven steps, one per capability, each leaving the build in a working state: lists, the task row and its checkmark, quick capture, the detail panel, keyboard navigation, Today, subtasks, recurrence, reminders, sync, and finally the end-to-end suite that proves the lot.
 
-#### Task 5 notes: lists
+One thing is worth noticing before the detail. **Not one step in this part needs the tenant.** Every feature below was built and tested against the in-memory repositories from Step 8, and the Dataverse implementation that Step 10 already proved carried them without change. That is the repository layer paying for itself, and it is the single decision that most affects how a code app feels to build.
 
-- **Hash routing, not browser routing.** `react-router` v7 in declarative mode, with `<HashRouter>` in `main.tsx`. A published code app is served from a fixed file URL inside the Power Apps player, and nothing rewrites `/list/abc` back to `index.html`, so a reload on a path URL would 404. Hash URLs (`#/list/abc`) never reach the server. `App` takes no router of its own, so tests wrap it in `<MemoryRouter>`.
-- **Creating the Inbox exactly once.** React StrictMode runs effects twice in development, and two users of the Inbox can mount at the same time. `ensureInbox(repo)` in `src/features/lists/ensureInbox.ts` keeps the in-flight promise in a `WeakMap` keyed by repository, so concurrent calls share one `getAll` and one `create`. The entry is removed when the promise settles, so a failed attempt can be retried. `useInbox()` wraps it in a single TanStack Query with `staleTime: Infinity`. Across page loads, Dataverse is the guard: the next load finds the Inbox and creates nothing.
-- **Deleting a list without losing tasks.** Dataverse cascades the delete to the tasks (Part 1), so "Move to Inbox" has to reparent every task first. `deleteList` moves them one at a time and deletes the list only after every move succeeds. If a move fails, the list survives and nothing is lost; any tasks already moved are safely in the Inbox.
-- **Open-task counts reuse the per-list task caches** through `useQueries`, one query per list, rather than a new repository method. Later task mutations update the counts with no extra work. The cost is one request per list on first load, which is fine at personal-list scale.
-- **Reordering writes only what changed.** `reorderLists` renumbers the visible lists 0, 1, 2… and returns only the lists whose `sortOrder` moved, so dragging one list past its neighbour sends two `PATCH` requests, not one per list.
-- **Automated browsers do not fire native drag and drop.** A scripted mouse drag in Chromium DevTools or Playwright does not produce HTML5 `dragstart`/`drop` events. The component test drives the drop with `fireEvent.dragStart`/`dragOver`/`drop`, and the up/down buttons in edit mode give keyboard and touch users the same result.
+A second pattern runs through all eleven steps: the interesting bugs are not in the Dataverse calls. They are in optimistic state, in time, and in the gap between what a test environment can simulate and what a browser actually does. Each step below records the ones that bit.
 
-#### Task 6 notes: tasks, the checkmark and Undo
+#### Step 12: Lists, routing and the Inbox
 
-- **Undo without a flicker needs two guards.** Completing a task and pressing Undo sends two writes. Without care, the first write's refetch lands while the Undo is still in flight and the task briefly shows as completed again. First, every task mutation has `mutationKey: ["tasks"]`, and its `onSettled` refetches only when `queryClient.isMutating({ mutationKey: ["tasks"] })` is 1, meaning no other task write is pending. Second, toggles share `scope: { id: "toggle-task" }`, which makes TanStack Query run their network calls one after another, so Dataverse cannot receive the Undo before the completion. `onMutate` still runs immediately for a queued mutation, so the screen updates at once. `src/data/queries.test.tsx` proves both: a test records every cache state after Undo and fails if the task ever reads as completed.
-- **Let the tick play before the row moves.** The optimistic update would move a completed task into the Completed section in the same frame, and the 200 ms animation would never be seen. `useTaskToggle` keeps just-completed ids in a "lingering" set for 500 ms, and `TaskList` orders those tasks as if they were still open.
-- **Time animations with a timer, not `animationend`.** jsdom has no `AnimationEvent`, so React listens for `webkitAnimationEnd` and a test's `fireEvent.animationEnd` never reaches the handler. In a real browser the event also never fires when `prefers-reduced-motion` switches the animation off. A `setTimeout` matched to the CSS duration works in both.
-- **Toasts pause while pointed at or focused.** A 3-second Undo is short for keyboard and screen-reader users, so the countdown stops while the pointer or focus is on the toast (WCAG 2.2.1, timing adjustable). Errors stay until dismissed and use `role="alert"`; everything else goes to a polite live region.
-- **The Completed view reuses list caches.** `/completed` gathers every list's cached tasks with `useQueries` instead of adding a repository method, the same approach as the sidebar counts.
+**Use hash routing, not browser routing.** This is the first decision specific to the platform rather than to React. A published code app is served from a fixed file URL inside the Power Apps player, and nothing on that host rewrites `/list/abc` back to `index.html`. A path-based route survives navigation inside the app and then 404s the moment someone reloads. `main.tsx` uses `react-router` v7 in declarative mode with `<HashRouter>`, so URLs look like `#/list/abc` and never reach the server. `App` deliberately contains no router of its own, which lets tests wrap it in `<MemoryRouter>`.
 
-#### Task 7 notes: quick add with natural-language dates
+**Create the Inbox exactly once.** Every user needs a default list, created on first run. The obvious implementation creates two. React StrictMode runs effects twice in development, and more than one component can want the Inbox at the same moment. `ensureInbox(repo)` in `src/features/lists/ensureInbox.ts` keeps the in-flight promise in a `WeakMap` keyed by repository, so concurrent callers share one `getAll` and one `create`; the entry is dropped when the promise settles, so a failed attempt can be retried rather than poisoning the cache. `useInbox()` wraps that in a single TanStack Query with `staleTime: Infinity`. Across page loads Dataverse itself is the guard — the next load finds the Inbox and creates nothing.
 
-- **`chrono-node` needs guard rails for a todo title.** Its casual English parser, given a reference date and `forwardDate: true`, handles `tomorrow 3pm`, `next week`, `in 3 days`, `Sep 30`, and both `30/9` and `9/30`. It also reads ordinary words as dates. `parseQuickAdd` rejects `Now`, bare durations such as `2 hours`, a month name with no day (`Book flight for march`), and `sat` or `sun` used as words. A match must pin down a day, a weekday or an hour.
-- **Recurrence is parsed before chrono sees the text.** chrono does not understand `every day` or `every month`, and reads `every Monday` as a one-off Monday. The parser takes `every day|week|month|<weekday>` out first. A bare `weekly` stays in the title, because "Write weekly report" is not a repeating task.
-- **A bare hour from 1 to 7 means the afternoon.** chrono reads `Call mom at 5` as 5 am. People mean 5 pm.
-- **Measure the parser table against mutations.** All 38 phrases passed on the first run, which proves little. Disabling the afternoon rule, then the `Now` and `Sat` filters, made the matching cases fail, which shows the table actually checks those rules.
-- **Handle Enter in `onKeyDown`, not only through form submission.** A form's implicit submission depends on the key event carrying text. It worked with Playwright and Testing Library but not with a scripted key press in the in-app browser. The handler also skips Enter while an input method is composing, so confirming a Japanese or Chinese candidate does not save a half-typed task.
-- **Prove the optimistic row with a timing, not a guess.** `e2e/quickadd.spec.ts` records `performance.now()` on the Enter keydown and uses a `MutationObserver` to time when the new row appears. The mock data layer answers after 250 ms, so a row within 100 ms can only be the optimistic one.
-- **Bundle cost.** `chrono-node` added about 60 kB (19 kB gzipped) to the main bundle. Worth revisiting in task 15 if Lighthouse performance falls below 90.
-- **One shortcut hook.** `useKeyboardShortcuts` owns the "not while typing, not with a modifier" rule for every single-key shortcut. The number keys from task 5 moved onto it. jsdom does not implement `isContentEditable`, so the hook also checks the `contenteditable` attribute.
+**Deleting a list must not take its tasks with it.** The Part 1 schema cascades a list delete to its tasks, which is correct for "delete everything" and catastrophic for the "move tasks to Inbox" option the specification asks for. `deleteList` reparents every task first, one at a time, and deletes the list only after every move has succeeded. If a move fails the list survives, nothing is lost, and the tasks already moved are sitting safely in the Inbox. Ordering those two operations the other way round would be a data-loss bug that no amount of optimistic-UI polish could hide.
 
-#### Task 8 notes: task detail
+**Derive counts from caches you already have.** The open-task count beside each list comes from the per-list task caches through `useQueries`, not from a new repository method. Later mutations update the counts as a side effect, with no extra code. The cost is one request per list on first load, which is the right trade at personal-list scale — and a cost worth remembering, because Step 21 finds it again multiplied by a polling interval.
 
-- **Send only what changed.** `TaskDetail` builds each save by comparing the edited values with the task and dropping equal fields, comparing dates by time value. The tests wrap `repos.tasks.update` and assert the exact patch, so a stray `notes: ""` fails a test instead of overwriting another device's edit in Dataverse.
-- **Reminders are stored as a time, shown as an offset.** Dataverse has `cb_reminderat` and no offset column. `reminderOffsetOf` works the preset back out from the due date and reminder time, and anything else shows as Custom. Changing the due date or time moves the reminder with it. A date-only task is reminded about at 9:00 on its day, and the panel says so.
-- **"One day before" is a calendar day, not 24 hours,** so a 15:00 reminder stays at 15:00 across a clock change.
-- **Pin the test time zone.** The first DST test passed even with the rule deliberately broken: its dates were European clock-change days and the machine runs in America/Toronto, where nothing changed on them. GitHub's runners use UTC, which has no DST at all. `vitest.config.ts` now sets `test.env.TZ` to `America/Toronto`, and the test uses that zone's 2026 transition dates. After the change, breaking the rule fails the test.
-- **Delete now, undo by recreating.** Deleting sends the delete straight away, and Undo creates the task again from a snapshot, with a new id. The alternative, delaying the delete for three seconds, hides the row only in the cache: any refetch in that window, such as after ticking another task, brings the "deleted" row back. Subtasks (task 11) must be added to the snapshot.
-- **Native date and time inputs.** Each platform shows its own accessible picker. Values are read as local `YYYY-MM-DD` and `HH:MM` strings and saved on blur or Enter, not on change: typing a year into a desktop date input fires `change` for every digit.
-- **Escape on the document.** Escape was first handled on the panel, so it did nothing once focus had left, which the Playwright spec caught after a field blurred. The panel now listens on the document while it is open. Fields that use Escape themselves, such as quick add, stop it propagating.
-- **Scripted key presses do not reach native date inputs in the in-app browser**, the same limitation as Enter in task 7. `e2e/taskdetail.spec.ts` covers editing the date and time, the 44 px input height and the full-width bottom sheet, in both desktop Chromium and iPhone 13 WebKit.
+**Write only what changed when reordering.** `reorderLists` renumbers the visible lists 0, 1, 2… and returns only the lists whose `sortOrder` actually moved. Dragging one list past its neighbour therefore sends two `PATCH` requests rather than one per list.
 
-#### Task 9 notes: keyboard navigation
+**Automated browsers do not fire native drag and drop.** A scripted mouse drag, whether from Playwright or from a DevTools-driven browser, does not produce HTML5 `dragstart` and `drop` events. The component test drives the drop directly with `fireEvent.dragStart`, `dragOver` and `drop`, and the up and down buttons in edit mode give keyboard and touch users the same capability — which is why the feature is testable at all, and why it is accessible.
 
-- **Selection moves focus.** `j` and `k` select the next or previous task in the order on screen, including completed tasks while their section is open, and focus that task's title. A screen reader announces it, the focus ring shows it, and `x`, `e` and Backspace act on what has focus. Selection is stored by task id, so it survives optimistic inserts and the placeholder being swapped for the saved row. A test holds a create open and checks the same title element keeps the selection.
-- **Delete selects a neighbour.** Backspace or Delete removes the selected task with Undo and selects the next task, or the previous one if it was last, so repeated deletes work without reaching for the mouse.
-- **Native `<dialog>` for the shortcut list, with two traps.** `showModal()` gives a focus trap, Escape handling and an inert page for free, but jsdom does not implement it. `src/test/setup.ts` adds a small stand-in that also moves focus inside, as browsers do. The first Playwright run then caught a real bug: moving focus back while the modal was still open did nothing, because a modal makes the rest of the page inert. Close the dialog first, then focus.
-- **Return focus to where it was, not to the trigger.** The "Keyboard shortcuts" button is hidden on touch-only devices (`hover: none`), and `?` can open the dialog from anywhere, so the dialog remembers the previously focused element.
-- **`t` for Today moves to task 10**, where its route is built.
+#### Step 13: The task list, the checkmark and Undo
 
-#### Task 10 notes: the Today view
+Completing a task is the most-used interaction in the app, so it gets the most care. It is also where optimistic updates first become genuinely hard.
 
-- **Today reads the per-list caches, not a filtered query.** Task 3 added `useTodayTasks`, which asks the repository for open tasks due before tomorrow. The view does not use it. Quick add, toggles and deletes update the per-list caches optimistically, and the sidebar counts and reminder scheduler already load them, so `/today` gathers them with `useTasksInLists` and filters in `selectToday`. It costs no extra requests, and a new task appears in Today in the same frame. `useCompletedTasks` now uses the same hook.
-- **End the day at the next local midnight.** `new Date(year, month, day + 1)`, never start of day plus 24 hours. On a 23-hour day that shortcut pulls tomorrow's date-only tasks into Today; on a 25-hour day it drops tasks due after 23:00. Two tests use Toronto's 2026 transition days, and swapping in the 24-hour version fails both.
-- **"Overdue" follows the row's rule.** A timed task whose time has passed today sits under Overdue, matching the red due label from task 6.
-- **Archived lists are left out** of Today, as they are from the sidebar.
-- **One set of keyboard rules for both views.** Selection, `j`/`k`/`x`/`e`/Backspace and the inline detail panel moved out of `TaskList` into `useTaskRows`, which takes the tasks in screen order. Today passes its groups flattened, so `j` moves across list groups and sections. The existing `TaskList` tests passed unchanged after the move.
-- **Quick add from Today files into the Inbox and says so.** A task typed without a date lands in the Inbox and would not show in Today, which looks like nothing happened. `QuickAdd` takes an optional `listName` and shows "Added … to Inbox." The toast is shown on Enter, not in a per-call `onSuccess`: TanStack Query runs per-call callbacks only for the latest `mutate`, so rapid entry would drop confirmations.
-- **Remember the last view in `localStorage`, guarded.** `App` saves the path of `/today`, `/completed` and `/list/:id` on every navigation. The catch-all route waits for the lists before sending the user to a remembered list, and goes to Today if that list has gone. Reads and writes are wrapped in `try`/`catch`, because storage can be blocked. App tests clear storage before each test, because jsdom keeps it across tests in a file.
-- **`t` lives in `ListNav`** with the number keys, and a Today link heads the Views list. The Playwright landing check changed with it: `e2e/smoke.spec.ts` now expects Today, and `e2e/today.spec.ts` covers grouping, the Inbox quick add, the remembered view after a reload, and `t`.
+**Undo without a flicker needs two separate guards.** Completing a task and then pressing Undo sends two writes in quick succession. Left alone, the first write's refetch lands while the Undo is still in flight and the row flashes back to completed before settling. Two mechanisms fix it, and both are needed.
 
-#### Task 11 notes: subtasks
+First, every task mutation carries `mutationKey: ["tasks"]`, and its `onSettled` refetches only when `queryClient.isMutating({ mutationKey: ["tasks"] })` is 1 — that is, when no other task write is still pending. Second, toggles share `scope: { id: "toggle-task" }`, which makes TanStack Query run their network calls strictly one after another, so Dataverse cannot receive the Undo before the completion it reverses. `onMutate` still runs immediately even for a queued mutation, so the screen updates at once and only the network traffic is serialised. `src/data/queries.test.tsx` proves it by recording every cache state after an Undo and failing if the task ever reads as completed.
 
-- **Progress comes from per-task subtask caches.** `useSubtaskProgress` runs one `getByTask` query per visible row through `useQueries`, the same approach as the sidebar counts, and the checklist in the detail panel reads the same cache. Ticking a subtask updates that cache optimistically, so the row's `1/3` changes in the same frame. The cost is one Dataverse request per visible task when a list first loads. Fine for a personal list; if it shows up in task 14 or 15, the fix is a repository method that filters `_cb_task_value` across many tasks in one request.
-- **Subtask writes run one at a time.** All subtask mutations share `scope: { id: "subtask-write" }` and refetch only when no other subtask write is pending, the task 6 pattern. Ticking and unticking quickly cannot reach Dataverse out of order.
-- **Undo of a task delete must carry the subtasks.** Dataverse cascades the delete (Part 1), so the Undo snapshot from task 8 now includes them. `useTaskDelete` takes them from the cache, or fetches them first. If that fetch fails, nothing is deleted and the toast offers Retry, because the app should not delete what Undo cannot restore.
-- **Create the subtasks inside the mutation, not in a callback.** Creating them in `mutate(..., { onSuccess })` would look right but fail: deleting from the detail panel unmounts the panel, and TanStack Query skips per-call callbacks once the component that called `mutate` has unmounted, so the subtasks would silently never come back. `useCreateTask` accepts an optional `subtasks` array and creates them in `mutationFn`, which always runs to completion.
-- **The 50-subtask limit is enforced in the UI.** Dataverse has no per-parent row limit. The add field refuses the 51st entry, keeps the typed text, and explains why through `aria-invalid` and `aria-describedby`.
-- **Don't create subtasks under an unsaved task.** A placeholder task has a temporary `optimistic-` id that Dataverse would reject as a lookup, so the add field is disabled until the task is saved.
-- **Check that new tests can fail.** Three deliberate breaks each failed the new tests: an off-by-one in the limit, removing the optimistic subtask update, and skipping the subtask fetch before a delete.
+**Let the animation play before the row moves.** The optimistic update would move a completed task into the Completed section in the same frame, and the 200 ms tick animation would never be seen. `useTaskToggle` holds just-completed ids in a "lingering" set for 500 ms and `TaskList` orders those tasks as if they were still open, so the animation finishes where the user is looking.
 
-#### Task 12 notes: recurring tasks
+**Time animations with a timer, not `animationend`.** jsdom has no `AnimationEvent`, so React listens for `webkitAnimationEnd` and a test's `fireEvent.animationEnd` never reaches the handler. Worse, in a real browser the event never fires at all when `prefers-reduced-motion` turns the animation off — so an implementation that waits for it hangs for exactly the users least able to tolerate it. A `setTimeout` matched to the CSS duration is correct in both environments.
 
-- **No date library needed.** SPEC §2 lists `date-fns`, but it was never installed, and recurrence needs only local calendar arithmetic: `new Date(year, month, day + 7, hours, minutes)`. Building dates from calendar fields, never by adding milliseconds, keeps 09:00 at 09:00 across a clock change. The DST tests use Toronto's 2026 transition dates, as in task 8.
-- **Month-end clamping needs memory.** Monthly from 31 January gives 28 February, but monthly from 28 February gives 28 March, not 31 March. The schema has no anchor-day column, and adding one means a solution change. `anchorDayOf` recovers the day instead by following `recurrenceParentId`: a due date on the last day of a month defers to its parent's anchor if clamping that anchor gives the same date. A date the user moved to mid-month is its own anchor. If the earlier instance has been deleted, the chain falls back to the date it has, so a deleted 31 January makes the chain settle on the 28th.
-- **`recurrenceParentId` points at the previous instance, not the first.** The next instance of a task is then simply "the task whose parent is this one". That makes two rules easy: completing a task that already has a next instance creates nothing, so reopening and completing again never duplicates, and Undo deletes the open instance whose parent is the undone task.
-- **The next instance is due one interval after the old due date, not after today.** SPEC S6 and §8 say "+7 days". A weekly task completed a fortnight late therefore produces an instance that is already overdue. A repeating task with no due date repeats from today.
-- **Reminders move with the task.** A preset reminder, such as one day before, is recalculated on the calendar for the new date. A custom one keeps the same distance from the due date.
-- **Show the new instance at once.** `useToggleTask` inserts a placeholder for the next instance while it saves, unless the cache already holds one. Undo sends `undo: true` in the same serialised toggle scope as task 6, so it reaches Dataverse after the create it reverses. Its optimistic step drops the placeholder, and a test watches every cache state to make sure the instance never flashes back.
-- **"Stop repeating" only sets `recurrence` to `none` on the open task.** Completed instances keep their own recurrence value and links, so history is untouched. The Repeat select can do the same thing; the button makes it easy to find.
-- **Mutation-tested.** Seven deliberate breaks each failed a test: daily by milliseconds, no anchor walk, no duplicate guard, Undo leaving the instance, subtasks copied ticked, preset reminders moved by milliseconds, and a placeholder added when an instance already existed.
+**Pause toast timers on hover and focus.** A three-second Undo window is short for keyboard and screen-reader users. The countdown stops while the pointer or the focus is on the toast, which is WCAG 2.2.1 (timing adjustable) rather than a nicety. Errors do not auto-dismiss at all and use `role="alert"`; everything else is announced through a polite live region.
 
-#### Task 13 notes: reminders in the open tab
+**The Completed view reuses the list caches.** `/completed` gathers every list's cached tasks with `useQueries` rather than adding a repository method — the same pattern as the sidebar counts in Step 12, and it appears twice more before Part 3 is over.
 
-- **Expect notifications to be blocked inside the Power Apps player; confirm in task 16.** A published code app runs in an iframe served from a different origin than `apps.powerapps.com`. Chromium-based browsers refuse notification permission requests from cross-origin iframes, and other browsers may too. The app therefore treats "no notifications" as a normal state, not an error. `requestPermission` failures are caught, the sidebar row says reminders are blocked or unsupported, and the task editor adds an inline note under a reminder that will not alert. `npm run dev` runs at the top level, so reminders work there. Out-of-app delivery remains the Power Automate phase in SPEC Q3.
-- **Ask for permission when a reminder is set, not on load.** Browsers ignore or quietly block permission prompts that do not come from a user action, and a prompt with no context gets refused. The Reminder select calls `requestNotificationPermission()` in its change handler. The sidebar row offers "Turn on reminders" while the user has not decided.
-- **One permission value for every component.** `useNotificationPermission` wraps `Notification.permission` in `useSyncExternalStore`, so the sidebar row and an open editor update together after a request. It re-reads on window focus, because the user may change the setting in browser preferences.
-- **The scheduler reads the query cache, not the repository.** The sidebar already loads every list's tasks for its counts, so every reminder is in the cache. A check every 30 seconds costs no requests. Reminders are keyed by task id and reminder time, so moving a reminder makes it fire again. The keys fired are stored in `sessionStorage`, with an in-memory fallback, so a reload does not repeat them.
-- **Opening the app does not replay old reminders.** Only reminders that come due after one interval before the app opened fire. A reminder due while permission was still pending fires once it is granted, because the scheduler records a reminder as shown only when it actually shows it.
-- **Clicking opens the task through router state.** The click handler focuses the window, then navigates to the task's list with `{ openTaskId }` in the location state. `TaskList` takes it as an `openRequest` keyed by `location.key`, so the same task can be requested twice. It applies the request while rendering, which avoids the lint rule against `setState` in effects. `ListRoute` then clears the state so a reload does not reopen the panel.
-- **`new Notification()` can throw.** Chrome on Android allows notifications only from a service worker. The constructor call is wrapped so the scheduler keeps running.
-- **Testing without a permission prompt.** Unit tests stub `Notification` with `vi.stubGlobal` and use fake timers. `e2e/reminders.spec.ts` puts a recording stand-in on the page with `addInitScript` and moves time with `page.clock`, then clicks the recorded notification. Removing `useReminders()` from `App` makes that spec fail. The embedded browser used for manual checks reports `denied`, which showed the blocked path. The allowed path needs a manual check in desktop Chrome.
-- **TypeScript's `erasableSyntaxOnly` rejects constructor parameter properties** (`constructor(public title: string)`), even in tests. Declare the fields and assign them.
+#### Step 14: Quick capture with natural-language dates
 
-#### Task 14 notes: sync and resilience
+The specification's measurable goal was capture in under five seconds: press `n`, type `Buy milk on Friday`, press Enter. That turns into a parser problem and a latency problem.
 
-- **One query client, built in `src/data/queryClient.ts`.** Reads refetch on focus, on becoming visible, and every 60 seconds while visible (`refetchInterval`, with `refetchIntervalInBackground: false`). Tests keep their own client with retries off.
-- **TanStack Query v5 does not refetch on window focus by default, despite the option's name.** Its focus manager listens only for `visibilitychange`, which does not fire when the user moves between two windows that are both on screen. `listenForFocus` adds the window `focus` event through `focusManager.setEventListener`. A hidden tab still does not refetch until it is shown.
-- **Retry reads, never writes.** Reads retry twice for timeouts (408), throttling (429, which is how Dataverse service protection limits answer), server errors and network failures (`fetch` throws a `TypeError`). The Power Apps SDK reports HTTP failures as `{ message, status }`. A 403 from a missing security role fails at once instead of spinning for seconds. Writes do not retry automatically, because repeating a create that reached the server makes a duplicate; the user gets a toast with Retry.
-- **Per-call `mutate` callbacks can silently drop failures.** TanStack Query runs `mutate(variables, { onError })` callbacks only for the latest call on that hook, and not at all once the component has unmounted. Ticking two tasks quickly, or closing the task editor while a save was in flight, lost the error toast, though the cache still rolled back. Three tests reproduced it before the fix. Every write now awaits `mutateAsync`, whose promise settles whatever happens to the component, and `useSaveWithRetry` shows the toast with a Retry that repeats itself. Toggle and delete keep their own handlers, because their Retry re-runs the whole flow with Undo.
-- **Skeletons, not blanks.** `SkeletonRows` renders placeholder list items inside the list that is loading, hidden from assistive technology, with the list marked `aria-busy`. The Completed view and the subtask checklist were blank while loading; the task list and Today now share the component.
-- **Try sync without a tenant.** In mock mode each tab had its own in-memory data. The mock repositories now take a `BroadcastChannel`: every write posts the whole state, a new tab asks for it, and each tab's ids carry a random tag so two tabs never create the same id. Other tabs see a change on their next fetch, exactly as with Dataverse. `e2e/sync.spec.ts` opens two pages, ticks a task in one and fires `focus` in the other, because both pages in a headless browser count as visible.
-- **Cost to watch in task 15 and 16.** Polling applies to every query, including one subtask query per visible task (task 11), so a list of 20 tasks makes about 25 Dataverse requests a minute while visible. If that shows up in the smoke test, give subtask queries a longer interval.
+**`chrono-node` needs guard rails before it can parse a todo title.** Given a reference date and `forwardDate: true`, its casual English parser handles `tomorrow 3pm`, `next week`, `in 3 days`, `Sep 30`, and both `30/9` and `9/30` — genuinely good coverage for one dependency. It also cheerfully reads ordinary words as dates. `parseQuickAdd` therefore rejects `Now`, bare durations such as `2 hours`, a month name with no day (`Book flight for march`), and `sat` or `sun` used as words rather than weekdays. The rule that emerged: a match must pin down a day, a weekday or an hour, or it is not a date.
 
+**Parse recurrence before chrono sees the text.** chrono does not understand `every day` or `every month` at all, and reads `every Monday` as a single upcoming Monday. The parser strips `every day|week|month|<weekday>` first and handles it itself. A bare `weekly` is deliberately left in the title, because "Write weekly report" is not a repeating task.
 
-#### Task 15 notes: end-to-end suite, audits and documentation
+**A bare hour from 1 to 7 means the afternoon.** chrono reads `Call mom at 5` as five in the morning. People mean five in the afternoon. A small rule with a large effect on how the feature feels.
 
-- **Audit the build, not the dev server.** `npm run build` produces the Dataverse build, which cannot run outside the Power Apps host, so auditing it locally is meaningless. `npm run build:mock` and `npm run preview:mock` build and serve the same UI with the in-memory data layer on port 4173. Lighthouse runs against that.
-- **Lighthouse via `npx`, not a dependency.** `npx lighthouse http://localhost:4173/ --output=html --output-path=docs/design/lighthouse.html` gives the mobile scores and a report to commit. The Chrome DevTools MCP server has a Lighthouse tool, but it excludes the performance category, which is half of the acceptance criterion.
-- **The first Lighthouse run found a real layout shift (CLS 0.152).** The Today view rendered its quick-add box only after the Inbox query resolved, and its loading placeholders sat above the container the tasks would fill, so the page jumped twice. The fix: a slot that reserves the quick-add height, and placeholders rendered inside the container the content lands in. CLS 0 afterwards. Run Lighthouse twice before believing a CLS number; the first run scored 0.022 by luck of timing.
-- **Playwright found a mobile bug the component tests could not.** The list sheet closed only when a link inside it was clicked, so creating a list — which navigates programmatically — left the sheet covering the new list. The shell now closes the sheet whenever the route changes, which also covers the number keys and `t`. React's `set-state-in-effect` lint rule rejects the obvious `useEffect`; the fix compares the previous path during render instead.
-- **Date-dependent assertions need care.** The Checkpoint B flow types "Buy milk on Friday" and the chip read "Tomorrow" because the test ran on a Thursday. The spec now captures the chip's text and asserts the row shows the same label.
-- **Hallmark audit: two missing stamps, nothing structural.** The audit's value was the stamp-versus-page check and the token-purity rule, both of which a test already enforced. Two stylesheets written late in the build had no stamp. Everything else passed.
-- **A clean clone is the only honest README test.** `git clone` into a temporary directory, `npm install`, then the four commands, all green. Steps beyond that — importing the solution, `pa auth login`, Local Play — need the tenant and belong to a person, not to CI.
+**Measure the test table against mutations, not against itself.** All 38 phrases passed on the first run, which proves almost nothing — a table of examples tends to encode whatever the parser already does. Disabling the afternoon rule, and then the `Now` and `Sat` filters, made the relevant cases fail. That is what establishes the table is checking those rules rather than decorating them.
 
+**Handle Enter in `onKeyDown`, not only through form submission.** A form's implicit submission depends on the key event carrying text, which held under Playwright and Testing Library and failed under a scripted key press in an embedded browser. The handler also ignores Enter while an input method editor is composing, so confirming a Japanese or Chinese candidate does not save a half-typed task.
 
-### Part 4 · Publishing and the smoke test
+**Prove the optimistic row with a measurement, not a guess.** `e2e/quickadd.spec.ts` records `performance.now()` on the Enter keydown and uses a `MutationObserver` to time when the new row appears, entirely inside the page. The mock data layer is configured to answer after 250 ms, so a row that appears within 100 ms can only be the optimistic one. The assertion runs in both desktop Chromium and iPhone 13 WebKit.
 
-> **Build notes, to be written up in task 17.** The smoke test itself is still outstanding;
-> its checklist and the record of the publish are in [`docs/smoke.md`](smoke.md).
+**Know the bundle cost.** `chrono-node` added about 60 kB raw, 19 kB gzipped, to the main bundle — flagged at the time as something to revisit if Lighthouse performance fell below 90 in Step 22. It did not.
 
-#### Task 16 notes: publishing to the environment
+**Keep every single-key shortcut in one hook.** `useKeyboardShortcuts` owns the "not while typing, not with a modifier" rule, and the number keys from Step 12 moved onto it as soon as it existed. One wrinkle: jsdom does not implement `isContentEditable`, so the hook checks the `contenteditable` attribute as well as the property.
 
-- **`push` uploads, it does not build.** `pa app push` sends whatever is sitting in `buildPath` from `power.config.json`, here `./dist`. The file timestamps after a push are those of the earlier `npm run build`, so a forgotten build publishes the previous bundle silently. Run `npm run build` immediately before every push.
-- **The solution ID is not in the repository.** Importing the solution does not record its ID anywhere locally; the environment assigns it. `pa solution list` prints friendly name, unique name and ID for every solution, which in a stock environment is several hundred rows, so pipe it through `grep`:
+#### Step 15: The task detail panel
 
-  ```bash
-  pa solution list | grep -i CodeApp101
-  ```
+**Send only what changed.** `TaskDetail` builds each save by comparing the edited values against the task and dropping the fields that are equal, comparing dates by time value rather than by identity. The tests wrap `repos.tasks.update` and assert the exact patch object, so a stray `notes: ""` fails a test rather than quietly overwriting an edit made on another device. This is the Step 10 rule about changed columns, enforced one layer up where the user actually is.
 
-  This build's ID was `cb31311c-e547-4888-b237-04b0ad14fd06`. Without `--solution-id` the app lands in the preferred or Default solution instead, where it will not travel with the solution export.
-- **The first push writes `appId` back into `power.config.json`.** It changes from `null` to the new app's GUID. Commit the file; it is how later pushes update the same app rather than creating a second one. `pa app list` confirms what the environment now holds.
-- **The printed play URL is not the durable one.** `push` prints a link carrying `hint` and `sourcetime` query parameters from that particular publish. Use the app's link from make.powerapps.com when sharing or bookmarking.
-- **Sharing and permissions are two separate jobs.** `pa app share --principal <email> --access play` grants access to the app. It does not grant access to the data: the `Todo User` security role still has to be assigned to the same person in the admin or maker portal. A user with one and not the other sees either a permission error at the door or an app that opens and then loads nothing.
+**Store reminders as a time, show them as an offset.** Dataverse has `cb_reminderat` and no offset column, which is the right schema — an absolute instant is unambiguous. The UI wants "10 minutes before". `reminderOffsetOf` works the preset back out from the due date and the reminder time, and anything that does not match a preset displays as Custom. Changing the due date or time moves the reminder with it. A date-only task is reminded about at 09:00 on its day, and the panel says so rather than leaving the user to guess.
+
+**"One day before" is a calendar day, not 24 hours,** so a 15:00 reminder is still at 15:00 on the other side of a clock change. This is the first appearance of a rule that recurs for the rest of the build: build dates from calendar fields, never by adding milliseconds.
+
+**Pin the test time zone.** The first daylight-saving test passed even with the rule deliberately broken. Its dates were European clock-change days, the machine runs in `America/Toronto`, and nothing changed on those days there — and GitHub's runners are UTC, which has no daylight saving at all, so CI would never have caught it either. `vitest.config.ts` now sets `test.env.TZ` to `America/Toronto` and the tests use that zone's real 2026 transition dates. After the change, breaking the rule fails the test. A time test that passes in every time zone is usually testing nothing.
+
+**Delete immediately; undo by recreating.** Deleting sends the delete straight away, and Undo creates the task again from a snapshot, with a new id. The tempting alternative — hold the delete for three seconds and cancel it if Undo is pressed — hides the row only in the local cache, so any refetch inside that window, such as the one triggered by ticking another task, brings the "deleted" row straight back. Step 18 adds subtasks to that snapshot, because a delete that Undo cannot fully reverse is worse than no Undo at all.
+
+**Use native date and time inputs.** Each platform then shows its own accessible picker, which is invariably better than a hand-rolled one. Values are read as local `YYYY-MM-DD` and `HH:MM` strings and saved on blur or Enter rather than on change, because typing a year into a desktop date input fires `change` for every digit.
+
+**Listen for Escape on the document, not on the panel.** Escape was first handled on the panel element, so it stopped working the moment focus left it — which the Playwright spec caught after a field blurred. The panel now listens on the document while it is open, and fields that use Escape for their own purposes, such as quick add, stop it propagating.
+
+**Scripted key presses do not reach native date inputs in an embedded browser,** the same class of limitation as Enter in Step 14. `e2e/taskdetail.spec.ts` therefore covers editing the date and time, the 44 px input height and the full-width bottom sheet in real browsers — desktop Chromium and iPhone 13 WebKit — rather than in the in-app one used for quick visual checks.
+
+#### Step 16: Keyboard navigation
+
+**Selection moves focus; it is not a separate concept.** `j` and `k` select the next or previous task in the order shown on screen, including completed tasks while their section is open, and focus that task's title. The screen reader announces it, the focus ring shows it, and `x`, `e` and Backspace act on whatever has focus. There is no second "selected but not focused" state to keep in sync, which removes an entire category of bug.
+
+Selection is stored by task id rather than by index or by element, so it survives optimistic inserts and the moment an optimistic placeholder is swapped for the saved row. A test holds a create open and asserts the same title element keeps the selection across that swap.
+
+**Delete selects a neighbour.** Backspace or Delete removes the selected task with an Undo toast and selects the next task, or the previous one if the deleted task was last, so repeated deletes work without reaching for the mouse.
+
+**Use a native `<dialog>` for the shortcut list, and expect two traps.** `showModal()` gives a focus trap, Escape handling and an inert background page for free. The first trap is that jsdom does not implement it, so `src/test/setup.ts` provides a small stand-in that also moves focus inside the dialog as browsers do. The second only appeared in a real browser: the first Playwright run found that moving focus back to the page while the modal was still open did nothing at all, because a modal makes the rest of the document inert. Close the dialog first, then restore focus.
+
+**Return focus to where it was, not to the trigger.** The "Keyboard shortcuts" button is hidden on touch-only devices via `hover: none`, and `?` can open the dialog from anywhere, so there is not always a trigger to return to. The dialog remembers the previously focused element instead.
+
+#### Step 17: The Today view
+
+Today is the default landing view, and it is the step where a decision made in Step 8 gets revisited in light of what the app actually does.
+
+**Read the per-list caches, not a filtered query.** Step 8 added `useTodayTasks`, which asks the repository for open tasks due before tomorrow. The finished view does not use it. Quick add, toggles and deletes all update the per-list caches optimistically, and the sidebar counts and the reminder scheduler already load those caches, so `/today` gathers them with `useTasksInLists` and filters in `selectToday`. It costs no extra requests and a new task appears in Today in the same frame it appears in its list. `useCompletedTasks` moved onto the same hook. The lesson is not that the repository method was wrong to write, but that a cache you are already paying for beats a query you are not.
+
+**End the day at the next local midnight.** Use `new Date(year, month, day + 1)`, never start of day plus 24 hours. On a 23-hour day the shortcut pulls tomorrow's date-only tasks into Today; on a 25-hour day it drops tasks due after 23:00. Two tests use Toronto's 2026 transition days, and swapping in the 24-hour version fails both.
+
+**"Overdue" follows the row's own rule.** A timed task whose time has passed today sits under Overdue, matching the red due label from Step 13. Two definitions of overdue in one app is a bug report waiting to happen.
+
+**Archived lists are left out** of Today, exactly as they are from the sidebar.
+
+**One set of keyboard rules for both views.** Selection, `j`/`k`/`x`/`e`/Backspace and the inline detail panel moved out of `TaskList` into `useTaskRows`, which takes the tasks in screen order. Today passes its groups flattened, so `j` moves across list groups and sections without knowing they exist. The existing `TaskList` tests passed unchanged after the move, which is the useful signal that the refactor preserved behaviour.
+
+**Quick add from Today files into the Inbox and says so.** A task typed without a date lands in the Inbox and would not appear in Today, which looks exactly like nothing happening. `QuickAdd` takes an optional `listName` and confirms "Added … to Inbox." The toast fires on Enter rather than in a per-call `onSuccess`, because TanStack Query runs per-call callbacks only for the latest `mutate` — rapid entry would silently drop confirmations. That behaviour becomes a much larger problem in Step 21.
+
+**Remember the last view in `localStorage`, guarded.** `App` saves the path of `/today`, `/completed` and `/list/:id` on every navigation. The catch-all route waits for the lists to load before sending the user to a remembered list, and falls back to Today if that list has since gone. Reads and writes are wrapped in `try`/`catch`, because storage can be blocked outright. App tests clear storage before each test, because jsdom keeps it across tests in a file.
+
+**`t` lives in `ListNav`** with the number keys, and a Today link heads the Views list. The landing check changed with it: `e2e/smoke.spec.ts` now expects Today, and `e2e/today.spec.ts` covers grouping, the Inbox quick add, the remembered view after a reload, and `t`.
+
+#### Step 18: Subtasks
+
+**Progress comes from per-task subtask caches.** `useSubtaskProgress` runs one `getByTask` query per visible row through `useQueries` — the third appearance of the pattern from Step 12 — and the checklist in the detail panel reads the same cache. Ticking a subtask updates that cache optimistically, so the row's `1/3` changes in the same frame.
+
+The cost is one Dataverse request per visible task when a list first loads. That is fine for a personal list and was recorded at the time as something to watch; if it ever shows up in an audit, the fix is a repository method that filters `_cb_task_value` across many tasks in one request.
+
+**Serialise subtask writes.** All subtask mutations share `scope: { id: "subtask-write" }` and refetch only when no other subtask write is pending — the Step 13 pattern applied to a second entity. Ticking and unticking quickly cannot reach Dataverse out of order.
+
+**Undo of a task delete must carry the subtasks.** Dataverse cascades the delete, so the Undo snapshot from Step 15 now includes them. `useTaskDelete` takes them from the cache, or fetches them first if they are not there. If that fetch fails, nothing is deleted at all and the toast offers Retry — the app should not delete what Undo cannot restore.
+
+**Create the subtasks inside the mutation, not in a callback.** Creating them in `mutate(..., { onSuccess })` looks right and fails in a way that is very hard to see: deleting from the detail panel unmounts the panel, and TanStack Query skips per-call callbacks once the component that called `mutate` has unmounted, so the subtasks would silently never come back. `useCreateTask` accepts an optional `subtasks` array and creates them in `mutationFn`, which always runs to completion regardless of what happens to the UI.
+
+**Enforce the 50-subtask limit in the UI.** Dataverse has no per-parent row limit, so this one is the app's own. The add field refuses the 51st entry, keeps the typed text rather than discarding it, and explains why through `aria-invalid` and `aria-describedby`.
+
+**Do not create subtasks under an unsaved task.** A placeholder task carries a temporary `optimistic-` id that Dataverse would reject as a lookup, so the add field stays disabled until the parent task is saved.
+
+**Check that the new tests can fail.** Three deliberate breaks each failed the new tests: an off-by-one in the limit, removing the optimistic subtask update, and skipping the subtask fetch before a delete.
+
+#### Step 19: Recurring tasks
+
+**No date library needed.** `SPEC.md` §2 lists `date-fns`; it was never installed. Recurrence needs only local calendar arithmetic — `new Date(year, month, day + 7, hours, minutes)` — and building dates from calendar fields rather than by adding milliseconds is precisely what keeps 09:00 at 09:00 across a clock change. The daylight-saving tests use Toronto's 2026 transition dates, as in Step 15.
+
+**Month-end clamping needs memory.** Monthly from 31 January gives 28 February, but monthly from 28 February gives 28 March, not 31 March. The schema has no anchor-day column and adding one means a solution change, so `anchorDayOf` recovers the day instead by following `recurrenceParentId`: a due date on the last day of a month defers to its parent's anchor if clamping that anchor produces the same date. A date the user has moved to mid-month is its own anchor. If the earlier instance has been deleted the chain falls back to the date it has, so a deleted 31 January makes the series settle on the 28th — a compromise, recorded rather than hidden.
+
+**`recurrenceParentId` points at the previous instance, not the first.** The next instance of a task is then simply "the task whose parent is this one", which makes two otherwise awkward rules easy. Completing a task that already has a next instance creates nothing, so reopening and completing again never duplicates; and Undo deletes the open instance whose parent is the undone task.
+
+**The next instance is due one interval after the old due date, not after today.** `SPEC.md` S6 and §8 both say "+7 days". A weekly task completed a fortnight late therefore produces an instance that is already overdue, which is the intended reading — the schedule is the schedule. A repeating task with no due date repeats from today.
+
+**Reminders move with the task.** A preset reminder such as "one day before" is recalculated on the calendar for the new date; a custom one keeps the same distance from the due date.
+
+**Show the new instance at once.** `useToggleTask` inserts a placeholder for the next instance while it saves, unless the cache already holds one. Undo sends `undo: true` inside the same serialised toggle scope from Step 13, so it reaches Dataverse after the create it reverses; its optimistic step drops the placeholder, and a test watches every intermediate cache state to make sure the instance never flashes back.
+
+**"Stop repeating" sets `recurrence` to `none` on the open task only.** Completed instances keep their own recurrence value and their links, so history is untouched. The Repeat select can do the same thing; the button exists because it is the thing people look for.
+
+**Mutation-tested.** Seven deliberate breaks each failed a test: daily by milliseconds, no anchor walk, no duplicate guard, Undo leaving the instance behind, subtasks copied already ticked, preset reminders moved by milliseconds, and a placeholder added when an instance already existed.
+
+#### Step 20: Reminders while the tab is open
+
+This is the step where a platform limitation shapes the feature rather than merely inconveniencing it. It is worth reading even if your app has nothing to do with reminders, because the pattern — degrade to a named, visible state rather than an error — applies widely.
+
+**Expect notifications to be blocked inside the Power Apps player.** A published code app runs in an iframe served from a different origin than `apps.powerapps.com`. Chromium-based browsers refuse notification permission requests from cross-origin iframes, and others may too. The app therefore treats "no notifications" as a normal state rather than a failure: `requestPermission` failures are caught, the sidebar row says reminders are blocked or unsupported, and the task editor adds an inline note under any reminder that will not alert. `npm run dev` runs at the top level, so reminders do work there — which makes this a limitation you will not meet until you publish. Out-of-app delivery stays the Power Automate phase in `SPEC.md` Q3.
+
+**Ask for permission when a reminder is set, not on load.** Browsers ignore or quietly block permission prompts that do not follow a user action, and a prompt with no context gets refused by people as well as by browsers. The Reminder select calls `requestNotificationPermission()` from its change handler. The sidebar row offers "Turn on reminders" for as long as the user has not decided.
+
+**One permission value for every component.** `useNotificationPermission` wraps `Notification.permission` in `useSyncExternalStore`, so the sidebar row and an open editor update together after a request. It re-reads on window focus, because the user may change the setting in browser preferences and never tell the app.
+
+**The scheduler reads the query cache, not the repository.** The sidebar already loads every list's tasks for its counts, so every reminder is in the cache already: a check every 30 seconds costs no requests at all. Reminders are keyed by task id and reminder time, so moving a reminder makes it fire again, and the keys already fired are stored in `sessionStorage` with an in-memory fallback, so a reload does not repeat them.
+
+**Opening the app does not replay old reminders.** Only reminders that come due after one interval before the app opened will fire. A reminder that came due while permission was still pending fires once permission is granted, because the scheduler records a reminder as shown only when it has actually shown it.
+
+**Clicking a notification opens the task through router state.** The click handler focuses the window, then navigates to the task's list with `{ openTaskId }` in the location state. `TaskList` takes it as an `openRequest` keyed by `location.key`, so the same task can be requested twice in a row. It applies the request during render, which also avoids the lint rule against calling `setState` in an effect, and `ListRoute` clears the state afterwards so a reload does not reopen the panel.
+
+**`new Notification()` can throw.** Chrome on Android allows notifications only from a service worker. The constructor call is wrapped so that a throw does not stop the scheduler.
+
+**Testing without a permission prompt.** Unit tests stub `Notification` with `vi.stubGlobal` and drive fake timers. `e2e/reminders.spec.ts` installs a recording stand-in with `addInitScript`, moves time with `page.clock`, then clicks the recorded notification; removing `useReminders()` from `App` makes that spec fail, which is the check that the spec is wired to the real thing. The embedded browser used for quick manual checks reports `denied`, which conveniently exercised the blocked path. The allowed path needs a real manual check in desktop Chrome, and is listed as outstanding in `docs/smoke.md`.
+
+**TypeScript's `erasableSyntaxOnly` rejects constructor parameter properties** — `constructor(public title: string)` — even in test files. Declare the fields and assign them.
+
+#### Step 21: Sync and resilience
+
+Everything to this point assumed the write succeeds and the data is current. This step assumes neither.
+
+**One query client, built in `src/data/queryClient.ts`.** Reads refetch on focus, on becoming visible, and every 60 seconds while visible, via `refetchInterval` with `refetchIntervalInBackground: false`. Tests keep their own client with retries switched off.
+
+**TanStack Query v5 does not refetch on window focus by default, despite the option's name.** Its focus manager listens only for `visibilitychange`, which does not fire when the user moves between two windows that are both on screen — the exact case the option appears to promise. `listenForFocus` adds the window `focus` event through `focusManager.setEventListener`. A hidden tab still does not refetch until it is shown, which is the desired behaviour.
+
+**Retry reads, never writes.** Reads retry twice for timeouts (408), throttling (429, which is how Dataverse service protection limits answer), server errors, and network failures, where `fetch` throws a `TypeError`. The Power Apps SDK reports HTTP failures as `{ message, status }`. A 403 from a missing security role fails at once rather than spinning for several seconds, which matters because a missing role is one of the most likely first-run failures. Writes never retry automatically: repeating a create that did reach the server produces a duplicate. The user gets a toast with Retry instead.
+
+**Per-call `mutate` callbacks can silently drop failures.** This was the most valuable bug in the step. TanStack Query runs `mutate(variables, { onError })` callbacks only for the latest call on that hook, and not at all once the calling component has unmounted. Ticking two tasks quickly, or closing the task editor while a save was in flight, lost the error toast entirely — the cache still rolled back, so the data was right and the user was simply never told. Three tests reproduced it before anything was changed.
+
+Every write now awaits `mutateAsync`, whose promise settles whatever happens to the component, and `useSaveWithRetry` shows the toast with a Retry that repeats the operation. Toggle and delete keep their own handlers, because their Retry re-runs the whole flow including Undo.
+
+**Skeletons, not blanks.** `SkeletonRows` renders placeholder list items inside the list that is loading, hidden from assistive technology, with the list marked `aria-busy`. The Completed view and the subtask checklist had been blank while loading; the task list and Today now share the component.
+
+**Test multi-tab sync without a tenant.** In mock mode each tab had its own in-memory data, so there was nothing to sync. The mock repositories now accept a `BroadcastChannel`: every write posts the whole state, a newly opened tab asks for it, and each tab tags its generated ids randomly so two tabs never mint the same one. Other tabs see a change on their next fetch, exactly as they would with Dataverse. `e2e/sync.spec.ts` opens two pages, ticks a task in one and fires `focus` in the other — both pages in a headless browser count as visible, so the visibility path alone would not exercise it.
+
+**A cost worth watching.** Polling applies to every query, including the one subtask query per visible task from Step 18. A list of 20 tasks therefore makes roughly 25 Dataverse requests a minute while visible. Nothing in this build hit a service protection limit, but if it showed up in the smoke test the fix would be a longer interval for subtask queries.
+
+#### Step 22: End-to-end tests, audits and the README
+
+**Audit the build, not the dev server.** `npm run build` produces the Dataverse build, which cannot run outside the Power Apps host, so auditing it locally is meaningless. `npm run build:mock` and `npm run preview:mock` build and serve the same UI against the in-memory data layer on port 4173, and Lighthouse runs against that.
+
+**Run Lighthouse through `npx` rather than adding a dependency:**
+
+```bash
+npx lighthouse http://localhost:4173/ --output=html --output-path=docs/design/lighthouse.html
+```
+
+That gives the mobile scores and a report worth committing. The Chrome DevTools MCP server also has a Lighthouse tool, but it excludes the performance category, which was half the acceptance criterion.
+
+**The first Lighthouse run found a real layout shift, CLS 0.152.** The Today view rendered its quick-add box only after the Inbox query resolved, and its loading placeholders sat above the container the tasks would eventually fill, so the page jumped twice on every cold load. The fix was a slot that reserves the quick-add height and placeholders rendered inside the container the content lands in. CLS 0 afterwards, with Performance 98 and Accessibility 100. Run Lighthouse twice before believing a CLS number: the first run of all scored 0.022 purely by luck of timing.
+
+**Playwright found a mobile bug the component tests could not.** The list sheet closed only when a link inside it was clicked, so creating a list — which navigates programmatically — left the sheet sitting over the list it had just made. The shell now closes the sheet whenever the route changes, which also covers the number keys and `t`. React's `set-state-in-effect` lint rule rejects the obvious `useEffect` here; the fix compares the previous path during render instead.
+
+**Date-dependent assertions need care.** The Checkpoint B flow types "Buy milk on Friday" and the chip read "Tomorrow", because the test happened to run on a Thursday. The spec now captures the chip's text and asserts the row shows the same label, rather than asserting a literal.
+
+**The Hallmark audit found two missing stamps and nothing structural.** Its value was the stamp-versus-page check and the token-purity rule, and a test already enforced the second. Two stylesheets written late in the build had no stamp. Everything else passed: zero critical, zero major.
+
+**A clean clone is the only honest README test.** `git clone` into a temporary directory, `npm install`, then the four commands, all green. Everything beyond that — importing the solution, `pa auth login`, Local Play — needs the tenant and belongs to a person rather than to CI. Say so in the README instead of implying the whole thing is automatable.
+
+The suite that resulted runs 18 specs twice, once in desktop Chromium and once in an iPhone 13 WebKit profile:
+
+```bash
+npm run e2e
+```
+
+### Part 4 · Publishing, sharing and the smoke test
+
+Everything so far has run either against the in-memory repositories or, in Step 11, against real Dataverse from a dev server on one machine. Part 4 turns that into an app other people can open. It is three steps and, deliberately, the shortest part of the article: if the earlier parts were done properly, publishing is not dramatic.
+
+#### Step 23: Publish the app into the solution
+
+**`push` uploads; it does not build.** `pa app push` sends whatever is sitting in the `buildPath` named in `power.config.json` — here `./dist`. There is no build step and no staleness check, so a forgotten build silently republishes the previous bundle, and the only symptom is file timestamps from an earlier run. Build immediately before every push, every time:
+
+```bash
+npm run build
+npx pa app push --solution-id <solution-id>
+```
+
+**The solution ID is not in your repository.** Importing the solution in Step 4 does not record its ID anywhere locally; the environment assigns it. `pa solution list` prints friendly name, unique name and ID for every solution in the environment, which in a stock environment is several hundred rows, so filter it:
+
+```bash
+npx pa solution list | grep -i CodeApp101
+```
+
+```
+  CodeApp101       CodeApp101       cb31311c-e547-4888-b237-04b0ad14fd06
+```
+
+Without `--solution-id` the app lands in the environment's preferred or Default solution instead, where it will not travel with your solution export — a mistake that is invisible until the day you try to move the app to another environment.
+
+**The first push writes `appId` back into `power.config.json`,** changing it from `null` to the new app's GUID. Commit that file. It is how every later push updates the same app rather than creating a second one. Confirm what the environment now holds:
+
+```bash
+npx pa app list
+```
+
+```
+  Code Apps
+  App ID                                Display Name
+  5e72594e-4a1c-4c2c-9b6b-7eae8479a302  Simple Todo
+  Total: 1 code app(s) found
+```
+
+**The play URL that `push` prints is not the durable one.** It carries `hint` and `sourcetime` query parameters from that particular publish. Use the app's link from [make.powerapps.com](https://make.powerapps.com) when you share or bookmark it.
+
+#### Step 24: Share the app and assign the security role
+
+**Sharing and permissions are two separate jobs, and missing either one looks like a bug.** Granting access to the app does not grant access to the data:
+
+```bash
+npx pa app share --principal <email> --access play
+```
+
+That is the app. The `Todo User` security role from Step 5 still has to be assigned to the same person, in the admin or maker portal. A user who has one and not the other sees either a permission error at the door, or — more confusingly — an app that opens cleanly and then loads nothing at all, because every Dataverse read is refused.
+
+Sharing follows canvas app rules, so in a Managed Environment the sharing limits noted in the Prerequisites apply here and nowhere earlier. And as Part 1 warned, an app in a Developer-type environment cannot be shared at all, which is the single most common reason this step fails outright.
+
+#### Step 25: Smoke-test against the real environment
+
+Unit tests, a strict fake and an 18-spec end-to-end suite still do not tell you the app works, because none of them ran inside the Power Apps player, against real Dataverse, on a real phone, as a second user who is not you. That is what the smoke test is for, and it is deliberately the last thing rather than the first.
+
+The checklist is in [`docs/smoke.md`](smoke.md). It has ten checks, and they were chosen to cover the things that only the real environment can falsify:
+
+1. A second user holding only the `Todo User` role can open the app.
+2. Capture takes under five seconds, the specification's own measurable goal.
+3. A change on the phone reaches the desktop within 60 seconds, and at once on focus.
+4. Today is the landing view and shows only overdue and due-today work.
+5. Completing a weekly task creates the next instance, dated seven days on, with its subtasks unticked.
+6. A reminder set one minute ahead fires.
+7. No horizontal scroll at 320 px, on a desktop browser and on a phone in portrait.
+8. The writes are actually in Dataverse, checked in the maker portal.
+9. A failed write is recoverable: turn the network off, tick a task, turn it back on, press Retry.
+10. Delete and Undo restore the task and its subtasks.
+
+**Check 6 is expected to fail, and that is a result rather than a defect.** Step 20 predicted it: the player serves the app in a cross-origin iframe, where Chromium refuses notification permission. What the check is really verifying is that the app degrades to the named "blocked" state and says so in the sidebar, instead of throwing or silently doing nothing.
+
+**Status at the time of writing: the app is published and the smoke test is outstanding.** It needs the tenant, a second test account and two devices, so it belongs to a person and not to this article's build log. The publish itself is recorded in `docs/smoke.md`, along with the ten checks and space for their results.
+
+That is an honest place to leave it. A build log that claimed a green smoke test it had not run would be worth less than one that says which checks remain and why.
+
+#### What comes after
+
+Three things were scoped out of this build and are worth naming, because each is a decision rather than an omission.
+
+**Reminders outside the app.** Browser notifications only reach a user who has the tab open. Real reminders need a scheduled Power Automate flow, and as the Prerequisites set out, a flow that runs on a schedule rather than inside the app's context needs Power Automate Premium in its own right. That is phase two, and the licensing question should be asked before the design work, not after.
+
+**Automated deployment.** Publishing from a pipeline needs an Entra service principal with environment access and `edit` on the app. Creating app registrations is restricted in most tenants, which is why it follows the first manual deploy rather than preceding it.
+
+**The subtask query cost from Step 18.** One query per visible task, multiplied by the 60-second poll from Step 21, is roughly 25 requests a minute for a 20-task list. It never caused a problem at personal scale. At team scale the fix is a repository method that filters `_cb_task_value` across many tasks in one request — and because every component talks to the interface rather than to Dataverse, that change would touch `src/data/` and nothing else.
+
+Which is where this article started. The repository layer in Step 8 is a few hundred lines, it let fifteen of seventeen tasks be built with no tenant connection, and it is still the thing that makes the next change cheap.
 
 ---
 
@@ -610,6 +775,43 @@ Lint must report zero warnings, not merely zero errors.
 
 **Real data flows.** Run `npm run dev:smoke`, open the Local Play URL, and step through the panel. Each step should log a result, and between steps the rows should appear, change and disappear in the maker portal under **Tables → Todo Lists → Data** and **Tables → Todo Tasks → Data**.
 
+### After Part 3
+
+**The four checks still pass, and the coverage gate still holds.** Features are where coverage quietly rots. At the end of Part 3 the project was at 97 % of lines overall, against gates of 90 % for `src/data` and `src/features` and 70 % overall.
+
+**The end-to-end suite is green on both profiles.**
+
+```bash
+npm run e2e
+```
+
+Eighteen specs run twice, once in desktop Chromium and once in an iPhone 13 WebKit profile — 36 runs. A feature that passes on desktop and fails on the phone profile is the normal result, not an unusual one, and it is the reason for running both.
+
+**Undo never flickers.** The cheapest way to check by hand: complete a task and press Undo immediately, several times in a row. The row must never read as completed after the Undo, at any point. `src/data/queries.test.tsx` asserts the same thing over every intermediate cache state, which is what catches it when a change to one mutation quietly breaks another.
+
+**The time rules survive a clock change.** `npm test -- nextOccurrence selectToday computeReminderAt` covers month-end clamping, the 23- and 25-hour days, and calendar-day reminder offsets. Swap any of them to millisecond arithmetic and the tests must fail. If they pass, check that `test.env.TZ` is still set.
+
+**The keyboard alone can drive the app.** Put the mouse down. `n` to capture, `j` and `k` to move, `x` to complete, `e` to open detail, Backspace to delete, `t` for Today, `1`–`9` for lists, `?` for help. Every step must show a visible focus ring, and Escape must always return you somewhere sensible.
+
+**Optimistic capture is genuinely under 100 ms.** `npm run e2e -- quickadd` measures it inside the page rather than trusting the feel of it.
+
+### After Part 4
+
+**The app exists in the environment and in the solution.**
+
+```bash
+npx pa app list
+```
+
+The app should be listed with the ID that `power.config.json` now carries. Open the solution in the maker portal and confirm the app appears there alongside the three tables — if it does not, it was published without `--solution-id` and will not travel with a solution export.
+
+**What you published is what you built.** Because `push` does not build, the only reliable check is to build and push in one sequence and then open the app and look for the change you just made. Timestamps on `dist` will not tell you.
+
+**A second user can open it and see their own data.** This is the check that most often fails, and it fails in two distinct ways that look similar: no app share (a permission error at the door) and no `Todo User` role (an app that opens and then loads nothing). Test with a real second account, not with your own in a private window.
+
+**The ten smoke checks.** [`docs/smoke.md`](smoke.md) holds them with space for dates and outcomes. Check 6, reminders, is expected to report blocked inside the player; record what the sidebar says rather than treating it as a pass or a fail.
+
+**At the time of writing this section is the one that is not yet green.** The app is published; the smoke test needs a tenant, a second account and two devices. Its results belong in `docs/smoke.md` when they exist.
 ---
 
 ## Troubleshooting
@@ -815,6 +1017,32 @@ steps is a test that passes on the machine it was written on.
 
 `eslint-plugin-react-hooks` 7 adds the `react-hooks/set-state-in-effect` rule. It flagged an effect that moved focus to a control and then cleared a "pending focus" state variable. Hold the pending target in a `useRef` instead and read it in an effect that runs after every render. The actions that request focus already change other state, so a render always follows.
 
+### Every `npx pa` command fails on Windows with `running scripts is disabled`
+
+```
+npx : File C:\Program Files\nodejs\npx.ps1 cannot be loaded because running
+scripts is disabled on this system. For more information, see
+about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170.
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+```
+
+**Cause.** Nothing to do with `pa`. Windows PowerShell's default execution policy on a client machine is `Restricted`, which refuses to run any `.ps1` file — including the `npx.ps1` shim that npm installs. Every `npx` command in this article fails the same way. `Get-ExecutionPolicy -List` showing `Undefined` in every scope means the default applies.
+
+**Fix.** Call the `.cmd` shim, which is not a PowerShell script and needs no policy change:
+
+```bash
+npx.cmd pa auth login
+```
+
+Or skip `npx` altogether and run the local binary:
+
+```bash
+.\node_modules\.bin\pa.cmd auth login
+```
+
+Both report `1.0.2` for `--version`. If you would rather fix it once for all npm tooling, `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` does that — but it is a machine security setting, and on a managed device it may be set by policy and not yours to change. Git Bash, WSL and `cmd.exe` are unaffected, which is why this can look like an intermittent fault when you switch shells.
+
 ### The `pa` command is not found on macOS
 
 You are probably thinking of `pac`, which does need an MSI on Windows or the Visual Studio Code extension elsewhere. The code apps CLI is `pa`, an npm package, and installs the same way on every platform:
@@ -885,4 +1113,4 @@ Code apps do not run in the Power Apps mobile player, so mobile means a mobile b
 
 ---
 
-*Part 3 is in progress as build notes. Next up: Checkpoint B review, then the Today view, subtasks, recurrence, reminders and sync.*
+*Twenty-five steps, one app, and one honest gap: the smoke test in Step 25 needs a tenant, a second account and two devices. Its results go in [`docs/smoke.md`](smoke.md) when they exist.*
