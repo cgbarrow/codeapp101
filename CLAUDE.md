@@ -41,11 +41,16 @@ The CLI is `pa` (npm, `@microsoft/power-apps-cli`), not `pac`. It runs on macOS.
 
 Environment ID: `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` (the tenant's default environment; the bare GUID is the tenant ID and the CLI cannot resolve it). Dataverse org: `https://org6e4abf07.crm.dynamics.com/`. Solution: `CodeApp101`, publisher prefix `cb`, solution ID `cb31311c-e547-4888-b237-04b0ad14fd06` — the ID is not derivable from the repository, `npx pa solution list | grep -i CodeApp101` prints it. Published app ID `5e72594e-4a1c-4c2c-9b6b-7eae8479a302`, also in `power.config.json`.
 
-## Current state — 17 September 2026
+## Current state — 25 September 2026
 
-Tasks 0–15 are done. Task 16 published the app; **its smoke test is outstanding** and needs the tenant, a second test user and two devices, so it belongs to Christopher — checklist in [docs/smoke.md](docs/smoke.md). Task 13's manual reminder check and Checkpoint B's human UI review are outstanding for the same reason. Do not tick any of them from a coding session.
+All coding tasks, 0–17, are done. What remains needs the tenant, a second test user or a human, so it belongs to Christopher. Do not tick any of it from a coding session:
 
-**Next task: 17, finishing the how-to article.** Parts 1 and 2 of [the article](docs/how-to-build-a-power-apps-code-app.md) are finished prose and set the voice and the `#### Step n:` structure; Parts 3 and 4 are still raw per-task build notes, each marked with a "Build notes" blockquote. `docs/images/` is empty and three screenshot placeholders remain (import solution, Local Play smoke panel, publisher list) — all three need the tenant, so they are Christopher's to capture or to delete.
+- Task 16's smoke test: checklist in [docs/smoke.md](docs/smoke.md).
+- Task 13's manual reminder check and Checkpoint B's human UI review.
+- Task 17's leftovers. Three screenshot placeholders remain in [the article](docs/how-to-build-a-power-apps-code-app.md): `import-solution.png`, `local-play-smoke.png` and `publisher-list.png`. `docs/images/` does not exist yet, and capturing them or deleting the placeholders both satisfy the criterion. The command check also needs a tenant run of `pa app init`, `add data-source` and `push`.
+- Checkpoint D, which closes once all of the above are done.
+
+The article is finished prose from Step 1 to Step 25, with no "Build notes" blocks left. A coding session can edit it for accuracy, but has no remaining task to work on.
 
 Nothing else about this repository is machine-specific. A fresh clone needs `npm install`, `npx playwright install chromium webkit` for the e2e suite, and `npx pa auth login` only for tenant work; the README's Getting started covers it. Node was 24.14.1 and npm 11.11.0 here; the repo pins no version.
 
