@@ -13,7 +13,7 @@ Work proceeds one task at a time from [tasks/todo.md](tasks/todo.md), in depende
 1. Failing test first, then the implementation.
 2. `npm run lint` (0 warnings), `npm run typecheck`, `npm test`, `npm run build` all pass.
 3. **Update [README.md](README.md)** if the task changed anything a reader sees there: the status table, the repository layout, the getting-started commands, the stack, or the feature list. A task that adds a user-visible feature or a new command almost always touches the README.
-4. **Append notes to [docs/how-to-build-a-power-apps-code-app.md](docs/how-to-build-a-power-apps-code-app.md)** if the task produced anything a reader repeating this build would need: a non-obvious step, a failure and its fix, a decision worth explaining. Brief and factual while building; task 17 turns the notes into finished prose.
+4. **Update [docs/how-to-build-a-power-apps-code-app.md](docs/how-to-build-a-power-apps-code-app.md)** if the task changed anything a reader following it would meet: a command, a step, a file it names, or a new failure and its fix. It is a step-by-step guide, not a build log, so edit the relevant step, Verify or Troubleshooting entry concisely rather than appending notes.
 5. **Update [SPEC.md](SPEC.md)** in the same commit if scope or schema changed.
 6. Tick the task in [tasks/todo.md](tasks/todo.md) and commit. One commit per task, staging only that task's files.
 
@@ -41,7 +41,7 @@ The CLI is `pa` (npm, `@microsoft/power-apps-cli`), not `pac`. It runs on macOS.
 
 Environment ID: `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` (the tenant's default environment; the bare GUID is the tenant ID and the CLI cannot resolve it). Dataverse org: `https://org6e4abf07.crm.dynamics.com/`. Solution: `CodeApp101`, publisher prefix `cb`, solution ID `cb31311c-e547-4888-b237-04b0ad14fd06` — the ID is not derivable from the repository, `npx pa solution list | grep -i CodeApp101` prints it. Published app ID `5e72594e-4a1c-4c2c-9b6b-7eae8479a302`, also in `power.config.json`.
 
-## Current state — 25 September 2026
+## Current state — 28 September 2026
 
 All coding tasks, 0–17, are done. What remains needs the tenant, a second test user or a human, so it belongs to Christopher. Do not tick any of it from a coding session:
 
@@ -50,7 +50,7 @@ All coding tasks, 0–17, are done. What remains needs the tenant, a second test
 - Task 17's leftovers. One screenshot placeholder remains in [the article](docs/how-to-build-a-power-apps-code-app.md), `local-play-smoke.png`; capturing it or deleting the placeholder both satisfy the criterion. The command check also needs a tenant run of `pa app init`, `add data-source` and `push`.
 - Checkpoint D, which closes once all of the above are done.
 
-On 28 September 2026 the article was rewritten from a build log into a step-by-step guide, from Christopher's revised Word version: four parts, Steps 1 to 14, clone to Local Play to published app, with a Verify section after each part. Its screenshots in `docs/images/` came from that Word document. Keep it concise, and say where every command runs. A coding session can edit it for accuracy, but has no remaining task to work on.
+On 28 September 2026 the article was rewritten from a build log into a step-by-step guide: four parts, Steps 1 to 14, clone to sample data to Local Play to published app, with a Verify section after each part. Christopher edits his own copy outside the repository (Word or Google Docs) and sends it as a PDF. The `.md` in the repo is kept in line with that copy, so treat his latest revision as the source of truth. Its screenshots in `docs/images/` and its OPS links (AccelerateON, OnRequest, WIA) came from his document. It is written for OPS developers: keep it concise, say where every command runs, and point governance questions at AccelerateON. The repository is private; the article tells readers to ask christopher.barrow@ontario.ca for access. A coding session can edit the article for accuracy, but has no remaining task to work on.
 
 Nothing else about this repository is machine-specific. A fresh clone needs `npm install`, `npx playwright install chromium webkit` for the e2e suite, and `npx pa auth login` only for tenant work; the README's Getting started covers it. Node was 24.14.1 and npm 11.11.0 here; the repo pins no version.
 
