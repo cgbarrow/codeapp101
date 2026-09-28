@@ -2,7 +2,7 @@
 
 A personal task app built as a **Power Apps code app**: an ordinary React single-page application that runs inside a Microsoft Power Platform environment, stores its data in Dataverse, and inherits Entra authentication and tenant governance without building any of it.
 
-> **Status: published, smoke test outstanding.** Every feature is built, tested and audited, the app is published to the environment, and the how-to article is written end to end. What remains needs the tenant: the manual smoke test against real Dataverse on a phone and a desktop, and three screenshots the article still marks as placeholders. See [Current status](#current-status).
+> **Status: published, smoke test outstanding.** Every feature is built, tested and audited, the app is published to the environment, and the how-to article is written end to end. What remains needs the tenant: the manual smoke test against real Dataverse on a phone and a desktop, and one screenshot the article still marks as a placeholder. See [Current status](#current-status).
 
 ## What it does
 
@@ -113,7 +113,7 @@ Platform environment with code apps switched on and a Power Apps Premium licence
 | 2 | Check it works with no tenant at all | `npm run dev` then open the printed URL | ~1 min |
 | 3 | Import the schema | In [make.powerapps.com](https://make.powerapps.com) → Solutions → Import, choose `solution/CodeApp101_1_0_0_0.zip`, then assign yourself the `Todo User` role. Full steps and the manual fallback: [`docs/dataverse-setup.md`](docs/dataverse-setup.md) | ~5 min |
 | 4 | Sign in to the CLI | `npx pa auth login` (opens a browser) | ~1 min |
-| 5 | Point the app at your environment | Edit `power.config.json`: set `environmentId` to yours, and the three data sources to your tables. Or start fresh with `npx pa app init --display-name "Simple Todo" --environment-id <id>` and `npx pa app add data-source --connector dataverse --table <table>` for `cb_todolists`, `cb_todotasks` and `cb_todosubtasks` | ~3 min |
+| 5 | Point the app at your environment | The committed `power.config.json` names the author's environment and published app, so replace it: delete it, run `npx pa app init --display-name "Simple Todo" --environment-id <id>`, then `npx pa app add data-source --connector dataverse --table <table> --org-url <instance-url>` for `cb_todolist`, `cb_todotask` and `cb_todosubtask`. Both values are in make.powerapps.com → Settings → Session details. Step 9 of the [how-to article](docs/how-to-build-a-power-apps-code-app.md) explains each command | ~3 min |
 | 6 | Run against Dataverse | `npm run dev:dataverse`, then open the URL labelled **Local Play** in the browser profile signed in to the tenant | ~1 min |
 
 `npm run dev:smoke` does the same as step 6 with a panel that creates, completes and deletes a test
@@ -133,13 +133,13 @@ its troubleshooting section carries the real error text for every failure hit du
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
 | Published app | Pushed to the `CodeApp101` solution, 17 September 2026 — app ID `5e72594e-4a1c-4c2c-9b6b-7eae8479a302`. Sharing and the [smoke checklist](docs/smoke.md) outstanding |
 | Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); the Today view as the default landing, with `t` and the last view remembered (task 10); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13); refetching, retries, reliable failure toasts and loading placeholders (task 14); end-to-end flows, Lighthouse and Hallmark audits, ADRs (task 15); published to the environment (task 16). Still to do: Checkpoint B, and the manual smoke test of the published app |
-| Documentation | [How-to article](docs/how-to-build-a-power-apps-code-app.md) complete: all four parts, 25 steps, with Verify and Troubleshooting sections for each part (task 17). Outstanding: three screenshots that need the tenant, and the `pa` command blocks that cannot be re-run without changing the environment. ADRs 0001–0004 written; audits recorded in [`docs/design/audit-2026-09-17.md`](docs/design/audit-2026-09-17.md) |
+| Documentation | [How-to article](docs/how-to-build-a-power-apps-code-app.md) complete: a step-by-step guide in four parts and 14 steps, from clone to Local Play to a published app, with a Verify section after each part (task 17, revised 28 September 2026). Outstanding: the Local Play smoke-panel screenshot, and the `pa` command blocks that cannot be re-run without changing the environment. ADRs 0001–0004 written; audits recorded in [`docs/design/audit-2026-09-17.md`](docs/design/audit-2026-09-17.md) |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.
 
 ## Documentation
 
-- **[How to build a Power Apps code app](docs/how-to-build-a-power-apps-code-app.md)** — the full build log written as a knowledge-base article, including every failure and its fix. Written for someone repeating this from scratch.
+- **[How to build a Power Apps code app](docs/how-to-build-a-power-apps-code-app.md)** — a step-by-step guide from a clone of this repository to the app running locally against Dataverse and published to an environment, with the real error text for each failure hit along the way.
 - **[Dataverse setup](docs/dataverse-setup.md)** — the operational runbook for the schema, with a click-by-click manual fallback.
 - **[SPEC.md](SPEC.md)** — what is being built and why, with acceptance criteria.
 - **[Architecture decisions](docs/adr/)** — why the `pa` CLI, the repository pattern, TanStack Query and a generated solution package.

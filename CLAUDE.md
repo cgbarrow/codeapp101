@@ -47,10 +47,10 @@ All coding tasks, 0–17, are done. What remains needs the tenant, a second test
 
 - Task 16's smoke test: checklist in [docs/smoke.md](docs/smoke.md).
 - Task 13's manual reminder check and Checkpoint B's human UI review.
-- Task 17's leftovers. Three screenshot placeholders remain in [the article](docs/how-to-build-a-power-apps-code-app.md): `import-solution.png`, `local-play-smoke.png` and `publisher-list.png`. `docs/images/` does not exist yet, and capturing them or deleting the placeholders both satisfy the criterion. The command check also needs a tenant run of `pa app init`, `add data-source` and `push`.
+- Task 17's leftovers. One screenshot placeholder remains in [the article](docs/how-to-build-a-power-apps-code-app.md), `local-play-smoke.png`; capturing it or deleting the placeholder both satisfy the criterion. The command check also needs a tenant run of `pa app init`, `add data-source` and `push`.
 - Checkpoint D, which closes once all of the above are done.
 
-The article is finished prose from Step 1 to Step 25, with no "Build notes" blocks left. A coding session can edit it for accuracy, but has no remaining task to work on.
+On 28 September 2026 the article was rewritten from a build log into a step-by-step guide, from Christopher's revised Word version: four parts, Steps 1 to 14, clone to Local Play to published app, with a Verify section after each part. Its screenshots in `docs/images/` came from that Word document. Keep it concise, and say where every command runs. A coding session can edit it for accuracy, but has no remaining task to work on.
 
 Nothing else about this repository is machine-specific. A fresh clone needs `npm install`, `npx playwright install chromium webkit` for the e2e suite, and `npx pa auth login` only for tenant work; the README's Getting started covers it. Node was 24.14.1 and npm 11.11.0 here; the repo pins no version.
 

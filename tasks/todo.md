@@ -396,11 +396,13 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 
 Part 3 became Steps 12–22 and Part 4 Steps 23–25, continuing Part 2's numbering, so the article now runs Step 1 to Step 25 with no "Task n notes" headings left. The six-section shape is the article's, not each part's: Overview, Prerequisites, Procedure, Verify, Troubleshooting and Related information are top-level, the parts sit under Procedure, and Verify now has an "After Part 3" and an "After Part 4" to match Parts 1 and 2. Part 4 ends with a "What comes after" step covering the Power Automate phase, service-principal deployment and the subtask query cost.
 
+**Revised 28 September 2026.** Christopher asked for a step-by-step guide rather than a build log and supplied a revised Word version. The article now runs Steps 1 to 14 in four parts: plan and set up Dataverse, run on your machine, what the app does (one feature table), and publish and share. Each part ends with its own Verify section. Every command says where it runs; `power.config.json`, `add data-source` and design tokens are explained; and the steps were cross-checked against a Microsoft code apps walkthrough video. Screenshots and OPS links came from the Word document.
+
 Two troubleshooting entries were added from this machine, both with real error text: the Windows PowerShell execution policy that makes every `npx pa` block in the article fail with `npx.ps1 cannot be loaded`, and the three test-portability failures found when the suite first ran on Windows (path separators, the default locale, and timer granularity). Those fixes landed in commit `d9cea84`, before the article work.
 
 **Outstanding, all needing the tenant:**
 
-- The three screenshot placeholders — `import-solution.png`, `local-play-smoke.png`, `publisher-list.png` — are still in place, and `docs/images/` does not exist. Capture them or delete the placeholders; either satisfies the criterion.
+- One screenshot placeholder remains, `local-play-smoke.png`. Capture it or delete the placeholder; either satisfies the criterion. The other two were replaced on 28 September 2026 with Christopher's own screenshots.
 - `pa auth login`, `pa auth status`, `pa app list` and `pa solution list` were all run on this machine on 18 September 2026 and work as written. `pa app init`, `pa app add data-source` and `pa app push` cannot be re-run without changing the environment — `init` and `add data-source` would rewrite `power.config.json` and `src/generated/`, and `push` republishes — so their blocks stand on the original build's record.
 - Whether a newcomer can follow it start to finish is a human judgement and belongs with the Checkpoint B review.
 
