@@ -1,6 +1,6 @@
 # How to build a Power Apps code app with React, Dataverse and the Power Apps CLI
 
-*Christopher Barrow · Senior Manager, [AccelerateON][accelerateon] enterprise service · I&IT Enterprise Solutions Division*
+*Christopher Barrow · Senior Manager, [AccelerateON][accelerateon] enterprise service · Enterprise Fintech Practice · I&IT Enterprise Solutions Division*
 
 ---
 
@@ -10,28 +10,30 @@ Power Apps **code apps** let you write an ordinary React single-page application
 
 This article is a step-by-step guide built around one such app: a sample personal todo list with multiple lists, due dates and reminders, recurring tasks, subtasks and a Today view. It stores everything in three custom Dataverse tables and runs in a browser on phone, tablet and desktop. The article covers how the app was planned. It then takes you from a copy of the repository to the app running on your machine against your own Dataverse tables. Finally, it takes you to a published app that your colleagues can open.
 
-The app was vibe-coded with Claude, and the article records what actually happened, including two failed imports and an environment ID that looked like a network outage. Where a step went wrong, the fix is in [Troubleshooting](#troubleshooting) rather than quietly smoothed out of the procedure.
-
 **Who this is for.** Developers comfortable with React and TypeScript who have not shipped a Power Platform code app before. No low-code experience is assumed. Power Platform administrators will find the environment and permission sections useful on their own.
 
 **Where this build ran, and why it matters.** Everything below was done in a personal Microsoft 365 developer tenant, in a Power Platform environment with no data loss prevention policies, no environment group rules, no Managed Environment controls and no conditional access. Every setting was mine to change and every connector was available.
 
-That is not where teams in the OPS work. In our corporate tenant the same steps may run into governance controls that are working exactly as intended. The fix is then a conversation with the [AccelerateON team][accelerateon-team], and perhaps a consultation with ITOD or cyber, rather than a change you make yourself. [Working in a governed tenant](#working-in-a-governed-tenant) names each control, says where it may bite, and gives you the specific ask to raise.
+That is not where teams in the OPS work. In our corporate OPS tenant the same steps may run into governance controls that are working exactly as intended. The fix is then a conversation with the [AccelerateON team][accelerateon-team], and perhaps a consultation with ITOD or cyber, rather than a change you make yourself. [Working in the OPS governed tenant](#working-in-the-ops-governed-tenant) names each control, says where it may bite, and gives you the specific ask to raise.
 
 **What this article covers:**
 
-| Part | Scope | Status |
-|---|---|---|
-| 1 | Plan the app and set up Dataverse: specification, schema, solution import, security role | Complete |
-| 2 | Run the app on your machine: clone, sample data, connect to your environment, Local Play | Complete |
-| 3 | What the app does: the features, in brief | Complete |
-| 4 | Publish and share: build, push, share, assign the role, smoke test | Written; smoke test outstanding |
+| Part | Scope |
+|---|---|
+| 1 | Plan the app and set up Dataverse: specification, schema, solution import, security role |
+| 2 | Run the app on your machine: clone, sample data, connect to your environment, Local Play |
+| 3 | What the app does: the features, in brief |
+| 4 | Publish and share: build, push, share, assign the role, smoke test |
 
 Each part ends with a short **Verify** section. Finish it before you start the next part.
 
-**Where to run the commands.** Type every command in this article into a terminal. That can be Terminal on macOS, PowerShell on Windows, or the terminal built into Visual Studio Code (**Terminal → New Terminal**). Unless a step says otherwise, run commands in the repository root, the folder that contains `package.json`. Each step says where to run its commands. The Power Apps CLI does not have its own window or shell. It is installed with the project, and you run it in the same terminal by starting the command with `npx pa`. Steps done in a browser name the site: the maker portal, [make.powerapps.com](https://make.powerapps.com), or the admin center, [admin.powerplatform.microsoft.com](https://admin.powerplatform.microsoft.com).
+**Where to run the commands.** Type every command in this article into a terminal. That can be Terminal on macOS, PowerShell on Windows, the terminal within an AI coding harness such as Claude Code, Codex or OpenCode, or the terminal built into Visual Studio Code (**Terminal → New Terminal**). Unless a step says otherwise, run commands in the repository root, the folder that contains `package.json`.
 
-**A note on terminology.** Two different command-line tools sound alike. `pac` is the older .NET Power Platform CLI, distributed as an MSI on Windows and through a Visual Studio Code extension elsewhere. `pa` is the newer npm-based Power Apps CLI that became generally available in August 2026 and replaced the `pac code` command group entirely. Code apps use `pa`. Because it is an npm package, it runs anywhere Node.js does, including macOS, with no extension required. Articles written before mid-2026 show `pac code` commands that no longer exist. Some earlier walkthroughs, including the video in [Related information](#related-information), run `npx power-apps init` and `npx power-apps push` instead. The version of `@microsoft/power-apps` this repository installs has no such command, so use the `npx pa app …` forms shown here.
+Each step says where to run its commands. The Power Apps CLI does not have its own window or shell. It is installed with the project, and you run it in the same terminal by starting the command with `npx pa`. Steps done in a browser name the site: the maker portal, [make.powerapps.com](https://make.powerapps.com), or the admin center, [admin.powerplatform.microsoft.com](https://admin.powerplatform.microsoft.com).
+
+**A note on terminology.** Two different command-line tools sound alike. `pac` is the older .NET Power Platform CLI, distributed as an MSI on Windows and through a Visual Studio Code extension elsewhere. `pa` is the newer npm-based Power Apps CLI that became generally available in August 2026 and replaced the `pac code` command group entirely.
+
+Code apps use `pa`. Because it is an npm package, it runs anywhere Node.js does, including macOS, with no extension required. Articles written before mid-2026 show `pac code` commands that no longer exist. Some earlier walkthroughs, including the video in [Related information](#related-information), run `npx power-apps init` and `npx power-apps push` instead. The version of `@microsoft/power-apps` this repository installs has no such command, so use the `npx pa app …` forms shown here.
 
 **Known limitations worth reading before you commit to code apps.** Code apps do not run in the Power Apps mobile player, so mobile means a mobile browser. They do not support Power Platform Git integration, SharePoint forms integration, or Power BI data integration. There is no offline mode and no push notification channel. None of these blocked this project, but any one of them could block yours.
 
@@ -39,24 +41,23 @@ Each part ends with a short **Verify** section. Finish it before you start the n
 
 ## Prerequisites
 
-### Accounts and licensing
+### Licensing and security roles
 
-- A dedicated Power Platform DEV, UAT or PROD environment provisioned and managed through [AccelerateON][accelerateon-request].
 - A [Power Apps Per User licence][pa-per-user] for every user who will develop or run the finished app.
 - The **System Administrator** security role assigned to users within the target Power Platform environment. Importing a solution creates tables, and table creation requires it. Most developers building code apps already hold this role, so this is usually a box already ticked rather than a step.
 
 ### Environment
 
-- A Power Platform DEV, UAT or PROD environment with Dataverse provisioned.
+- A dedicated Power Platform DEV, UAT or PROD environment provisioned with Dataverse and managed through [AccelerateON][accelerateon-request].
 - **Code apps enabled** in that environment. A user with the System Administrator role can turn this on at [admin.powerplatform.microsoft.com](https://admin.powerplatform.microsoft.com) under Manage → Environments → *your environment* → Settings → Product → Features → **Enable code apps**.
 
-### Working in a governed tenant
+### Working in the OPS governed tenant
 
 In a corporate managed tenant such as the OPS, several controls may sit between you and a running code app. None of them is a defect. They exist to keep data where it belongs, and the delay they introduce is usually the approval, not the technical change.
 
 In the OPS these requests go to **AccelerateON**, the enterprise service that manages Microsoft Power Platform and delivers robotic process automation. If you run into one of these controls, raise it with AccelerateON early.
 
-AccelerateON is also worth talking to before you decide on a code app at all. A good deal of what people reach for a custom React app to do is already solved by a canvas app or a Power Automate flow. A code app is the right answer when you genuinely need custom UI, custom logic or a component model that low code cannot express. It is the wrong answer when it is chosen out of unfamiliarity with what the platform already offers, and that choice carries a maintenance cost the team inherits.
+AccelerateON is also worth talking to before you decide on a code app at all. A good deal of what people reach for a custom React app to do is already solved by a canvas app or a Power Automate flow. A code app is the right answer when you genuinely need custom UI, custom logic or a component model that low code cannot express. It is the wrong answer when it is chosen out of unfamiliarity with what the platform already offers.
 
 | Control | Where it stops you | What to ask for |
 |---|---|---|
@@ -65,13 +66,13 @@ AccelerateON is also worth talking to before you decide on a code app at all. A 
 | **Conditional Access** | Sign-in fails for users on unmanaged devices or from certain locations | Confirmation of which policies apply to Power Platform, so you test appropriately |
 | **Power Apps licensing** | Every end user needs a Power Apps Per User licence to run and use a code app | Self-request licences for your team via OnRequest. For bulk requests of more than 50 licences, reach out to the AccelerateON team |
 | **Power Automate licensing** | A flow that runs outside the app, on a schedule or from an external trigger, is not covered by the app's licence. Nor are premium connectors | Self-request [Power Automate Premium via OnRequest][onrequest-pa-premium] for the flow owner, where the flow runs standalone or touches a premium connector |
-| **Entra app registration for automated deployment** | Publishing from a pipeline needs a service principal, and creating app registrations is restricted by ITOD Go Cloud policy | A service principal via an ITOD [WIA request][wia-request] with the environment access it needs, plus `edit` access on the app once it exists. Only needed for CI/CD, so it can follow the first manual deploy |
+| **Entra app registration for automated deployment** | Publishing from a pipeline needs a service principal, and creating app registrations is managed by the ITOD Go Cloud team | A service principal via an ITOD [WIA request][wia-request] with the environment access it needs, plus `edit` access on the app once it exists. Only needed for CI/CD, so it can follow the first manual deploy |
 
 ### Local tooling
 
-- Node.js 22 or later, which the Power Apps CLI requires. Version 24 LTS was used here.
+- Node.js 22 or later, which the Power Apps CLI requires. Check yours with `node --version` in a terminal. Version 24 LTS was used here.
 - Git.
-- A code editor. Visual Studio Code works well, because its terminal opens in the project folder.
+- A code editor or AI coding harness. Visual Studio Code works well, because its terminal opens in the project folder.
 - About 250 MB of disk for the Playwright browsers, only if you run the end-to-end tests.
 - Python 3, only if you change the Dataverse schema and need to regenerate the solution package.
 
@@ -81,7 +82,9 @@ The Power Apps CLI needs no separate install. It is a development dependency of 
 
 ## Procedure
 
-### Part 1 · Plan the app and set up Dataverse
+### Part 1 · Plan the app and set up Dataverse tables
+
+> **Want to see the app first?** Steps 6 and 7 need no Power Platform access at all. Do them first to have the app running on your machine with sample data in a couple of minutes, then come back here.
 
 Full disclosure: this app was vibe-coded with Claude Code, but that doesn't mean the build had no structure. Standard software engineering practices from [agent-skills][agent-skills] were added to Claude to help build this app:
 
@@ -128,7 +131,7 @@ The schema is three user-owned tables:
 
 Plus three relationships and a `Todo User` security role granting user-level create, read, write and delete on all three.
 
-**If you are using this repository, the package is already built** as `solution/CodeApp101_1_0_0_0.zip`, and you can go straight to Step 4. Regenerate it only after changing the schema. In the terminal, at the repository root:
+**If you are using this repository, the package is already built** as [`solution/CodeApp101_1_0_0_0.zip`](../solution/CodeApp101_1_0_0_0.zip), and you can go straight to Step 4. Regenerate it only after changing the schema. In the terminal, at the repository root:
 
 ```bash
 python3 solution/generate.py
@@ -139,7 +142,7 @@ Four things are worth knowing about the schema:
 - **The publisher prefix is part of every name.** `cb` is the prefix of the solution's own publisher, which the import creates. Every table and column name is built from it, and renaming later means recreating the tables. Choose it before you generate anything.
 - **Choice columns store numbers, not labels.** A choice column is Dataverse's drop-down field. Dataverse saves the option's number and builds that number from the publisher's *choice value prefix*, `10000` here. So the Recurrence options None, Daily, Weekly and Monthly are stored as `100000000`, `100000001`, `100000002` and `100000003`, not as their names and not as 0 to 3. The app converts those numbers to the words `"none"`, `"daily"`, `"weekly"` and `"monthly"` in one file, `src/data/dataverse/mappers.ts`, so no other code ever handles the numbers.
 - **Lookups are defined as relationships.** You do not write a lookup column; you write a one-to-many relationship, and Dataverse creates the lookup column from it.
-- **The XML is strict about order and roles.** Elements inside a column definition must come in the order Dataverse expects, and the two roles in a relationship are not interchangeable. Getting the roles backwards cost this build an import; see [Troubleshooting](#import-fails-with-the-navpanedisplayoption-attribute-is-required-for-the-referencing-role).
+- **The XML is strict about order and roles.** Elements inside a column definition must come in the order Dataverse expects, and the two roles in a relationship are not interchangeable. Getting the roles backwards causes an error on import; see [Troubleshooting](#import-fails-with-the-navpanedisplayoption-attribute-is-required-for-the-referencing-role).
 
 #### Step 4: Import the solution
 
@@ -153,7 +156,7 @@ In the maker portal:
 
 ![The Solutions page with Import solution highlighted, and the Import a solution panel showing the CodeApp101 Publisher with the cb prefix](images/import-solution.png)
 
-If it fails, download the log file from the failure banner before doing anything else. It is an Excel-format XML file with two sheets: a summary with the first fatal error, and a component-by-component list showing exactly which component failed and which were never reached. It is far more useful than the message in the browser. Give it to your AI coding agent to examine and reason about.
+If it fails, download the log file from the failure banner before doing anything else. It is an Excel-format XML file with two sheets: a summary with the first fatal error, and a component-by-component list showing exactly which component failed and which were never reached. It is far more useful than the message in the browser.
 
 #### Step 5: Assign the security role
 
@@ -164,6 +167,8 @@ Importing the `Todo User` role does not assign it. In the Power Platform admin c
 3. Choose **Manage security roles**, tick **Todo User**, and save.
 4. Repeat for each user.
 
+If the user isn't listed, ask your environment administrators to add them to the appropriate environment and AD security group.
+
 ![The admin center Users page for the environment, with the Todo User role ticked in the security roles panel](images/assign-security-role.png)
 
 A System Administrator already holds every privilege the `Todo User` role grants, but you do not want every user of the app to be a system administrator. Assign `Todo User` to anyone who only needs to run and use the finished app.
@@ -172,7 +177,7 @@ A System Administrator already holds every privilege the `Todo User` role grants
 
 In the maker portal:
 
-- **The solution imported completely.** Open **Solutions → CodeApp101**. You should see all three tables and the security role listed as components. A partially imported solution shows some components and no error, which is why the count matters.
+- **The solution was imported completely.** Open **Solutions → CodeApp101**. You should see all three tables and the security role listed as components. A partially imported solution shows some components and no error, which is why the count matters.
 - **The relationships exist.** Open the Todo Task table, then its **Relationships** tab. Confirm each relationship is present and that its behaviour is right: parental where deleting the parent should delete the children, referential where it should not.
 - **The role grants what you intended.** Open the role and confirm the privileges are set to user level, the innermost quarter-circle, on each table. Organisation level would let every user read everyone else's tasks.
 - **Data can be written.** Open the Todo List table, choose the **Data** tab, and create a row by hand. If that succeeds, the schema and your permissions both work. Delete the row afterwards.
@@ -182,6 +187,8 @@ In the maker portal:
 Part 2 gets the repository running on your machine: first against sample data with no Power Platform access, then against the Dataverse tables from Part 1.
 
 #### Step 6: Get the code
+
+The repository is private. Contact christopher.barrow@ontario.ca for access.
 
 In the terminal, in the folder where you keep projects:
 
@@ -195,8 +202,6 @@ npm install
 
 `npm install` fetches everything the app needs. That includes the Power Apps client library (`@microsoft/power-apps`), the Power Apps Vite plugin (`@microsoft/power-apps-vite`), which lets the Power Apps host load your local dev server, the Power Apps CLI, and the test tools.
 
-> **Starting a new app instead of this one?** This repository began from Microsoft's Vite template, which is also where the video in Related information starts. In an empty folder, run `npx degit github:microsoft/PowerAppsCodeApps/templates/vite .` and then `npm install`. The template has no tests, so add them before writing code. Until Step 9's `app init` adds the CLI to the project, run it as `npx @microsoft/power-apps-cli`.
-
 #### Step 7: Run it with sample data
 
 In the terminal, at the repository root:
@@ -209,8 +214,6 @@ Open the `Local` address that Vite prints, usually `http://localhost:5173`. The 
 
 `npm run dev` runs Vite in `mock` mode, which loads the committed `.env.mock` file. Its one setting, `VITE_USE_MOCKS=true`, tells the app to use the in-memory data layer instead of Dataverse.
 
-> In the video, `npm run dev` connects to Dataverse straight away. In this repository that is `npm run dev:dataverse`, covered in Step 10. Here, `npm run dev` is the sample-data mode.
-
 #### Step 8: Know where things live
 
 You do not need to change any of this to run the app, but it explains the files the later steps touch.
@@ -218,13 +221,13 @@ You do not need to change any of this to run the app, but it explains the files 
 | Path | What it holds |
 |---|---|
 | `src/styles/tokens.css` | The design tokens, described below |
-| `src/components/`, `src/routes/` | The UI |
+| `src/components/` | The UI |
 | `src/data/repo.ts` | The data contract: `ListRepo`, `TaskRepo` and `SubtaskRepo` |
 | `src/data/mock/` | The in-memory implementation, used by `npm run dev` and every test |
 | `src/data/dataverse/` | The Dataverse implementation, built on the generated code |
 | `src/generated/`, `.power/` | Written by the Power Apps CLI in Step 9. Never edit by hand |
 | `power.config.json` | Links the project to an environment, covered in Step 9 |
-| `solution/` | The Dataverse schema: `generate.py` and the zip it builds |
+| `solution/` | The Dataverse schema: `generate.py` and the zip it builds. The generated XML is in `solution/src/` |
 
 **Design tokens: `src/styles/tokens.css`.** A design token is a named design value, such as a colour, font, text size, spacing step, corner radius or animation timing. It is defined once and reused everywhere. Here each token is a CSS custom property, better known as a CSS variable. All of them are declared on `:root` in `tokens.css`, which makes them global: any stylesheet in the app can use a token by name.
 
@@ -240,7 +243,9 @@ You do not need to change any of this to run the app, but it explains the files 
 }
 ```
 
-Change a value in `tokens.css` and every component that uses it changes with it. Components never contain a colour value or a font name of their own. A test, `src/styles/tokens.node.test.ts`, fails if one appears anywhere else. The theme is warm-grey paper with one coral accent and the Geist font; the palette is in [`docs/design/theme.md`](design/theme.md). The fonts are bundled into the build with Fontsource rather than loaded from Google Fonts. That is because the app runs inside the Power Apps player, whose content security policy is set by AccelerateON via ITOD.
+Change a value in `tokens.css` and every component that uses it changes with it. Components never contain a colour value or a font name of their own. A test, `src/styles/tokens.node.test.ts`, fails if one appears anywhere else. The theme is warm-grey paper with one coral accent and the Geist font; the palette is in [`docs/design/theme.md`](design/theme.md).
+
+The fonts are bundled into the build with Fontsource rather than loaded from Google Fonts. That is because the app runs inside the Power Apps player, whose content security policy is set by AccelerateON and may block Google Fonts by default.
 
 **The repository layer: `src/data/`.** Components never call Dataverse. They call three interfaces, and two implementations sit behind them: in-memory and Dataverse. At startup, `src/data/createRepos.ts` picks one based on `VITE_USE_MOCKS`. The domain types are shaped for the app, not the database: a due date is a `Date` or `null`, not a `cb_duedate` string.
 
@@ -277,7 +282,7 @@ A browser opens. Sign in with the account that holds the System Administrator ro
 |---|---|
 | `environmentId` | The environment that Local Play runs in and `push` publishes to |
 | `appDisplayName` | The name shown in the Apps list |
-| `appId` | The published app. `null` until the first `push`, which writes the new ID back so later pushes update the same app |
+| `appId` | The published app. `null` until the first `push` to the environment, which writes the new ID back so later pushes update the same app |
 | `buildPath` | The folder `push` uploads: `./dist` |
 | `localAppUrl` | The dev server address that Local Play loads: `http://localhost:3000` |
 | `databaseReferences` | The tables added with `add data-source` |
@@ -306,7 +311,7 @@ For each table, the command writes:
 
 | Path | Contents |
 |---|---|
-| `src/generated/models/Cb_todotasksModel.ts` | TypeScript types for a row, including the choice values |
+| `src/generated/models/Cb_todotasksModel.ts` | TypeScript types for a Dataverse row, including the choice values |
 | `src/generated/services/Cb_todotasksService.ts` | `create`, `get`, `getAll`, `update` and `delete` for the table |
 | `.power/schemas/` | The table definitions that the services import |
 | `power.config.json` | A data source entry, such as `todotasks` |
@@ -337,9 +342,11 @@ Vite starts on port 3000, the address in `power.config.json`, and the Power Apps
 
 Open that URL in the browser profile that is signed in to the same account as the CLI. The Power Apps player signs you in, connects to Dataverse, and loads the app's code from your machine. On first run the app creates an Inbox list in your Todo List table.
 
+If the browser asks to let the site connect to devices on your local network, allow it. The player needs that permission to reach `localhost`, and without it the app stays blank.
+
 Local Play is a development mode, not a published app:
 
-- The URL works only while this dev server is running, and only on this machine. Leave the terminal running and open a second terminal for other commands.
+- The URL works only while this dev server is running, and only on the local dev machine. Leave the terminal running and open a second terminal for other commands.
 - The data is real. Every create, update and delete lands in your Dataverse tables.
 - The app itself is not published yet. `appId` is still `null`, and the app appears in neither the Apps list nor the solution until Part 4.
 
@@ -370,14 +377,14 @@ Every feature was built and tested against the in-memory data layer from Step 8,
 
 | Feature | What it does |
 |---|---|
-| Lists | Create, rename, reorder, archive and delete lists. An Inbox is created on first run and cannot be deleted. Keys `1` to `9` switch lists |
+| Lists | Create, rename, reorder, archive and delete lists. An Inbox is created on the first run and cannot be deleted. Keys `1` to `9` switch lists |
 | Quick capture | Press `n`, type, press Enter. `Buy milk on Friday` becomes "Buy milk" due next Friday, and `every Monday` sets a repeat |
 | Completing tasks | A tick animates, offers Undo for three seconds, then moves the task to a Completed section |
-| Task detail | Edit the title, notes, due date and time, reminder and repeat in place. On a phone it opens as a bottom sheet |
+| Task detail | Edit the title, notes, due date and time, reminder and repeat in place |
 | Today | The default view: overdue and due-today tasks from every list |
 | Subtasks | Up to 50 checklist steps per task, with progress such as `1/3` on the task row |
 | Recurring tasks | Daily, weekly or monthly. Completing one creates the next instance |
-| Reminders | A browser notification while the app is open |
+| Reminders (local only) | A browser notification while the app is open. Blocked in the published app, as explained below |
 | Keyboard | `j` and `k` to move, `x` to complete, `e` to edit, Backspace to delete, `t` for Today, `?` for the full list |
 | Sync | Refreshes when you return to the app and every 60 seconds. A failed save puts the screen back and offers Retry |
 
@@ -427,9 +434,14 @@ npx pa app push --solution-id <solution-id>
 
 `npm run build` compiles the app into `dist/`. `push` uploads whatever is in `dist/` and does not build anything itself, so always build immediately before you push. Otherwise you publish the previous build.
 
-`--solution-id` puts the app in the `CodeApp101` solution next to its tables. That way the solution carries the whole app when it moves from DEV to UAT to PROD. Without the flag, the app lands in the environment's preferred or Default solution.
+`--solution-id` puts the app in the `CodeApp101` solution next to its tables. That way the solution carries the whole app when it moves from DEV to UAT to PROD environments. Without the flag, the app lands in the environment's preferred or Default solution.
 
 The first push prints `App pushed successfully.` and writes the new app's ID into `appId` in `power.config.json`. Commit that file: it is how later pushes update this app instead of creating another one. To publish a change later, run the same two commands.
+
+**Moving to UAT and PROD.** You publish once, in DEV, and then move the solution:
+
+- In DEV, open **Solutions → CodeApp101 → Export solution** and export it as **Managed**. The zip carries the tables, the `Todo User` role and the app.
+- In UAT or PROD, import that zip with **Solutions → Import solution**, then assign the role and share the app there, as in Steps 5 and 13.
 
 #### Step 13: Share the app and assign the role
 
@@ -497,19 +509,19 @@ scripts is disabled on this system.
 
 **Cause.** Nothing to do with the Power Apps CLI. The default PowerShell execution policy on Windows client machines refuses to run `.ps1` files, including the `npx.ps1` shim that npm installs, so every `npx` command in this article fails the same way.
 
-**Fix.** Type `npx.cmd` instead of `npx`, for example `npx.cmd pa auth login`, or use Command Prompt or Git Bash. Changing the execution policy is a machine security setting, and on a managed device it may be set by policy.
+**Fix.** Type `npx.cmd` instead of `npx`, for example `npx.cmd pa auth login`, or use Command Prompt or Git Bash. Changing the execution policy is a machine security setting, and on a managed device it may be set by policy. If you have developer privileges on your machine, also try running the terminal as administrator.
 
 ### Only default publishers appear in the publisher list
 
-A new environment has two publishers: a CDS default publisher and an organisation default, both with auto-generated prefixes such as `cr04d74`. Neither is a good choice, because the prefix becomes part of every schema name. Create your own publisher with a short, meaningful prefix, or let a solution package create one on import, which is what this build did. If a publisher with the prefix `cb` already exists in your environment, change `PUBLISHER_UNIQUE` in `solution/generate.py` to its name before generating.
+A given DEV, UAT or PROD environment generally has two publishers: a CDS default publisher and an organisation default, both with auto-generated prefixes such as `cr04d74`. Neither is a good choice, because the prefix becomes part of every schema name. Create your own publisher with a short, meaningful prefix, or let a solution package create one on import, which is what this build did. If a publisher with the prefix `cb` already exists in your environment, change `PUBLISHER_UNIQUE` in `solution/generate.py` to its name before generating.
 
 ![The New publisher panel in the maker portal, with Display name, Name, Prefix and Choice value prefix fields](images/new-publisher.png)
 
 ### Import fails with `SecLib::CheckPrivilege failed ... PrivilegeName: prvCreateEntity`
 
-**Cause.** Your account lacks the System Administrator role on this environment, so it cannot create tables. Enabling code apps does not help: that setting grants nothing inside the environment's own security model.
+**Cause.** Your account lacks the System Administrator role in this environment, so it cannot create tables. Enabling code apps does not help: that setting grants nothing inside the environment's own security model.
 
-**Fix.** Get the System Administrator role on the environment, then import again. In the admin center, that is the environment, then **Access → Users → Manage security roles**. If that page offers no way to change roles, look for **Membership** on the environment instead; it worked in this build when the Users page did not. If neither is available, you are not an administrator of that environment, and someone who is must grant the role.
+**Fix.** Set the System Administrator role for that account within the environment, then import again. In the admin center: **Environment → Settings → Users + permissions → Users →** *the user* **→ Manage security roles**, then add the System Administrator role.
 
 ### Import fails with `The NavPaneDisplayOption attribute is required for the Referencing Role`
 
@@ -545,7 +557,7 @@ This is not a problem. Re-importing the corrected package updates the existing t
 Network request failed for GET https://dc08738656cb442582f34b2dd04d62.d8.environment.api.powerplatform.com/... DNS lookup failed - unable to resolve hostname.
 ```
 
-**Cause.** Not the network. The CLI builds a hostname from the environment ID, and the ID passed was wrong. A Default environment's ID is `Default-<tenant-id>`, and the GUID on its own is the tenant ID, for which no hostname exists.
+**Cause.** Not the network. The CLI builds a hostname from the environment ID, and the ID passed was wrong.
 
 **Fix.** Pass the environment ID exactly as Session details shows it, including any `Default-` prefix. A failed init writes nothing, so simply run it again.
 
@@ -578,6 +590,12 @@ You are probably running `pa` on its own. This repository installs the CLI into 
 npm install --global @microsoft/power-apps-cli
 ```
 
+### `npm run dev:dataverse` fails with `Port 3000 is already in use`
+
+**Cause.** Another process, often an earlier dev server you left running, is using port 3000. Local Play loads the app from the `localAppUrl` in `power.config.json`, `http://localhost:3000`, so the script refuses to fall back to a different port.
+
+**Fix.** Stop the other process, for example with **Ctrl+C** in the terminal running the earlier server, and run the command again.
+
 ### Local Play opens but no lists load
 
 **Cause.** Usually the browser profile that opened the Local Play URL is signed in to a different account from the one the CLI used. Less often, the account has neither the `Todo User` nor the System Administrator role, so Dataverse refuses every read.
@@ -600,13 +618,13 @@ npm install --global @microsoft/power-apps-cli
 
 **Cause.** Almost always a DLP policy. Policies are evaluated when the app launches in the environment, not when you develop against the connector locally. A connector that works all through the build can therefore be blocked the moment someone else opens the published app.
 
-**Fix.** Ask AccelerateON whether the connector is blocked by DLP, and work with them to get it enabled.
+**Fix.** Contact the AccelerateON team to check whether the connector is blocked by DLP, and work with them to get it enabled.
 
 ### Only some users can sign in and use the app
 
 **Cause.** A missing security role or a missing Power Apps Per User licence. The symptoms overlap, and neither looks like a licensing problem from the browser.
 
-**Fix.** Check licence assignment first, because it is the quickest to rule out. Then make sure the user holds the `Todo User` security role (Step 5).
+**Fix.** Check Power Apps Per User licence assignment first, because it is the quickest to rule out. Then make sure the user holds the `Todo User` security role (Step 5).
 
 ---
 
