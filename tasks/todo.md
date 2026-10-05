@@ -415,3 +415,124 @@ Two troubleshooting entries were added from this machine, both with real error t
 ## Checkpoint D — Done
 - [ ] All tasks checked, SPEC §8 met, spec and ADRs current
 - [ ] How-to article complete and publishable
+
+---
+
+# Phase 2: change-and-redeploy guide, and email reminders
+
+Spec: SPEC §10 (approved 2026-10-05, defaults accepted for O1–O5). Plan: `tasks/plan.md`, Phase 2. Same definition of done as above, including README and article updates. Tasks that need the tenant are marked **(Christopher)** and are not ticked from a coding session.
+
+---
+
+## Task 18: Feature A — Part 5, change the app and publish it again
+
+**Description:** Add **Part 5 · Change the app and publish it again** to the article (Steps 15–22) and a **Verify Part 5** section, teaching branch → test-first edit → Local Play → gates → local commit → build → `pa app push` → verify, using the Today empty-state text as the change.
+
+**Acceptance criteria:**
+- [ ] Every use of `Nothing due today.` is found (`grep -rn` across `src` and `e2e`) and listed in the article, and the step ordering is: change tests, see them fail, change component, see them pass
+- [ ] Steps say where each command runs and give PowerShell variants where a command differs; the push step reuses Step 11's solution ID
+- [ ] Article explains why `push` updates the same app (`appId` in `power.config.json`) and what to do if the old text still shows
+- [ ] Two Troubleshooting entries: old UI after a successful push, and a second app created by `push`
+- [ ] README status table and layout/feature mentions updated if affected
+- [ ] The example change is demonstrated on a throwaway branch and **not** merged; `main` keeps the original wording
+
+**Verification:**
+- [ ] Run steps 15–21 on a clean clone: `npm test` fails then passes, `npm run lint && npm run typecheck && npm test && npm run build` pass
+- [ ] `npm run dev` shows the new text on an empty Today
+- [ ] Step 22 (`push` and opening the app) marked as not run; for Christopher at Checkpoint E
+
+**Dependencies:** None
+**Files:** `docs/how-to-build-a-power-apps-code-app.md`, `README.md`
+**Scope:** M
+
+---
+
+## Task 19: Schema — `cb_reminderemailsentat`, solution 1.1.0.0
+
+**Description:** Add the nullable UTC DateTime column `cb_reminderemailsentat` ("Reminder email sent at") to `cb_todotask` in `solution/generate.py`; bump `VERSION` to 1.1.0.0; regenerate and commit `solution/CodeApp101_1_1_0_0.zip`; remove the 1.0.0.0 zip; update every reference to the zip name.
+
+**Acceptance criteria:**
+- [ ] `customizations.xml` contains the new column with the right type, behaviour and display name; no other schema change
+- [ ] References to `CodeApp101_1_0_0_0.zip` and "version 1.0.0.0" updated in `README.md`, `docs/dataverse-setup.md`, the article (Steps 3–4) and `generate.py`
+- [ ] `docs/dataverse-setup.md` gains a short "Upgrading an existing install" section and a manual fallback for adding just this column
+- [ ] SPEC §2 task table lists the column; `CLAUDE.md` zip-name mentions, if any, updated
+- [ ] Failing test first: a Python or node test that parses the generated XML and asserts the column and version (add under `solution/` or a vitest node test, whichever the repo already uses for generated artefacts)
+
+**Verification:**
+- [ ] `python3 solution/generate.py` is idempotent (second run produces no diff)
+- [ ] `npm run lint && npm run typecheck && npm test && npm run build`
+- [ ] **(Christopher)** Import the new zip over the existing solution and confirm the column appears in Dataverse; then run `npx pa app refresh data-source --name todotasks` and commit the regenerated `src/generated/`
+
+**Dependencies:** None
+**Files:** `solution/generate.py`, `solution/*.zip`, `docs/dataverse-setup.md`, `SPEC.md`, `README.md`, article
+**Scope:** M
+
+---
+
+## Task 20: Data layer — `reminderEmailSentAt` and the re-arm rule
+
+**Description:** Add `Task.reminderEmailSentAt: Date | null` to `src/data/repo.ts`, its default in `defaults.ts`, mapping in `mappers.ts`, behaviour in the mock and Dataverse repos. An update that changes or clears `reminderAt` also nulls `reminderEmailSentAt` in the same PATCH; an update that does not touch `reminderAt` leaves it out. Completing a recurring task creates the next instance with `null`.
+
+**Acceptance criteria:**
+- [ ] Contract tests in `repoContract.ts` (written first, run against mock and the Dataverse fake) cover: round trip; re-arm on reminder change; re-arm on clear; untouched when other fields change; recurring next instance resets
+- [ ] Mapper tests assert the exact outgoing PATCH shape and that unchanged-reminder updates omit the column
+- [ ] Nothing outside `src/data/` imports `src/generated/`; `src/generated/` is not hand-edited
+- [ ] Coverage gates (90 % on `src/data`) still met
+
+**Verification:**
+- [ ] `npm run lint && npm run typecheck && npm test && npm run build`
+- [ ] `npm run dev:smoke` against Dataverse: set a reminder, set `cb_reminderemailsentat` by hand in the portal, change the reminder, confirm it clears **(Christopher)**
+
+**Dependencies:** T19 and the tenant re-import plus `pa app refresh` by Christopher
+**Files:** `src/data/repo.ts`, `src/data/defaults.ts`, `src/data/repoContract.ts`, `src/data/dataverse/mappers.ts` (+ tests), `src/data/dataverse/dataverseRepos.ts`, `src/data/dataverse/fakeDataverse.ts`, `src/data/mock/*`
+**Scope:** M (touches more than five files, all in one folder; split into mock-first and Dataverse-second commits only if it grows)
+
+---
+
+## Task 21: UI — read-only "Email sent" line
+
+**Description:** In `TaskDetail`, show "Email sent 9:00 am" when `reminderEmailSentAt` is set, formatted with the existing date helpers, tokens only. Non-interactive text, so the eight states do not apply.
+
+**Acceptance criteria:**
+- [ ] Component test first: line absent when `null`, present with formatted time when set, hidden when the reminder is cleared
+- [ ] Playwright: changing a reminder on an emailed task removes the line (Chromium and WebKit)
+- [ ] No hex, OKLCH or raw `font-family` outside `tokens.css`; visible and unclipped at 320 px
+
+**Verification:**
+- [ ] `npm run lint && npm run typecheck && npm test && npm run build && npm run e2e`
+- [ ] Screenshot at 375 px for the article
+
+**Dependencies:** T20
+**Files:** `src/components/TaskDetail/*`, `src/test/factories.ts`, `e2e/taskdetail.spec.ts`
+**Scope:** S
+
+---
+
+## Task 22: Feature B — Part 6 article, README, SPEC and ADR
+
+**Description:** Add **Part 6 · Send email reminders with Power Automate** (Steps continue from Part 5): prerequisites box (Power Automate Premium, Outlook connection, AccelerateON pointer); import the 1.1.0.0 solution and refresh/re-push (reusing Part 5's steps); build the flow in the maker portal inside `CodeApp101` with every trigger, action, OData filter and expression written out; connection references when moving between environments; test it; Verify Part 6; Troubleshooting. Write `docs/adr/0005-reminder-email-flow.md`.
+
+**Acceptance criteria:**
+- [ ] Flow spec in the article matches SPEC §10.2: 5-minute recurrence; filter `cb_reminderat le utcNow() and cb_reminderat ge <utcNow − 24 h> and cb_iscompleted eq false and cb_reminderemailsentat eq null`; list-name lookup; mail from Outlook "Send an email (V2)" to the connection owner; stamp update; concurrency 1; time zone via `convertTimeZone`
+- [ ] The article states the limits: single-user scope (P5) and the service-account path, five-minute granularity, possible duplicate with the browser notification, and the app link marked **unverified** (O4)
+- [ ] Troubleshooting entries: flow finds no rows, Dataverse 403 from the User-level role, mail in junk, time zone off, flow auto-disabled after failures or when its owner leaves
+- [ ] Flow screenshots are placeholders in `docs/images/` for Christopher to replace (O3), named and listed
+- [ ] README status table, feature list and stack updated; SPEC S3, A4 and Q3 edited to say the email path exists; `CLAUDE.md` current-state section updated; `docs/smoke.md` gains the email-reminder checks
+- [ ] Every portal step is marked run or unrun; none claimed as verified that I did not see
+
+**Verification:**
+- [ ] `npm run lint && npm run typecheck && npm test && npm run build`
+- [ ] Re-read Part 6 against the final column name, filter and field names in the code
+
+**Dependencies:** T20, T21 (T18 for the shared push steps)
+**Files:** `docs/how-to-build-a-power-apps-code-app.md`, `docs/adr/0005-reminder-email-flow.md`, `docs/smoke.md`, `docs/images/*`, `README.md`, `SPEC.md`, `CLAUDE.md`
+**Scope:** M
+
+---
+
+## Checkpoint E — Phase 2 done **(Christopher)**
+- [ ] 1.1.0.0 solution imported, data source refreshed, app built and pushed (Part 5 step 21–22 run for real)
+- [ ] Flow built from Part 6 exactly as written; a reminder set 10 minutes ahead emails the owner within 10 minutes; the task shows "Email sent"
+- [ ] Changing the reminder re-arms and sends again; completed, reminder-less and over-24-hour-old tasks send nothing; flow off breaks nothing
+- [ ] `docs/smoke.md` results recorded; unrun article steps either run or still marked unrun
+- [ ] SPEC §10.8 criteria 1–5 true

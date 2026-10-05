@@ -102,7 +102,60 @@ T0 runs in parallel with T1–T3 (it is Christopher-side in the maker portal). T
 
 `docs/how-to-build-a-power-apps-code-app.md` is a knowledge-base article written alongside the build, not after it. Part 1 (planning, schema, environment) is finished. Each task appends brief notes: any non-obvious step, any failure and what fixed it, any decision a reader would ask about. Task 17 turns those notes into finished prose. Writing it during the build is the point, because the failures are what make it useful and they are forgotten within a day.
 
-## Out of this plan (Phase 2, separate spec)
+## Out of this plan
 
-- Power Automate scheduled flow → Outlook reminder emails.
 - GitHub Actions deploy with a service principal (`pa app push --non-interactive`).
+- Teams or mobile push, a per-user email opt-out, and a service-account flow for all users.
+
+The Power Automate reminder flow and the change-and-redeploy guide are Phase 2 and are planned below.
+
+---
+
+# Phase 2: change-and-redeploy guide, and email reminders
+
+Spec: [`SPEC.md` §10](../SPEC.md#10-phase-2-change-and-redeploy-guide-and-email-reminders-via-power-automate), approved 2026-10-05 with all defaults. Tasks 18–23 in [`todo.md`](todo.md).
+
+## Overview
+
+Two deliverables, each code or schema change plus article steps. **A** is a new Part 5 teaching the inner loop (branch, test-first edit, Local Play, gates, commit, build, push) with the Today empty-state wording as the change. **B** is a new Part 6: a `cb_reminderemailsentat` column, app logic that re-arms it, a read-only "Email sent" line, and a scheduled Power Automate flow built in the maker portal that emails the owner through Outlook.
+
+## Architecture decisions
+
+- **Polling flow, not a row trigger.** A 5-minute scheduled flow with a Dataverse filter, then an `cb_reminderemailsentat` stamp to prevent repeats. Simpler to explain and to debug than long-running waits. Concurrency set to 1 so overlapping runs cannot double-send. ADR 0005.
+- **The app owns re-arming.** Any update that changes `reminderAt` sends `cb_reminderemailsentat: null` in the same PATCH, inside the repo layer, so every caller gets it. Contract-tested against mock and Dataverse fake.
+- **Flow is not in Git.** Built by hand in the portal and added to `CodeApp101`; the article lists each expression verbatim and is its source of record. Runs under the reader's connection, so it sees only their tasks (SPEC P5).
+- **Solution version 1.1.0.0.** The schema change ships as a renamed zip so the upgrade import is unambiguous (O2).
+- **Feature A's example change is not merged.** The shipped wording stays; the article's change is demonstrated on a throwaway branch.
+
+## Dependency graph
+
+```
+T18 Feature A: Part 5 article ─────────────────────────────┐ (independent; reused by T22)
+T19 Schema: cb_reminderemailsentat, v1.1.0.0 zip
+   └─ [Christopher: re-import, npx pa app refresh data-source --name todotasks]
+        └─ T20 Data layer: field, mappers, re-arm rule, contract tests
+             └─ T21 UI: "Email sent" line
+                  └─ T22 Feature B: Part 6 article, README, SPEC updates, ADR 0005
+                       └─ T23 Checkpoint E: tenant run (Christopher)
+```
+
+T18 and T19 can run in parallel. T20 cannot start until the column exists in `src/generated/`, which needs Christopher's re-import and refresh (a tenant action).
+
+## Phases and checkpoints
+
+1. **Slice 1 (T18):** Feature A complete as prose, every local command run on a clean clone.
+2. **Slice 2 (T19–T21):** the column, data rules and UI, shippable on their own with mock data, no flow needed.
+3. **Slice 3 (T22–T23):** the flow article and the tenant verification.
+
+## Risks and mitigations
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Upgrade import of an unmanaged solution fails or duplicates | Med | Bump to 1.1.0.0; test import on Christopher's tenant before T20; fall back to adding the column by hand in the portal and re-exporting, as in `docs/dataverse-setup.md` |
+| `pa app refresh data-source` generates a differently-shaped column type (DateTime as string) | Low | Mapper test written against the real generated type; repo interface isolates the rest |
+| Flow double-sends or sends a flood after downtime | Med | `cb_reminderemailsentat eq null` filter, 24 h floor, concurrency 1 |
+| Reader lacks Power Automate Premium | Med | Prerequisite box; Feature A and the app half of B stand alone |
+| Flow sees only the owner's tasks (User-level role) | Known | Stated in the article; service-account path named but out of scope |
+| Portal steps I cannot run go stale or are wrong | Med | Mark each unrun step as unverified, as in task 17; Christopher runs them at Checkpoint E |
+| Time zone off in the email | Low | `convertTimeZone` to Eastern, covered in Troubleshooting |
+| App link format for code apps unverified (O4) | Low | Marked unverified until clicked from a real email |
