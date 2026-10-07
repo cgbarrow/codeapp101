@@ -19,8 +19,8 @@ Two paths. Try Path A first; it takes about two minutes. Fall back to Path B onl
 ## Path A — Import the generated solution package
 
 1. Go to [make.powerapps.com](https://make.powerapps.com), pick the environment (top right), then **Solutions** in the left nav.
-2. Click **Import solution** → **Browse** → choose `solution/CodeApp101_1_0_0_0.zip` from this repo → **Next**.
-3. The details page should show *CodeApp101*, version 1.0.0.0, publisher *CodeApp101 Publisher* (or your existing `cb` publisher). Click **Import**.
+2. Click **Import solution** → **Browse** → choose `solution/CodeApp101_1_1_0_0.zip` from this repo → **Next**.
+3. The details page should show *CodeApp101*, version 1.1.0.0, publisher *CodeApp101 Publisher* (or your existing `cb` publisher). Click **Import**.
 4. Wait for the green "Solution imported successfully" banner. Open **CodeApp101** and confirm **Tables** lists Todo List, Todo Task, Todo Subtask and **Security roles** lists *Todo User*.
 5. Open **Todo Task → Columns** and confirm you can see *List* (lookup), *Due Date*, *Recurrence* (choice), *Recurrence Parent* (lookup). Open **Todo Subtask → Columns** and confirm *Task* (lookup).
 6. Continue to **Assign the role** below.
@@ -36,7 +36,7 @@ All steps in [make.powerapps.com](https://make.powerapps.com) with the correct e
 ### B1. Publisher and solution
 1. Solutions → **New solution**. Display name `CodeApp101`, Name `CodeApp101`.
 2. Publisher: **+ Publisher** → Display name `CodeApp101 Publisher`, Name `CodeApp101Publisher`, Prefix `cb`, Choice value prefix `10000` → Save.
-3. Version `1.0.0.0` → **Create**. Open the solution; do everything below from inside it so components land in the solution.
+3. Version `1.1.0.0` → **Create**. Open the solution; do everything below from inside it so components land in the solution.
 
 ### B2. Table: Todo List
 1. **+ New → Table → Table (advanced)**. Display name `Todo List`, Plural `Todo Lists`. Expand **Advanced options**: Schema name must read `cb_TodoList`; Record ownership **User or team**; Primary column display name `Name`, schema `cb_Name`. **Save**.
@@ -55,6 +55,7 @@ All steps in [make.powerapps.com](https://make.powerapps.com) with the correct e
    - `Due Date` · Date and time → Date and time · `cb_DueDate` · Behavior **User local**
    - `Has Time` · Choice → Yes/no · `cb_HasTime` · default No
    - `Reminder At` · Date and time → Date and time · `cb_ReminderAt` · User local
+   - `Reminder email sent at` · Date and time → Date and time · `cb_ReminderEmailSentAt` · User local · not required (added in 1.1.0.0)
    - `Is Completed` · Choice → Yes/no · `cb_IsCompleted` · default No
    - `Completed On` · Date and time → Date and time · `cb_CompletedOn` · User local
    - `Recurrence` · Choice → Choice · `cb_Recurrence` · **local** choice with values exactly: `None` = 100000000, `Daily` = 100000001, `Weekly` = 100000002, `Monthly` = 100000003 · default None
@@ -75,7 +76,7 @@ All steps in [make.powerapps.com](https://make.powerapps.com) with the correct e
 
 ### B6. Publish and export
 1. **Publish all customizations**.
-2. Solutions → select CodeApp101 → **Export solution** → Unmanaged → download. Save the file as `solution/CodeApp101_1_0_0_0.zip` in this repo (replacing the generated one) and tell me; I will unpack it into `solution/src/` so Git has the real schema.
+2. Solutions → select CodeApp101 → **Export solution** → Unmanaged → download. Save the file as `solution/CodeApp101_1_1_0_0.zip` in this repo (replacing the generated one) and tell me; I will unpack it into `solution/src/` so Git has the real schema.
 
 ---
 
@@ -83,6 +84,15 @@ All steps in [make.powerapps.com](https://make.powerapps.com) with the correct e
 
 1. [Power Platform admin center](https://admin.powerplatform.microsoft.com) → Manage → Environments → *your environment* → **Users** → **See all** → select yourself → **Manage security roles** → tick **Todo User** → Save.
 2. Repeat for any second test account you will use in Task 16.
+
+## Upgrading an existing install
+
+Solution 1.1.0.0 adds one column, `cb_reminderemailsentat` ("Reminder email sent at") on Todo Task, and changes nothing else. To upgrade an environment that already has 1.0.0.0:
+
+1. Follow Path A with `solution/CodeApp101_1_1_0_0.zip`. Dataverse recognises the unmanaged solution and upgrades it in place; existing rows are untouched.
+2. Open **CodeApp101 → Todo Task → Columns** and confirm *Reminder email sent at* is listed.
+3. If the import is rejected, add just that column by hand: **Todo Task → Columns → + New column** · Display name `Reminder email sent at` · Data type Date and time → Date and time · Schema name `cb_ReminderEmailSentAt` · Behavior **User local** · not required. Save, then **Publish all customizations**.
+4. Regenerate the app's data source so the CLI sees the column: `npx pa app refresh data-source --name todotasks`.
 
 ## Verify
 

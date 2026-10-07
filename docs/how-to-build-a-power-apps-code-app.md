@@ -126,12 +126,12 @@ The schema is three user-owned tables:
 | Table | Purpose | Notable columns |
 |---|---|---|
 | `cb_todolist` | A bucket such as Work or Groceries | `cb_isinbox`, `cb_sortorder` |
-| `cb_todotask` | A task in a list | `cb_duedate`, `cb_hastime`, `cb_recurrence`, `cb_reminderat` |
+| `cb_todotask` | A task in a list | `cb_duedate`, `cb_hastime`, `cb_recurrence`, `cb_reminderat`, `cb_reminderemailsentat` |
 | `cb_todosubtask` | A checklist step inside a task | `cb_isdone`, `cb_sortorder` |
 
 Plus three relationships and a `Todo User` security role granting user-level create, read, write and delete on all three.
 
-**If you are using this repository, the package is already built** as [`solution/CodeApp101_1_0_0_0.zip`](../solution/CodeApp101_1_0_0_0.zip), and you can go straight to Step 4. Regenerate it only after changing the schema. In the terminal, at the repository root:
+**If you are using this repository, the package is already built** as [`solution/CodeApp101_1_1_0_0.zip`](../solution/CodeApp101_1_1_0_0.zip), and you can go straight to Step 4. Regenerate it only after changing the schema. In the terminal, at the repository root:
 
 ```bash
 python3 solution/generate.py
@@ -150,8 +150,8 @@ In the maker portal:
 
 1. Open [make.powerapps.com](https://make.powerapps.com) and select the target environment in the picker at the top right.
 2. Choose **Solutions** in the left navigation, then **Import solution**.
-3. Browse to `solution/CodeApp101_1_0_0_0.zip` and continue.
-4. Confirm the details page shows the solution `CodeApp101`, version 1.0.0.0 and the publisher `CodeApp101 Publisher`, then choose **Import**.
+3. Browse to `solution/CodeApp101_1_1_0_0.zip` and continue.
+4. Confirm the details page shows the solution `CodeApp101`, version 1.1.0.0 and the publisher `CodeApp101 Publisher`, then choose **Import**.
 5. Wait for the success banner. A three-table import takes roughly forty seconds.
 
 ![The Solutions page with Import solution highlighted, and the Import a solution panel showing the CodeApp101 Publisher with the cb prefix](images/import-solution.png)

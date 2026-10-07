@@ -466,6 +466,38 @@
       <displaynames><displayname description="Reminder At" languagecode="1033" /></displaynames>
       <Descriptions><Description description="When to notify (user local)." languagecode="1033" /></Descriptions>
     </attribute>
+    <attribute PhysicalName="cb_ReminderEmailSentAt">
+      <Type>datetime</Type>
+      <Name>cb_reminderemailsentat</Name>
+      <LogicalName>cb_reminderemailsentat</LogicalName>
+      <RequiredLevel>none</RequiredLevel>
+      <DisplayMask>ValidForAdvancedFind|ValidForForm|ValidForGrid</DisplayMask>
+      <ImeMode>auto</ImeMode>
+      <ValidForUpdateApi>1</ValidForUpdateApi>
+      <ValidForReadApi>1</ValidForReadApi>
+      <ValidForCreateApi>1</ValidForCreateApi>
+      <IsCustomField>1</IsCustomField>
+      <IsAuditEnabled>1</IsAuditEnabled>
+      <IsSecured>0</IsSecured>
+      <IntroducedVersion>1.1.0.0</IntroducedVersion>
+      <IsCustomizable>1</IsCustomizable>
+      <IsRenameable>1</IsRenameable>
+      <CanModifySearchSettings>1</CanModifySearchSettings>
+      <CanModifyRequirementLevelSettings>1</CanModifyRequirementLevelSettings>
+      <CanModifyAdditionalSettings>1</CanModifyAdditionalSettings>
+      <SourceType>0</SourceType>
+      <IsGlobalFilterEnabled>0</IsGlobalFilterEnabled>
+      <IsSortableEnabled>0</IsSortableEnabled>
+      <IsDataSourceSecret>0</IsDataSourceSecret>
+      <AutoNumberFormat></AutoNumberFormat>
+      <IsSearchable>1</IsSearchable>
+      <IsFilterable>0</IsFilterable>
+      <IsRetrievable>0</IsRetrievable>
+      <IsLocalizable>0</IsLocalizable>
+      <Format>datetime</Format><Behavior>1</Behavior><CanChangeDateTimeBehavior>1</CanChangeDateTimeBehavior>
+      <displaynames><displayname description="Reminder email sent at" languagecode="1033" /></displaynames>
+      <Descriptions><Description description="When the reminder email flow last sent for this reminder; cleared by the app when the reminder changes." languagecode="1033" /></Descriptions>
+    </attribute>
     <attribute PhysicalName="cb_IsCompleted">
       <Type>bit</Type>
       <Name>cb_iscompleted</Name>
