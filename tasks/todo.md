@@ -463,7 +463,7 @@ Spec: SPEC §10 (approved 2026-10-05, defaults accepted for O1–O5). Plan: `tas
 **Verification:**
 - [x] `python3 solution/generate.py` is idempotent (second run produces no diff)
 - [x] `npm run lint && npm run typecheck && npm test && npm run build`
-- [ ] **(Christopher)** Import the new zip over the existing solution and confirm the column appears in Dataverse; then run `npx pa app refresh data-source --name todotasks` and commit the regenerated `src/generated/`
+- [x] **(Christopher)** Import the new zip over the existing solution and confirm the column appears in Dataverse; then run `npx pa app refresh data-source --name todotasks` and commit the regenerated `src/generated/`
 
 **Dependencies:** None
 **Files:** `solution/generate.py`, `solution/*.zip`, `docs/dataverse-setup.md`, `SPEC.md`, `README.md`, article
