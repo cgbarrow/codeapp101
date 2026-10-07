@@ -28,5 +28,5 @@ npx pa app push
   article says so in its troubleshooting section, because this cost real time.
 - `pa auth login` opens a browser, so the first sign-in is manual. Everything after it is scriptable.
 - The CLI resolves an environment by its **environment id**, not the tenant id. The id used here is
-  `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8`; the bare GUID is the tenant and fails to resolve.
+  `Default-<tenant-id>`; the bare GUID is the tenant and fails to resolve.
 - Pinning matters: this CLI is young, and an unpinned upgrade can change generated output.

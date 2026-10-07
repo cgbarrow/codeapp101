@@ -122,7 +122,7 @@ Sharing/assignment, attachments, comments, tags/priorities, Teams tab embedding,
 | E2E | Playwright (Chromium + WebKit mobile profile) | Runs against Vite dev server with a **mocked** service layer; Local Play requires tenant auth and is a manual smoke step |
 | Lint/format | ESLint 9 (template config) + Prettier | |
 | Data | Microsoft Dataverse | Three custom tables in solution `CodeApp101` |
-| Hosting | Power Platform environment `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` (environment ID `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8`; `dc087386-56cb-4425-82f3-4b2dd04d62d8` alone is the tenant ID), Dataverse org `https://org6e4abf07.crm.dynamics.com/`, code apps enabled | Published via `pa app push` |
+| Hosting | your Power Platform environment (`<environment-id>`, in `power.config.json`; the bare tenant GUID is not an environment ID) and its Dataverse org (`https://<org>.crm.dynamics.com/`), code apps enabled | Published via `pa app push` |
 | Repo / CI | GitHub, GitHub Actions | CI: lint + typecheck + test + build. Deploy: manual workflow_dispatch using a service principal (`pa app push --non-interactive`) — Phase 2 |
 
 ### Dataverse schema (solution `CodeApp101`, publisher prefix `cb`)
@@ -182,7 +182,7 @@ Project bootstrap (first time only):
 ```bash
 npx degit github:microsoft/PowerAppsCodeApps/templates/vite .
 npm install
-pa app init --display-name "Simple Todo" --environment-id Default-dc087386-56cb-4425-82f3-4b2dd04d62d8
+pa app init --display-name "Simple Todo" --environment-id <environment-id>
 pa app add data-source --connector dataverse --table cb_todolist
 pa app add data-source --connector dataverse --table cb_todotask
 pa app add data-source --connector dataverse --table cb_todosubtask
@@ -431,7 +431,7 @@ Rules:
 
 | # | Question | Decision |
 |---|---|---|
-| Q1 | Environment | `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` is the environment ID; `dc087386-56cb-4425-82f3-4b2dd04d62d8` is the tenant ID **(corrected 2026-09-17)**. Code apps must be enabled there (admin center → Environment → Settings → Features). |
+| Q1 | Environment | The environment ID has the form `Default-<tenant-id>`; the bare tenant GUID is not an environment ID **(corrected 2026-09-17; the real values moved out of the repository 2026-10-07)**. Code apps must be enabled there (admin center → Environment → Settings → Features). |
 | Q2 | Publisher / solution | Prefix `cb`, solution `CodeApp101`. |
 | Q3 | Reminders beyond the open tab | Phase 2: Power Automate scheduled flow → **Outlook only**, built together. Not in this plan. Note: a scheduled flow runs outside the app context, so it needs Power Automate Premium for the flow owner rather than being covered by the Power Apps Per User licence. Confirm with AccelerateON before designing phase 2. |
 | Q4 | Mobile player | Not required. Responsive web only; `--app-type CodeApp` (default). |

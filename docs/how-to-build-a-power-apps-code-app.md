@@ -264,7 +264,7 @@ The tables from Part 1 must already be in your environment.
 **Find your environment ID and Dataverse URL.** In [make.powerapps.com](https://make.powerapps.com), select your environment. Choose the **Settings** gear at the top right, then **Session details**. Copy two values:
 
 - **Environment ID.** Use it exactly as shown. An organisation's Default environment has an ID that starts with `Default-` followed by a GUID, and the prefix is part of the ID. AccelerateON's dedicated DEV, UAT and PROD environments have no `Default-` prefix. The admin center shows the same ID under Manage → Environments → *your environment*.
-- **Instance url**, such as `https://org6e4abf07.crm.dynamics.com/`. This is the Dataverse organisation URL.
+- **Instance url**, such as `https://<org>.crm.dynamics.com/`. This is the Dataverse organisation URL.
 
 ![Power Apps Session details, showing the Environment ID and Instance url](images/session-details.png)
 
@@ -420,7 +420,7 @@ npx pa solution list | grep -i CodeApp101
 In Windows PowerShell, use `npx pa solution list | Select-String CodeApp101` instead. The filter matters, because the list shows every solution in the environment, often several hundred. The ID is the third column:
 
 ```
-  CodeApp101       CodeApp101       cb31311c-e547-4888-b237-04b0ad14fd06
+  CodeApp101       CodeApp101       <solution-id>
 ```
 
 #### Step 12: Build and publish
@@ -485,7 +485,7 @@ The automated tests never ran inside the Power Apps player, against real Dataver
   ```
     Code Apps
     App ID                                Display Name
-    5e72594e-4a1c-4c2c-9b6b-7eae8479a302  Simple Todo
+    <app-id>  Simple Todo
     Total: 1 code app(s) found
   ```
 
@@ -554,7 +554,7 @@ This is not a problem. Re-importing the corrected package updates the existing t
 ### `pa app init` fails with `DNS lookup failed - unable to resolve hostname`
 
 ```
-Network request failed for GET https://dc08738656cb442582f34b2dd04d62.d8.environment.api.powerplatform.com/... DNS lookup failed - unable to resolve hostname.
+Network request failed for GET https://<tenant-id-without-hyphens>.<xx>.environment.api.powerplatform.com/... DNS lookup failed - unable to resolve hostname.
 ```
 
 **Cause.** Not the network. The CLI builds a hostname from the environment ID, and the ID passed was wrong.

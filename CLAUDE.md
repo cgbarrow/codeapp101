@@ -37,9 +37,9 @@ npm test           # vitest run
 npm run build      # tsc -b && vite build
 ```
 
-The CLI is `pa` (npm, `@microsoft/power-apps-cli`), not `pac`. It runs on macOS. `pac code` commands no longer exist. It is a devDependency, not a global install, so run it as `npx pa`. Its sign-in is cached per machine: a new machine needs `npx pa auth login` once, and `npx pa auth status` shows the active account (this build used `Mackensen5659@vy7kt.onmicrosoft.com`).
+The CLI is `pa` (npm, `@microsoft/power-apps-cli`), not `pac`. It runs on macOS. `pac code` commands no longer exist. It is a devDependency, not a global install, so run it as `npx pa`. Its sign-in is cached per machine: a new machine needs `npx pa auth login` once, and `npx pa auth status` shows the active account (the account this build used is in `CLAUDE.local.md`).
 
-Environment ID: `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` (the tenant's default environment; the bare GUID is the tenant ID and the CLI cannot resolve it). Dataverse org: `https://org6e4abf07.crm.dynamics.com/`. Solution: `CodeApp101`, publisher prefix `cb`, solution ID `cb31311c-e547-4888-b237-04b0ad14fd06` — the ID is not derivable from the repository, `npx pa solution list | grep -i CodeApp101` prints it. Published app ID `5e72594e-4a1c-4c2c-9b6b-7eae8479a302`, also in `power.config.json`.
+Tenant specifics (environment ID, Dataverse org URL, solution ID, app ID, sign-in account) are not in the repository, which is public. They live in `CLAUDE.local.md` (gitignored; Claude Code loads it automatically). The environment ID and app ID are also in `power.config.json`, which `pa` writes and the repo commits. Solution: `CodeApp101`, publisher prefix `cb`; `npx pa solution list | grep -i CodeApp101` prints its ID. The bare tenant GUID is not an environment ID and the CLI cannot resolve it.
 
 ## Current state — 28 September 2026
 

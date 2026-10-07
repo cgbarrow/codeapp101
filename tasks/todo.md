@@ -92,7 +92,7 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 
 ## Task 4: Initialise the code app and wire Dataverse
 
-**Description:** Christopher runs `pa auth login` once. Then `pa app init --display-name "Simple Todo" --environment-id Default-dc087386-56cb-4425-82f3-4b2dd04d62d8` and `pa app add data-source --connector dataverse --table …` for the three tables. Implement `src/data/dataverse/*` over the generated services, with `mappers.ts` handling column names, ISO dates, choice ints and `@odata.bind` lookups. Always pass `select`; updates send only changed columns.
+**Description:** Christopher runs `pa auth login` once. Then `pa app init --display-name "Simple Todo" --environment-id <environment-id>` and `pa app add data-source --connector dataverse --table …` for the three tables. Implement `src/data/dataverse/*` over the generated services, with `mappers.ts` handling column names, ISO dates, choice ints and `@odata.bind` lookups. Always pass `select`; updates send only changed columns.
 
 **Acceptance criteria:**
 - [x] `power.config.json` committed with three data sources; `src/generated/` present and untouched
@@ -103,7 +103,7 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 - [x] `npm test -- src/data/dataverse`
 - [x] Manual Local Play check recorded in `docs/smoke.md`
 
-**Status: DONE 2026-09-17.** Environment ID is `Default-dc087386-…` (the bare GUID is the tenant ID). Local Play check via `npm run dev:smoke`, recorded in `docs/smoke.md`.
+**Status: DONE 2026-09-17.** Environment ID is `Default-<tenant-id>` (the bare GUID is the tenant ID). Local Play check via `npm run dev:smoke`, recorded in `docs/smoke.md`.
 
 **Dependencies:** T0, T3
 **Files:** `power.config.json`, `src/generated/**` (generated), `src/data/dataverse/listRepo.ts`, `src/data/dataverse/taskRepo.ts`, `src/data/dataverse/subtaskRepo.ts`, `src/data/dataverse/mappers.ts`, `src/data/dataverse/*.test.ts`
@@ -370,7 +370,7 @@ Keep article notes brief and factual while building; Task 17 turns them into fin
 **Verification:**
 - [ ] Manual smoke checklist with dates and outcomes
 
-**Status: PUBLISHED 2026-09-17; the smoke test is outstanding and is for Christopher.** `npm run build` then `pa app push --solution-id cb31311c-e547-4888-b237-04b0ad14fd06` succeeded; app ID `5e72594e-4a1c-4c2c-9b6b-7eae8479a302`, confirmed by `pa app list`, and `power.config.json` now carries it. The solution ID is not in the repository — `pa solution list | grep -i CodeApp101` prints it. `push` uploads `./dist` and does not build, so build immediately before pushing. Remaining, all needing the tenant and a second device: `pa app share` plus the `Todo User` role for the second test user (Christopher is doing this in the maker portal), then the ten checks in `docs/smoke.md`. Expect check 6 (reminders) to fail in the player's cross-origin iframe, as flagged in task 13.
+**Status: PUBLISHED 2026-09-17; the smoke test is outstanding and is for Christopher.** `npm run build` then `pa app push --solution-id <solution-id>` succeeded; app ID written to `power.config.json`, confirmed by `pa app list`, and `power.config.json` now carries it. The solution ID is not in the repository — `pa solution list | grep -i CodeApp101` prints it. `push` uploads `./dist` and does not build, so build immediately before pushing. Remaining, all needing the tenant and a second device: `pa app share` plus the `Todo User` role for the second test user (Christopher is doing this in the maker portal), then the ten checks in `docs/smoke.md`. Expect check 6 (reminders) to fail in the player's cross-origin iframe, as flagged in task 13.
 
 **Dependencies:** T0, T4, T15
 **Files:** `docs/smoke.md`, `power.config.json`

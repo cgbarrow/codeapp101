@@ -6,7 +6,7 @@ Manual checks against the real environment. Tests never touch Dataverse; these d
 
 **How:** run `npm run dev:smoke`, open the printed **Local Play** URL in the browser profile signed in to the tenant, and click each step in the **Dataverse smoke test** panel in order. Check the maker portal (Tables → Todo Lists / Todo Tasks → Data) between steps. The panel deletes everything it creates.
 
-**17 September 2026:** passed. Run by Christopher as `Mackensen5659@vy7kt.onmicrosoft.com` against `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8`.
+**17 September 2026:** passed. Run by Christopher against his developer environment.
 
 | Step | Logged result | Outcome |
 |---|---|---|
@@ -43,15 +43,15 @@ desktop side by side — are the checklist below, run in task 16.
 Run after `pa app push` and `pa app share`. Record the date, the browser and the outcome in the
 Result column, and copy any error text verbatim.
 
-**Published 17 September 2026** by Christopher as `Mackensen5659@vy7kt.onmicrosoft.com`:
+**Published 17 September 2026** by Christopher:
 
 | | |
 |---|---|
-| Command | `npm run build` then `pa app push --solution-id cb31311c-e547-4888-b237-04b0ad14fd06` |
+| Command | `npm run build` then `pa app push --solution-id <solution-id>` |
 | Result | `App pushed successfully.` Added to solution `CodeApp101` |
-| App ID | `5e72594e-4a1c-4c2c-9b6b-7eae8479a302`, written back into `power.config.json` |
-| Confirmed | `pa app list` → `5e72594e-4a1c-4c2c-9b6b-7eae8479a302  Simple Todo`, total 1 |
-| Play URL | `https://apps.powerapps.com/play/e/default-dc087386-56cb-4425-82f3-4b2dd04d62d8/app/5e72594e-4a1c-4c2c-9b6b-7eae8479a302` — open it from make.powerapps.com rather than from the link the push printed, which carries that publish's `hint` and `sourcetime` |
+| App ID | written back into `power.config.json` |
+| Confirmed | `pa app list` → `<app-id>  Simple Todo`, total 1 |
+| Play URL | `https://apps.powerapps.com/play/e/<environment-id>/app/<app-id>` — open it from make.powerapps.com rather than from the link the push printed, which carries that publish's `hint` and `sourcetime` |
 | Sharing | **Outstanding.** To be done by Christopher in the maker portal: share with the second test user, and assign that user the `Todo User` security role. `pa app share --principal <email> --access play` grants app access only, never the data role |
 
 The ten checks below are **outstanding**; they need the published app, a second user, and a phone and

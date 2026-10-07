@@ -27,3 +27,6 @@ playwright/.cache
 # Claude Code: per-machine permissions (launch.json is shared and committed)
 .claude/settings.local.json
 dist-mock
+
+# Per-machine tenant details for Claude Code (never commit)
+CLAUDE.local.md

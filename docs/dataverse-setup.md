@@ -1,6 +1,6 @@
 # Dataverse setup for CodeApp101
 
-Environment: **Default-dc087386-56cb-4425-82f3-4b2dd04d62d8** (environment ID `Default-dc087386-56cb-4425-82f3-4b2dd04d62d8`; the bare GUID is the tenant ID).
+Environment: your own, with ID `Default-<tenant-id>` (the bare GUID is the tenant ID).
 Solution: **CodeApp101**, publisher prefix **cb**. Schema source of truth: [`solution/generate.py`](../solution/generate.py).
 
 Two paths. Try Path A first; it takes about two minutes. Fall back to Path B only if the import is rejected.
@@ -10,9 +10,9 @@ Two paths. Try Path A first; it takes about two minutes. Fall back to Path B onl
 ## Before either path
 
 1. **Confirm you hold the System Administrator role** on the environment (admin center → environment → Access → Users → Manage security roles, or → Membership). The import creates tables and fails without it. Most developers already have this role.
-2. **Enable code apps** on the environment: [Power Platform admin center](https://admin.powerplatform.microsoft.com) → Manage → Environments → *Default-dc087386…* → Settings → Product → Features → **Power Apps code apps** → toggle **Enable code apps** on → Save.
+2. **Enable code apps** on the environment: [Power Platform admin center](https://admin.powerplatform.microsoft.com) → Manage → Environments → *your environment* → Settings → Product → Features → **Power Apps code apps** → toggle **Enable code apps** on → Save.
 3. Confirm your account has a **Power Apps Premium** licence (required to run code apps).
-4. Publisher check done 2026-09-16: the environment only has *CDS Default Publisher (Cr04d74)* and *Default Publisher for org6e4abf07*. Neither uses prefix `cb`, so the import creates **CodeApp101 Publisher** (unique name `CodeApp101Publisher`, prefix `cb`). Do not pick a default publisher; that would change every schema name.
+4. Publisher check done 2026-09-16: the environment only has *CDS Default Publisher (Cr04d74)* and *Default Publisher for <org>*. Neither uses prefix `cb`, so the import creates **CodeApp101 Publisher** (unique name `CodeApp101Publisher`, prefix `cb`). Do not pick a default publisher; that would change every schema name.
 
 ---
 
@@ -81,7 +81,7 @@ All steps in [make.powerapps.com](https://make.powerapps.com) with the correct e
 
 ## Assign the role (both paths)
 
-1. [Power Platform admin center](https://admin.powerplatform.microsoft.com) → Manage → Environments → *Default-dc087386…* → **Users** → **See all** → select yourself → **Manage security roles** → tick **Todo User** → Save.
+1. [Power Platform admin center](https://admin.powerplatform.microsoft.com) → Manage → Environments → *your environment* → **Users** → **See all** → select yourself → **Manage security roles** → tick **Todo User** → Save.
 2. Repeat for any second test account you will use in Task 16.
 
 ## Verify
