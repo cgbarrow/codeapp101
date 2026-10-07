@@ -3,7 +3,7 @@
 
 Schema of record for SPEC.md §2. Run:  python3 solution/generate.py
 Emits solution/src/{solution.xml,customizations.xml,[Content_Types].xml}
-and solution/CodeApp101_1_0_0_0.zip (import via make.powerapps.com → Solutions → Import).
+and solution/CodeApp101_1_1_0_0.zip (import via make.powerapps.com → Solutions → Import).
 """
 from __future__ import annotations
 import pathlib, uuid, zipfile
@@ -11,7 +11,8 @@ from xml.sax.saxutils import escape
 
 HERE = pathlib.Path(__file__).resolve().parent
 SRC = HERE / "src"
-VERSION = "1.0.0.0"
+VERSION = "1.1.0.0"
+BASE_VERSION = "1.0.0.0"                   # columns and tables that shipped in the first release keep this
 LANG = 1033
 PREFIX = "cb"
 SOLUTION_UNIQUE = "CodeApp101"
@@ -50,9 +51,9 @@ COMMON_ATTR_FLAGS = """
       <IsSearchable>1</IsSearchable>
       <IsFilterable>0</IsFilterable>
       <IsRetrievable>0</IsRetrievable>
-      <IsLocalizable>0</IsLocalizable>""".format(v=VERSION)
+      <IsLocalizable>0</IsLocalizable>"""
 
-def attr(schema, display, type_, extras, required="none", mask="ValidForAdvancedFind|ValidForForm|ValidForGrid", description=""):
+def attr(schema, display, type_, extras, required="none", mask="ValidForAdvancedFind|ValidForForm|ValidForGrid", description="", version=BASE_VERSION):
     logical = schema.lower()
     return f"""
     <attribute PhysicalName="{schema}">
@@ -61,7 +62,7 @@ def attr(schema, display, type_, extras, required="none", mask="ValidForAdvanced
       <LogicalName>{logical}</LogicalName>
       <RequiredLevel>{required}</RequiredLevel>
       <DisplayMask>{mask}</DisplayMask>
-      <ImeMode>auto</ImeMode>{COMMON_ATTR_FLAGS}
+      <ImeMode>auto</ImeMode>{COMMON_ATTR_FLAGS.format(v=version)}
       {extras.strip()}
       <displaynames><displayname description="{escape(display)}" languagecode="{LANG}" /></displaynames>
       {desc(description or display)}
@@ -82,7 +83,7 @@ def primary_key(schema, display):
       <IsCustomField>1</IsCustomField>
       <IsAuditEnabled>0</IsAuditEnabled>
       <IsSecured>0</IsSecured>
-      <IntroducedVersion>{VERSION}</IntroducedVersion>
+      <IntroducedVersion>{BASE_VERSION}</IntroducedVersion>
       <IsCustomizable>1</IsCustomizable>
       <IsRenameable>1</IsRenameable>
       <CanModifySearchSettings>1</CanModifySearchSettings>
@@ -120,7 +121,7 @@ def yesno(entity_schema, schema, display, description=""):
         <OptionSetType>bit</OptionSetType>
         <IsGlobal>0</IsGlobal>
         <IsCustomizable>1</IsCustomizable>
-        <IntroducedVersion>{VERSION}</IntroducedVersion>
+        <IntroducedVersion>{BASE_VERSION}</IntroducedVersion>
         <displaynames><displayname description="{escape(display)}" languagecode="{LANG}" /></displaynames>
         {desc(description or display)}
         <options>
@@ -130,11 +131,11 @@ def yesno(entity_schema, schema, display, description=""):
       </optionset>"""
     return attr(schema, display, "bit", extras, description=description)
 
-def datetime_(schema, display, date_only=False, description=""):
+def datetime_(schema, display, date_only=False, description="", version=BASE_VERSION):
     fmt = "date" if date_only else "datetime"
     behavior = 2 if date_only else 1   # 1 = UserLocal, 2 = DateOnly
     extras = f"<Format>{fmt}</Format><Behavior>{behavior}</Behavior><CanChangeDateTimeBehavior>1</CanChangeDateTimeBehavior>"
-    return attr(schema, display, "datetime", extras, description=description)
+    return attr(schema, display, "datetime", extras, description=description, version=version)
 
 def choice(entity_schema, schema, display, options, description=""):
     logical = schema.lower()
@@ -145,7 +146,7 @@ def choice(entity_schema, schema, display, options, description=""):
         <OptionSetType>picklist</OptionSetType>
         <IsGlobal>0</IsGlobal>
         <IsCustomizable>1</IsCustomizable>
-        <IntroducedVersion>{VERSION}</IntroducedVersion>
+        <IntroducedVersion>{BASE_VERSION}</IntroducedVersion>
         <displaynames><displayname description="{escape(display)}" languagecode="{LANG}" /></displaynames>
         {desc(description or display)}
         <options>{opts}</options>
@@ -219,7 +220,7 @@ def entity(schema, display, plural, description, attributes, color):
         <IsReplicated>0</IsReplicated>
         <IsReplicationUserFiltered>0</IsReplicationUserFiltered>
         <ChangeTrackingEnabled>1</ChangeTrackingEnabled>
-        <IntroducedVersion>{VERSION}</IntroducedVersion>
+        <IntroducedVersion>{BASE_VERSION}</IntroducedVersion>
         <OwnershipTypeMask>UserOwned</OwnershipTypeMask>
         <IsAuditEnabled>0</IsAuditEnabled>
         <IsRetrieveAuditEnabled>0</IsRetrieveAuditEnabled>
@@ -244,7 +245,7 @@ def relationship(name, referenced, referencing, lookup_schema, lookup_display, r
   <EntityRelationship Name="{name}">
     <EntityRelationshipType>OneToMany</EntityRelationshipType>
     <IsCustomizable>1</IsCustomizable>
-    <IntroducedVersion>{VERSION}</IntroducedVersion>
+    <IntroducedVersion>{BASE_VERSION}</IntroducedVersion>
     <IsHierarchical>0</IsHierarchical>
     <ReferencingEntityName>{referencing}</ReferencingEntityName>
     <ReferencedEntityName>{referenced}</ReferencedEntityName>
@@ -271,7 +272,7 @@ def relationship(name, referenced, referencing, lookup_schema, lookup_display, r
         <RelationshipRoleType>0</RelationshipRoleType>
       </EntityRelationshipRole>
     </EntityRelationshipRoles>
-    <field name="{lookup_schema.lower()}" requiredlevel="{reqlevel}" lookupstyle="single" lookupbrowse="0" IsSecured="0" IsCustomizable="1" IsRenameable="1" CanModifySearchSettings="1" CanModifyRequirementLevelSettings="1" CanModifyAdditionalSettings="1" ImeMode="auto" IsSearchable="1" IsFilterable="0" IsRetrievable="0" IsLocalizable="0" IsAuditEnabled="1" IsSortableEnabled="0" IsGlobalFilterEnabled="0" IntroducedVersion="{VERSION}">
+    <field name="{lookup_schema.lower()}" requiredlevel="{reqlevel}" lookupstyle="single" lookupbrowse="0" IsSecured="0" IsCustomizable="1" IsRenameable="1" CanModifySearchSettings="1" CanModifyRequirementLevelSettings="1" CanModifyAdditionalSettings="1" ImeMode="auto" IsSearchable="1" IsFilterable="0" IsRetrievable="0" IsLocalizable="0" IsAuditEnabled="1" IsSortableEnabled="0" IsGlobalFilterEnabled="0" IntroducedVersion="{BASE_VERSION}">
       <displaynames><displayname description="{escape(lookup_display)}" languagecode="{LANG}" /></displaynames>
       {desc(lookup_display)}
     </field>
@@ -295,6 +296,7 @@ entities = [
         datetime_("cb_DueDate", "Due Date", description="When the task is due (user local). Date-only when Has Time is No."),
         yesno(TASK, "cb_HasTime", "Has Time", "No means the due date is a whole day."),
         datetime_("cb_ReminderAt", "Reminder At", description="When to notify (user local)."),
+        datetime_("cb_ReminderEmailSentAt", "Reminder email sent at", description="When the reminder email flow last sent for this reminder; cleared by the app when the reminder changes.", version=VERSION),
         yesno(TASK, "cb_IsCompleted", "Is Completed"),
         datetime_("cb_CompletedOn", "Completed On"),
         choice(TASK, "cb_Recurrence", "Recurrence", ["None", "Daily", "Weekly", "Monthly"], "How the task repeats after completion."),
@@ -456,5 +458,7 @@ for name in files:
 zip_path = HERE / f"{SOLUTION_UNIQUE}_{VERSION.replace('.', '_')}.zip"
 with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
     for name in files:
-        z.write(SRC / name, arcname=name)
+        info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))  # fixed timestamp so reruns are byte-identical
+        info.compress_type = zipfile.ZIP_DEFLATED
+        z.writestr(info, (SRC / name).read_bytes())
 print(f"wrote {zip_path.relative_to(HERE.parent)} ({zip_path.stat().st_size} bytes)")

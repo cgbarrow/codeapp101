@@ -454,15 +454,15 @@ Spec: SPEC §10 (approved 2026-10-05, defaults accepted for O1–O5). Plan: `tas
 **Description:** Add the nullable UTC DateTime column `cb_reminderemailsentat` ("Reminder email sent at") to `cb_todotask` in `solution/generate.py`; bump `VERSION` to 1.1.0.0; regenerate and commit `solution/CodeApp101_1_1_0_0.zip`; remove the 1.0.0.0 zip; update every reference to the zip name.
 
 **Acceptance criteria:**
-- [ ] `customizations.xml` contains the new column with the right type, behaviour and display name; no other schema change
-- [ ] References to `CodeApp101_1_0_0_0.zip` and "version 1.0.0.0" updated in `README.md`, `docs/dataverse-setup.md`, the article (Steps 3–4) and `generate.py`
-- [ ] `docs/dataverse-setup.md` gains a short "Upgrading an existing install" section and a manual fallback for adding just this column
-- [ ] SPEC §2 task table lists the column; `CLAUDE.md` zip-name mentions, if any, updated
-- [ ] Failing test first: a Python or node test that parses the generated XML and asserts the column and version (add under `solution/` or a vitest node test, whichever the repo already uses for generated artefacts)
+- [x] `customizations.xml` contains the new column with the right type, behaviour and display name; no other schema change
+- [x] References to `CodeApp101_1_0_0_0.zip` and "version 1.0.0.0" updated in `README.md`, `docs/dataverse-setup.md`, the article (Steps 3–4) and `generate.py`
+- [x] `docs/dataverse-setup.md` gains a short "Upgrading an existing install" section and a manual fallback for adding just this column
+- [x] SPEC §2 task table lists the column; `CLAUDE.md` zip-name mentions, if any, updated
+- [x] Failing test first: a Python or node test that parses the generated XML and asserts the column and version (add under `solution/` or a vitest node test, whichever the repo already uses for generated artefacts)
 
 **Verification:**
-- [ ] `python3 solution/generate.py` is idempotent (second run produces no diff)
-- [ ] `npm run lint && npm run typecheck && npm test && npm run build`
+- [x] `python3 solution/generate.py` is idempotent (second run produces no diff)
+- [x] `npm run lint && npm run typecheck && npm test && npm run build`
 - [ ] **(Christopher)** Import the new zip over the existing solution and confirm the column appears in Dataverse; then run `npx pa app refresh data-source --name todotasks` and commit the regenerated `src/generated/`
 
 **Dependencies:** None

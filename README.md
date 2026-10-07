@@ -115,7 +115,7 @@ Platform environment with code apps switched on and a Power Apps Premium licence
 |---|---|---|---|
 | 1 | Clone and install | `git clone https://github.com/cgbarrow/codeapp101.git && cd codeapp101 && npm install` (fork first if you plan to change it) | ~2 min |
 | 2 | Check it works with no tenant at all | `npm run dev` then open the printed URL | ~1 min |
-| 3 | Import the schema | In [make.powerapps.com](https://make.powerapps.com) → Solutions → Import, choose `solution/CodeApp101_1_0_0_0.zip`, then assign yourself the `Todo User` role. Full steps and the manual fallback: [`docs/dataverse-setup.md`](docs/dataverse-setup.md) | ~5 min |
+| 3 | Import the schema | In [make.powerapps.com](https://make.powerapps.com) → Solutions → Import, choose `solution/CodeApp101_1_1_0_0.zip`, then assign yourself the `Todo User` role. Full steps and the manual fallback: [`docs/dataverse-setup.md`](docs/dataverse-setup.md) | ~5 min |
 | 4 | Sign in to the CLI | `npx pa auth login` (opens a browser) | ~1 min |
 | 5 | Point the app at your environment | The committed `power.config.json` names the author's environment and published app, so replace it: delete it, run `npx pa app init --display-name "Simple Todo" --environment-id <id>`, then `npx pa app add data-source --connector dataverse --table <table> --org-url <instance-url>` for `cb_todolist`, `cb_todotask` and `cb_todosubtask`. Both values are in make.powerapps.com → Settings → Session details. Step 9 of the [how-to article](docs/how-to-build-a-power-apps-code-app.md) explains each command | ~3 min |
 | 6 | Run against Dataverse | `npm run dev:dataverse`, then open the URL labelled **Local Play** in the browser profile signed in to the tenant | ~1 min |
