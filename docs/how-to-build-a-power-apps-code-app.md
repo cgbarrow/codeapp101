@@ -437,7 +437,7 @@ npx pa app push --solution-id <solution-id>
 
 `--solution-id` puts the app in the `CodeApp101` solution next to its tables. That way the solution carries the whole app when it moves from DEV to UAT to PROD environments. Without the flag, the app lands in the environment's preferred or Default solution.
 
-The first push prints `App pushed successfully.` and writes the new app's ID into `appId` in `power.config.json`. Commit that file: it is how later pushes update this app instead of creating another one. To publish a change later, run the same two commands. Part 5 does exactly that.
+The first push prints `App pushed successfully.` and writes the new app's ID into `appId` in `power.config.json`. Keep that file: it is how later pushes update this app instead of creating another one. Commit it on your machine only, and do not push it to a public repository. It holds your environment ID and app ID, which are identifiers rather than credentials but are not yours to publish casually. [Step 15](#step-15-fork-the-repository-and-create-a-branch) says what to do when you push to a fork. To publish a change later, run the same two commands. Part 5 does exactly that.
 
 **Moving to UAT and PROD.** You publish once, in DEV, and then move the solution:
 
@@ -526,7 +526,7 @@ The repository is public, and only its owner can push to it. You work in your ow
 
 A branch keeps the change apart from `main`, so you can abandon it, or compare it with the original, with one command.
 
-> **A fork of a public repository is public.** Anything you push to it, including every earlier commit on the branch such as your `power.config.json` from Step 12, can be read by anyone. The file holds your environment ID and app ID. They are identifiers, not credentials: using them still needs a sign-in. If your team treats them as internal, create an empty **private** repository in your own GitHub account and run `git remote set-url origin <its-url>` instead. Every step below is the same.
+> **A fork of a public repository is public.** Anything you push to it, including every earlier commit on the branch such as your `power.config.json` commit from Step 12, can be read by anyone. The file holds your environment ID and app ID. They are identifiers, not credentials: using them still needs a sign-in. Unless you are comfortable publishing them, create an empty **private** repository in your own GitHub account and run `git remote set-url origin <its-url>` instead. Every step below is the same.
 
 #### Step 16: Find the text and change the tests first
 
