@@ -182,6 +182,13 @@
           "x-ms-dataverse-type": "DateTimeType",
           "x-ms-schema-name": "cb_ReminderAt"
         },
+        "cb_reminderemailsentat": {
+          "type": "string",
+          "title": "Reminder email sent at",
+          "x-ms-dataverse-attribute": "cb_reminderemailsentat",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cb_ReminderEmailSentAt"
+        },
         "cb_sortorder": {
           "type": "string",
           "title": "Sort Order",
