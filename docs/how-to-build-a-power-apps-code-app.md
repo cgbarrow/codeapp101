@@ -437,7 +437,7 @@ npx pa app push --solution-id <solution-id>
 
 `--solution-id` puts the app in the `CodeApp101` solution next to its tables. That way the solution carries the whole app when it moves from DEV to UAT to PROD environments. Without the flag, the app lands in the environment's preferred or Default solution.
 
-The first push prints `App pushed successfully.` and writes the new app's ID into `appId` in `power.config.json`. Keep that file: it is how later pushes update this app instead of creating another one. Commit it on your machine only, and do not push it to a public repository. It holds your environment ID and app ID, which are identifiers rather than credentials but are not yours to publish casually. [Step 15](#step-15-fork-the-repository-and-create-a-branch) says what to do when you push to a fork. To publish a change later, run the same two commands. Part 5 does exactly that.
+The first push prints `App pushed successfully.` and writes the new app's ID into `appId` in `power.config.json`. Keep that file, and leave it **uncommitted**: it is how later pushes update this app instead of creating another one, and Git carries an uncommitted change with you from branch to branch. It holds your environment ID and app ID, which are identifiers rather than credentials but are not yours to publish. Part 5 pushes a branch to a public fork, and a commit containing the file would go with it. `git status` showing `power.config.json` as modified is the expected state. To publish a change later, run the same two commands. Part 5 does exactly that.
 
 **Moving to UAT and PROD.** You publish once, in DEV, and then move the solution:
 
@@ -518,7 +518,17 @@ The repository is public, and only its owner can push to it. You work in your ow
    ```
 
    Both lines of output should now show your username. If you are starting from scratch instead, run `git clone https://github.com/<your-username>/codeapp101.git` and work through Step 9 and Step 12 again, because a fresh clone carries the author's `power.config.json`, not yours.
-3. Create a branch for the change, still at the repository root:
+3. Check that no commit on `main` touches `power.config.json`, because your branch would inherit it:
+
+   ```bash
+   git remote add upstream https://github.com/cgbarrow/codeapp101.git
+   git fetch upstream
+   git log --oneline upstream/main..HEAD -- power.config.json
+   ```
+
+   The last command should print nothing. If it lists a commit and it is the latest one, run `git reset HEAD~1`. That undoes the commit and keeps your edited file on disk. If it is further back, ask for help before you go on.
+
+4. Create a branch for the change, still at the repository root:
 
    ```bash
    git switch -c change-empty-state
@@ -526,7 +536,7 @@ The repository is public, and only its owner can push to it. You work in your ow
 
 A branch keeps the change apart from `main`, so you can abandon it, or compare it with the original, with one command.
 
-> **A fork of a public repository is public.** Anything you push to it, including every earlier commit on the branch such as your `power.config.json` commit from Step 12, can be read by anyone. The file holds your environment ID and app ID. They are identifiers, not credentials: using them still needs a sign-in. Unless you are comfortable publishing them, create an empty **private** repository in your own GitHub account and run `git remote set-url origin <its-url>` instead. Every step below is the same.
+> **A fork of a public repository is public.** Everything you push to it can be read by anyone. Your `power.config.json` holds your environment ID and app ID, so it must never be in a commit on this branch. Step 12 told you to leave it uncommitted. Check before you push, and again in Step 20.
 
 #### Step 16: Find the text and change the tests first
 
@@ -627,7 +637,7 @@ git commit -m "Add a friendly line to the Today empty state"
 git push -u origin change-empty-state
 ```
 
-`git status` should list exactly the three files you edited and nothing else. `git add src` stages only those, so an unrelated change such as `power.config.json` cannot slip into the commit. The repository's commit messages are one short sentence in the imperative mood, with no prefix. The first push asks you to sign in to GitHub. The terminal then prints a link to open a pull request. Ignore it: the change stays on your fork, and nothing is proposed to the original repository.
+`git status` should show `power.config.json` as modified but not staged, and nothing else you did not edit. `git add src` stages only files under `src/`, so `power.config.json` cannot slip into the commit. If it appears under "Changes to be committed", run `git restore --staged power.config.json` first. The repository's commit messages are one short sentence in the imperative mood, with no prefix. The first push asks you to sign in to GitHub. The terminal then prints a link to open a pull request. Ignore it: the change stays on your fork, and nothing is proposed to the original repository.
 
 Open `https://github.com/<your-username>/codeapp101/tree/change-empty-state` to see the branch, and its **Compare** view for the three-file diff. The original's `main` keeps its original wording.
 
@@ -815,9 +825,9 @@ npm install --global @microsoft/power-apps-cli
 
 ### `push` created a second app
 
-**Cause.** `appId` in `power.config.json` was `null` or missing when you pushed. This happens after a fresh clone, which carries the author's file rather than yours, after `pa app init` wrote a new file, or when you switched to a branch that predates the first push and so lacks the `appId` you committed in Step 12.
+**Cause.** `appId` in `power.config.json` was `null` or missing when you pushed. This happens after a fresh clone, which carries the author's file rather than yours, after `pa app init` wrote a new file, or after a command that discards uncommitted changes, such as `git checkout -- .` or `git restore .`, which wipes the `appId` that Step 12 left uncommitted.
 
-**Fix.** Run `npx pa app list`. Two apps called Simple Todo appear. Keep the one you want, copy its ID into `appId` in `power.config.json`, and commit the file. In the maker portal, remove the extra app from **Apps**, and from **Solutions → CodeApp101** if it was added there. Push again and check that the list still shows one app.
+**Fix.** Run `npx pa app list`. Two apps called Simple Todo appear. Keep the one you want, copy its ID into `appId` in `power.config.json`, and leave the file uncommitted. In the maker portal, remove the extra app from **Apps**, and from **Solutions → CodeApp101** if it was added there. Push again and check that the list still shows one app.
 
 ---
 
