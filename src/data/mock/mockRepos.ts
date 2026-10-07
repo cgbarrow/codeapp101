@@ -41,6 +41,7 @@ const cloneTask = (task: Task): Task => ({
   ...task,
   dueDate: cloneDate(task.dueDate),
   reminderAt: cloneDate(task.reminderAt),
+  reminderEmailSentAt: cloneDate(task.reminderEmailSentAt),
   completedOn: cloneDate(task.completedOn),
 });
 
@@ -177,7 +178,10 @@ export function createMockRepos({ seed = {}, latencyMs = 0, sync }: MockReposOpt
 
       update: (id, patch) =>
         write(() => {
-          const task = cloneTask({ ...mustGet(tasks, "Task", id), ...definedOnly(patch), id });
+          const changes = definedOnly(patch);
+          // Mirrors the Dataverse mapper: a changed or cleared reminder re-arms the email.
+          const rearm = "reminderAt" in changes ? { reminderEmailSentAt: null } : {};
+          const task = cloneTask({ ...mustGet(tasks, "Task", id), ...rearm, ...changes, id });
           tasks.set(id, task);
           return cloneTask(task);
         }),

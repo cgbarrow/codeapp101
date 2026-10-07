@@ -68,6 +68,7 @@ describe("toTask", () => {
       cb_duedate: "2026-09-18T15:00:00Z",
       cb_hastime: true,
       cb_reminderat: "2026-09-18T14:50:00Z",
+      cb_reminderemailsentat: "2026-09-18T14:51:00Z",
       cb_iscompleted: true,
       cb_completedon: "2026-09-18T15:05:00Z",
       cb_recurrence: 100000002,
@@ -83,6 +84,7 @@ describe("toTask", () => {
       dueDate: new Date("2026-09-18T15:00:00Z"),
       hasTime: true,
       reminderAt: new Date("2026-09-18T14:50:00Z"),
+      reminderEmailSentAt: new Date("2026-09-18T14:51:00Z"),
       isCompleted: true,
       completedOn: new Date("2026-09-18T15:05:00Z"),
       recurrence: "weekly",
@@ -105,6 +107,7 @@ describe("toTask", () => {
       notes: "",
       dueDate: null,
       reminderAt: null,
+      reminderEmailSentAt: null,
       completedOn: null,
       hasTime: false,
       isCompleted: false,
@@ -199,6 +202,7 @@ describe("create payloads", () => {
     for (const column of [
       "cb_duedate",
       "cb_reminderat",
+      "cb_reminderemailsentat",
       "cb_completedon",
       "cb_todotask_cb_todotask_recurrenceparent@odata.bind",
     ]) {
@@ -258,8 +262,40 @@ describe("update payloads send only changed columns", () => {
       cb_notes: "n",
       cb_hastime: false,
       cb_reminderat: "2026-09-18T09:00:00.000Z",
+      cb_reminderemailsentat: null,
       cb_recurrence: 100000001,
       cb_sortorder: 7,
+    });
+  });
+
+  it("clears the email-sent time in the same patch when the reminder changes", () => {
+    expect(taskPatchRecord({ reminderAt: new Date("2026-09-18T09:00:00Z") })).toEqual({
+      cb_reminderat: "2026-09-18T09:00:00.000Z",
+      cb_reminderemailsentat: null,
+    });
+  });
+
+  it("clears the email-sent time when the reminder is cleared", () => {
+    expect(taskPatchRecord({ reminderAt: null })).toEqual({
+      cb_reminderat: null,
+      cb_reminderemailsentat: null,
+    });
+  });
+
+  it("omits the email-sent column when the patch does not touch the reminder", () => {
+    expect(taskPatchRecord({ title: "x", dueDate: null })).not.toHaveProperty(
+      "cb_reminderemailsentat",
+    );
+  });
+
+  it("sends an explicit email-sent time on create and in a patch that leaves the reminder alone", () => {
+    const sentAt = new Date("2026-09-18T09:01:00Z");
+
+    expect(
+      newTaskRecord({ listId: LIST_ID, title: "x", reminderEmailSentAt: sentAt }),
+    ).toHaveProperty("cb_reminderemailsentat", "2026-09-18T09:01:00.000Z");
+    expect(taskPatchRecord({ reminderEmailSentAt: sentAt })).toEqual({
+      cb_reminderemailsentat: "2026-09-18T09:01:00.000Z",
     });
   });
 

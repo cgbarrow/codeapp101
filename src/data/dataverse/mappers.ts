@@ -47,6 +47,7 @@ export const taskColumns = [
   "cb_duedate",
   "cb_hastime",
   "cb_reminderat",
+  "cb_reminderemailsentat",
   "cb_iscompleted",
   "cb_completedon",
   "cb_recurrence",
@@ -105,6 +106,7 @@ export function toTask(row: Cb_todotasks): Task {
     dueDate: parseDate(row.cb_duedate),
     hasTime: row.cb_hastime ?? false,
     reminderAt: parseDate(row.cb_reminderat),
+    reminderEmailSentAt: parseDate(row.cb_reminderemailsentat),
     isCompleted: row.cb_iscompleted ?? false,
     completedOn: parseDate(row.cb_completedon),
     recurrence: recurrenceByChoice.get(Number(row.cb_recurrence)) ?? "none",
@@ -150,6 +152,9 @@ export function newTaskRecord(input: NewTask): TaskRecord {
   };
   if (task.dueDate) record.cb_duedate = task.dueDate.toISOString();
   if (task.reminderAt) record.cb_reminderat = task.reminderAt.toISOString();
+  if (task.reminderEmailSentAt) {
+    record.cb_reminderemailsentat = task.reminderEmailSentAt.toISOString();
+  }
   if (task.completedOn) record.cb_completedon = task.completedOn.toISOString();
   if (task.recurrenceParentId) {
     record[PARENT_BIND] = `/cb_todotasks(${odataId(task.recurrenceParentId)})`;
@@ -191,7 +196,14 @@ export function taskPatchRecord(patch: TaskPatch): TaskPatchRecord {
   if (p.notes !== undefined) record.cb_notes = p.notes;
   if (p.dueDate !== undefined) record.cb_duedate = isoOrNull(p.dueDate);
   if (p.hasTime !== undefined) record.cb_hastime = p.hasTime;
-  if (p.reminderAt !== undefined) record.cb_reminderat = isoOrNull(p.reminderAt);
+  if (p.reminderAt !== undefined) {
+    record.cb_reminderat = isoOrNull(p.reminderAt);
+    // A new or cleared reminder is a new chance to email, so the sent mark goes in the same PATCH.
+    record.cb_reminderemailsentat = null;
+  }
+  if (p.reminderEmailSentAt !== undefined) {
+    record.cb_reminderemailsentat = isoOrNull(p.reminderEmailSentAt);
+  }
   if (p.isCompleted !== undefined) record.cb_iscompleted = p.isCompleted;
   if (p.completedOn !== undefined) record.cb_completedon = isoOrNull(p.completedOn);
   if (p.recurrence !== undefined) record.cb_recurrence = recurrenceChoices[p.recurrence];
