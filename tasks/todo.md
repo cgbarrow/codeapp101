@@ -434,7 +434,9 @@ Spec: SPEC §10 (approved 2026-10-05, defaults accepted for O1–O5). Plan: `tas
 - [ ] Article explains why `push` updates the same app (`appId` in `power.config.json`) and what to do if the old text still shows
 - [ ] Two Troubleshooting entries: old UI after a successful push, and a second app created by `push`
 - [ ] README status table and layout/feature mentions updated if affected
-- [ ] The example change is demonstrated on a throwaway branch and **not** merged; `main` keeps the original wording
+- [ ] The article starts Part 5 with forking and cloning the fork, and ends the commit step by pushing the branch to the reader's fork; the repository is public and readers never push to the original
+- [ ] The example change is demonstrated on a fork branch and **not** merged into `cgbarrow/codeapp101`; `main` keeps the original wording
+- [ ] Part 1 and the Prerequisites stop telling readers to ask for repository access and tell them to fork instead (README Getting started too)
 
 **Verification:**
 - [ ] Run steps 15–21 on a clean clone: `npm test` fails then passes, `npm run lint && npm run typecheck && npm test && npm run build` pass

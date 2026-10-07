@@ -125,7 +125,7 @@ Two deliverables, each code or schema change plus article steps. **A** is a new 
 - **The app owns re-arming.** Any update that changes `reminderAt` sends `cb_reminderemailsentat: null` in the same PATCH, inside the repo layer, so every caller gets it. Contract-tested against mock and Dataverse fake.
 - **Flow is not in Git.** Built by hand in the portal and added to `CodeApp101`; the article lists each expression verbatim and is its source of record. Runs under the reader's connection, so it sees only their tasks (SPEC P5).
 - **Solution version 1.1.0.0.** The schema change ships as a renamed zip so the upgrade import is unambiguous (O2).
-- **Feature A's example change is not merged.** The shipped wording stays; the article's change is demonstrated on a throwaway branch.
+- **Feature A's example change is not merged.** The shipped wording stays; the article's change is demonstrated on a branch in a fork. The repository is public, so readers fork it and push to their own fork; nobody but the owner pushes to the original.
 
 ## Dependency graph
 
