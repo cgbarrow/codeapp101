@@ -16,6 +16,8 @@ export type Task = {
   dueDate: Date | null;
   hasTime: boolean;
   reminderAt: Date | null;
+  /** When the reminder email went out; the server sets it, and changing `reminderAt` clears it. */
+  reminderEmailSentAt: Date | null;
   isCompleted: boolean;
   completedOn: Date | null;
   recurrence: Recurrence;

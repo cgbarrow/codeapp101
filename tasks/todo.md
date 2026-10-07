@@ -476,13 +476,13 @@ Spec: SPEC §10 (approved 2026-10-05, defaults accepted for O1–O5). Plan: `tas
 **Description:** Add `Task.reminderEmailSentAt: Date | null` to `src/data/repo.ts`, its default in `defaults.ts`, mapping in `mappers.ts`, behaviour in the mock and Dataverse repos. An update that changes or clears `reminderAt` also nulls `reminderEmailSentAt` in the same PATCH; an update that does not touch `reminderAt` leaves it out. Completing a recurring task creates the next instance with `null`.
 
 **Acceptance criteria:**
-- [ ] Contract tests in `repoContract.ts` (written first, run against mock and the Dataverse fake) cover: round trip; re-arm on reminder change; re-arm on clear; untouched when other fields change; recurring next instance resets
-- [ ] Mapper tests assert the exact outgoing PATCH shape and that unchanged-reminder updates omit the column
-- [ ] Nothing outside `src/data/` imports `src/generated/`; `src/generated/` is not hand-edited
-- [ ] Coverage gates (90 % on `src/data`) still met
+- [x] Contract tests in `repoContract.ts` (written first, run against mock and the Dataverse fake) cover: round trip; re-arm on reminder change; re-arm on clear; untouched when other fields change; recurring next instance resets
+- [x] Mapper tests assert the exact outgoing PATCH shape and that unchanged-reminder updates omit the column
+- [x] Nothing outside `src/data/` imports `src/generated/`; `src/generated/` is not hand-edited
+- [x] Coverage gates (90 % on `src/data`) still met
 
 **Verification:**
-- [ ] `npm run lint && npm run typecheck && npm test && npm run build`
+- [x] `npm run lint && npm run typecheck && npm test && npm run build`
 - [ ] `npm run dev:smoke` against Dataverse: set a reminder, set `cb_reminderemailsentat` by hand in the portal, change the reminder, confirm it clears **(Christopher)**
 
 **Dependencies:** T19 and the tenant re-import plus `pa app refresh` by Christopher

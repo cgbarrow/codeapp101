@@ -83,6 +83,7 @@ export function runRepoContract(name: string, makeRepos: () => Repos | Promise<R
           dueDate: null,
           hasTime: false,
           reminderAt: null,
+          reminderEmailSentAt: null,
           isCompleted: false,
           completedOn: null,
           recurrence: "none",
@@ -109,6 +110,53 @@ export function runRepoContract(name: string, makeRepos: () => Repos | Promise<R
           expect(task.dueDate?.getTime()).toBe(dueDate.getTime());
           expect(task.reminderAt?.getTime()).toBe(reminderAt.getTime());
         }
+      });
+
+      describe("reminderEmailSentAt", () => {
+        const reminderAt = new Date("2026-09-18T14:00:00.000Z");
+        const sentAt = new Date("2026-09-18T14:01:00.000Z");
+
+        const emailedTask = () =>
+          repos.tasks.create({ listId, title: "Call Sam", reminderAt, reminderEmailSentAt: sentAt });
+
+        it("round-trips as a Date instance at the same instant", async () => {
+          const created = await emailedTask();
+          const [read] = await repos.tasks.getByList(listId);
+
+          for (const task of [created, read]) {
+            expect(task.reminderEmailSentAt).toBeInstanceOf(Date);
+            expect(task.reminderEmailSentAt?.getTime()).toBe(sentAt.getTime());
+          }
+        });
+
+        it("is cleared when the reminder changes", async () => {
+          const task = await emailedTask();
+          const later = new Date("2026-09-18T16:00:00.000Z");
+
+          const updated = await repos.tasks.update(task.id, { reminderAt: later });
+
+          expect(updated.reminderAt?.getTime()).toBe(later.getTime());
+          expect(updated.reminderEmailSentAt).toBeNull();
+          expect((await repos.tasks.getByList(listId))[0].reminderEmailSentAt).toBeNull();
+        });
+
+        it("is cleared when the reminder is cleared", async () => {
+          const task = await emailedTask();
+
+          const updated = await repos.tasks.update(task.id, { reminderAt: null });
+
+          expect(updated.reminderAt).toBeNull();
+          expect(updated.reminderEmailSentAt).toBeNull();
+        });
+
+        it("is left alone when other fields change", async () => {
+          const task = await emailedTask();
+
+          const updated = await repos.tasks.update(task.id, { title: "Call Sam back", notes: "x" });
+
+          expect(updated.reminderEmailSentAt?.getTime()).toBe(sentAt.getTime());
+          expect(updated.reminderAt?.getTime()).toBe(reminderAt.getTime());
+        });
       });
 
       it("returns only the tasks in the requested list, ordered by sortOrder", async () => {

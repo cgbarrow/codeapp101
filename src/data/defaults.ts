@@ -12,6 +12,7 @@ export const taskDefaults: Omit<Task, "id" | "listId" | "title"> = {
   dueDate: null,
   hasTime: false,
   reminderAt: null,
+  reminderEmailSentAt: null,
   isCompleted: false,
   completedOn: null,
   recurrence: "none",

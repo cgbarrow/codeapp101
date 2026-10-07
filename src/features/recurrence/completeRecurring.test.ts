@@ -51,6 +51,16 @@ describe("buildNextInstance", () => {
     });
   });
 
+  it("starts the next instance with no email sent, even if this one was emailed", async () => {
+    const task = await weeklyTask({ reminderEmailSentAt: new Date(2026, 8, 17, 17, 1) });
+
+    const input = buildNextInstance(task, () => undefined, now);
+    const next = await repos.tasks.create(input!);
+
+    expect(input).not.toHaveProperty("reminderEmailSentAt");
+    expect(next.reminderEmailSentAt).toBeNull();
+  });
+
   it("returns null for a task that does not repeat", async () => {
     const task = await weeklyTask({ recurrence: "none" });
 
