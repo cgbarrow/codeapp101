@@ -30,6 +30,7 @@ export interface Cb_todotasksBase {
   cb_recurrence?: Cb_todotaskscb_recurrence;
   "cb_todotask_cb_todotask_recurrenceparent@odata.bind"?: string;
   cb_reminderat?: string;
+  cb_reminderemailsentat?: string;
   cb_sortorder?: number;
   cb_title: string;
   importsequencenumber?: number;
