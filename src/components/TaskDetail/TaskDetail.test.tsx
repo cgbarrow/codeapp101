@@ -121,6 +121,45 @@ describe("TaskDetail", () => {
     await waitFor(() => expect(patches).toEqual([{ reminderAt: new Date(2026, 8, 17, 14, 0) }]));
   });
 
+  describe("email sent line", () => {
+    it("is absent when no reminder email has gone out", async () => {
+      await renderDetail("seed-t3");
+
+      expect(screen.queryByText(/Email sent/)).not.toBeInTheDocument();
+    });
+
+    it("shows when the reminder email went out, as plain text", async () => {
+      // The component reads the real clock, so "today" here is the machine's today.
+      const today = new Date();
+      await repos.tasks.update("seed-t3", {
+        reminderEmailSentAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 0),
+      });
+      await renderDetail("seed-t3");
+
+      expect(screen.getByText("Email sent Today, 9:00 AM")).toBeInTheDocument();
+    });
+
+    it("disappears when the reminder changes and the email is re-armed", async () => {
+      const user = userEvent.setup();
+      await repos.tasks.update("seed-t3", { reminderEmailSentAt: new Date(2026, 8, 17, 9, 0) });
+      await renderDetail("seed-t3");
+
+      await user.selectOptions(screen.getByLabelText("Reminder"), "1 hour before");
+
+      await waitFor(() => expect(screen.queryByText(/Email sent/)).not.toBeInTheDocument());
+    });
+
+    it("is hidden once the reminder is cleared", async () => {
+      const user = userEvent.setup();
+      await repos.tasks.update("seed-t3", { reminderEmailSentAt: new Date(2026, 8, 17, 9, 0) });
+      await renderDetail("seed-t3");
+
+      await user.selectOptions(screen.getByLabelText("Reminder"), "None");
+
+      await waitFor(() => expect(screen.queryByText(/Email sent/)).not.toBeInTheDocument());
+    });
+  });
+
   it("sets the repeat", async () => {
     const user = userEvent.setup();
     await renderDetail("seed-t3");

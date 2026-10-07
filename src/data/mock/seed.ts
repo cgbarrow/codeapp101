@@ -60,6 +60,8 @@ export function createSampleSeed(now: Date): MockSeed {
       notes: "Train leaves at 18:10.",
       sortOrder: 1,
       dueDate: atDay(now, 2),
+      reminderAt: atDay(now, 2, 9, 0),
+      reminderEmailSentAt: atDay(now, 2, 9, 1),
     }),
     task({
       id: "seed-t7",
