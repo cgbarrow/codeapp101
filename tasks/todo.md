@@ -496,13 +496,15 @@ Spec: SPEC §10 (approved 2026-10-05, defaults accepted for O1–O5). Plan: `tas
 **Description:** In `TaskDetail`, show "Email sent 9:00 am" when `reminderEmailSentAt` is set, formatted with the existing date helpers, tokens only. Non-interactive text, so the eight states do not apply.
 
 **Acceptance criteria:**
-- [ ] Component test first: line absent when `null`, present with formatted time when set, hidden when the reminder is cleared
-- [ ] Playwright: changing a reminder on an emailed task removes the line (Chromium and WebKit)
-- [ ] No hex, OKLCH or raw `font-family` outside `tokens.css`; visible and unclipped at 320 px
+- [x] Component test first: line absent when `null`, present with formatted time when set, hidden when the reminder is cleared
+- [x] Playwright: changing a reminder on an emailed task removes the line (Chromium and WebKit)
+- [x] No hex, OKLCH or raw `font-family` outside `tokens.css`; visible and unclipped at 320 px
 
 **Verification:**
-- [ ] `npm run lint && npm run typecheck && npm test && npm run build && npm run e2e`
+- [x] `npm run lint && npm run typecheck && npm test && npm run build && npm run e2e`
 - [ ] Screenshot at 375 px for the article
+
+**Status: DONE 2026-10-07, except the article screenshot, which is for Christopher.** The line reads "Email sent Today, 9:00 AM" (`formatDue`, so older sends read "Mon 21 Sept, 9:00 AM") and shows only while a reminder is set. `seed-t6` ("Pack for the weekend") now carries an emailed reminder so `npm run dev` and the e2e test have one. The e2e test checks the line sits inside the panel; the 320 px width is not separately run.
 
 **Dependencies:** T20
 **Files:** `src/components/TaskDetail/*`, `src/test/factories.ts`, `e2e/taskdetail.spec.ts`

@@ -9,6 +9,7 @@ import {
   reminderOffsetOf,
   type ReminderOffset,
 } from "@/features/reminders/computeReminderAt";
+import { formatDue } from "@/features/tasks/formatDue";
 import { useNotificationPermission } from "@/hooks/useNotifications";
 import { useSaveWithRetry } from "@/hooks/useSaveWithRetry";
 import { useTaskDelete } from "@/hooks/useTaskDelete";
@@ -216,6 +217,11 @@ export function TaskDetail({ task, id: regionId, onClose }: TaskDetailProps) {
         </div>
         {task.reminderAt && REMINDER_NOTES[notifications.permission] && (
           <p className={styles.note}>{REMINDER_NOTES[notifications.permission]}</p>
+        )}
+        {task.reminderAt && task.reminderEmailSentAt && (
+          <p className={styles.hint}>
+            Email sent {formatDue(task.reminderEmailSentAt, true, new Date())}
+          </p>
         )}
         <p id={`${id}-schedule-hint`} className={styles.hint}>
           {scheduleDisabled

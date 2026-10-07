@@ -39,3 +39,21 @@ test("task detail edits the due date and shows it on the row", async ({ page }) 
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
 });
+
+test("changing the reminder on an emailed task removes the Email sent line", async ({ page }) => {
+  await page.goto("/#/list/seed-personal");
+  await page.getByRole("button", { name: "Pack for the weekend" }).click();
+
+  const panel = page.getByRole("region", { name: "Task details" });
+  const sent = panel.getByText(/^Email sent /);
+  await expect(sent).toBeVisible();
+
+  // Visible and unclipped inside the panel, which is 320 px wide at the narrowest.
+  const box = (await sent.boundingBox())!;
+  const panelBox = (await panel.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(panelBox.x);
+  expect(box.x + box.width).toBeLessThanOrEqual(panelBox.x + panelBox.width);
+
+  await panel.getByLabel("Reminder").selectOption({ label: "1 hour before" });
+  await expect(sent).toBeHidden();
+});
