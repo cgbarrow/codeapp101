@@ -429,19 +429,19 @@ Spec: SPEC §10 (approved 2026-10-05, defaults accepted for O1–O5). Plan: `tas
 **Description:** Add **Part 5 · Change the app and publish it again** to the article (Steps 15–22) and a **Verify Part 5** section, teaching branch → test-first edit → Local Play → gates → local commit → build → `pa app push` → verify, using the Today empty-state text as the change.
 
 **Acceptance criteria:**
-- [ ] Every use of `Nothing due today.` is found (`grep -rn` across `src` and `e2e`) and listed in the article, and the step ordering is: change tests, see them fail, change component, see them pass
-- [ ] Steps say where each command runs and give PowerShell variants where a command differs; the push step reuses Step 11's solution ID
-- [ ] Article explains why `push` updates the same app (`appId` in `power.config.json`) and what to do if the old text still shows
-- [ ] Two Troubleshooting entries: old UI after a successful push, and a second app created by `push`
-- [ ] README status table and layout/feature mentions updated if affected
-- [ ] The article starts Part 5 with forking and cloning the fork, and ends the commit step by pushing the branch to the reader's fork; the repository is public and readers never push to the original
-- [ ] The example change is demonstrated on a fork branch and **not** merged into `cgbarrow/codeapp101`; `main` keeps the original wording
-- [ ] Part 1 and the Prerequisites stop telling readers to ask for repository access and tell them to fork instead (README Getting started too)
+- [x] Every use of `Nothing due today.` is found (`grep -rn` across `src` and `e2e`) and listed in the article, and the step ordering is: change tests, see them fail, change component, see them pass
+- [x] Steps say where each command runs and give PowerShell variants where a command differs; the push step reuses Step 11's solution ID
+- [x] Article explains why `push` updates the same app (`appId` in `power.config.json`) and what to do if the old text still shows
+- [x] Two Troubleshooting entries: old UI after a successful push, and a second app created by `push`
+- [x] README status table and layout/feature mentions updated if affected
+- [x] The article starts Part 5 with forking and cloning the fork, and ends the commit step by pushing the branch to the reader's fork; the repository is public and readers never push to the original
+- [ ] The example change is demonstrated on a fork branch and **not** merged into `cgbarrow/codeapp101`; `main` keeps the original wording *(article never merges it and `main` is untouched; the fork branch itself needs a GitHub fork, so it is for Christopher)*
+- [x] Part 1 and the Prerequisites stop telling readers to ask for repository access and tell them to fork instead (README Getting started too)
 
 **Verification:**
-- [ ] Run steps 15–21 on a clean clone: `npm test` fails then passes, `npm run lint && npm run typecheck && npm test && npm run build` pass
-- [ ] `npm run dev` shows the new text on an empty Today
-- [ ] Step 22 (`push` and opening the app) marked as not run; for Christopher at Checkpoint E
+- [x] Run steps 15–21 on a clean clone: `npm test` fails then passes, `npm run lint && npm run typecheck && npm test && npm run build` pass *(run 7 Oct 2026 on a clone: 2 failures, then 463 passing, and the commit. Not run: forking, `git push` to a fork, `pa app push`; PowerShell variants untested)*
+- [x] `npm run dev` shows the new text on an empty Today
+- [x] Step 22 (`push` and opening the app) marked as not run; for Christopher at Checkpoint E
 
 **Dependencies:** None
 **Files:** `docs/how-to-build-a-power-apps-code-app.md`, `README.md`

@@ -66,7 +66,11 @@ e2e/                     Playwright specs
 
 ## Getting started
 
+The repository is public. To look around, clone it. To change the app and publish it, fork it on GitHub first and clone your fork; Part 5 of the [how-to article](docs/how-to-build-a-power-apps-code-app.md) walks through that.
+
 ```bash
+git clone https://github.com/cgbarrow/codeapp101.git
+cd codeapp101
 npm install
 npm run dev
 ```
@@ -109,7 +113,7 @@ Platform environment with code apps switched on and a Power Apps Premium licence
 
 | | Step | Command | Time |
 |---|---|---|---|
-| 1 | Clone and install | `git clone <this repo> && cd codeapp101 && npm install` | ~2 min |
+| 1 | Clone and install | `git clone https://github.com/cgbarrow/codeapp101.git && cd codeapp101 && npm install` (fork first if you plan to change it) | ~2 min |
 | 2 | Check it works with no tenant at all | `npm run dev` then open the printed URL | ~1 min |
 | 3 | Import the schema | In [make.powerapps.com](https://make.powerapps.com) → Solutions → Import, choose `solution/CodeApp101_1_0_0_0.zip`, then assign yourself the `Todo User` role. Full steps and the manual fallback: [`docs/dataverse-setup.md`](docs/dataverse-setup.md) | ~5 min |
 | 4 | Sign in to the CLI | `npx pa auth login` (opens a browser) | ~1 min |
@@ -133,13 +137,13 @@ its troubleshooting section carries the real error text for every failure hit du
 | Dataverse schema | Deployed to the environment, 16 September 2026 |
 | Published app | Pushed to the `CodeApp101` solution, 17 September 2026 — app ID in `power.config.json`. Sharing and the [smoke checklist](docs/smoke.md) outstanding |
 | Application code | Scaffold, test tooling and CI (task 1); design tokens and responsive app shell (task 2); domain types, repositories and query hooks (task 3); Dataverse repositories, smoke-tested against the environment (task 4); lists in the sidebar with counts, create, rename, reorder, archive, delete and number-key switching (task 5); task rows with the checkmark, Undo and Retry toasts, and the Completed view (task 6); quick add with natural-language dates and the `n` shortcut (task 7); the task detail editor with reminders and delete with Undo (task 8); keyboard navigation and a shortcut list (task 9); the Today view as the default landing, with `t` and the last view remembered (task 10); subtasks with row progress (task 11); recurring tasks (task 12); reminder notifications in the open tab (task 13); refetching, retries, reliable failure toasts and loading placeholders (task 14); end-to-end flows, Lighthouse and Hallmark audits, ADRs (task 15); published to the environment (task 16). Still to do: Checkpoint B, and the manual smoke test of the published app |
-| Documentation | [How-to article](docs/how-to-build-a-power-apps-code-app.md) complete: a step-by-step guide in four parts and 14 steps, from clone to Local Play to a published app, with a Verify section after each part (task 17, revised 28 September 2026). Outstanding: the Local Play smoke-panel screenshot, and the `pa` command blocks that cannot be re-run without changing the environment. ADRs 0001–0004 written; audits recorded in [`docs/design/audit-2026-09-17.md`](docs/design/audit-2026-09-17.md) |
+| Documentation | [How-to article](docs/how-to-build-a-power-apps-code-app.md) complete: a step-by-step guide in five parts and 22 steps, from clone to Local Play to a published app, then changing it and publishing it again, with a Verify section after each part (task 17, revised 28 September 2026; Part 5 added in task 18, 7 October 2026). Outstanding: Step 22 of Part 5 (`pa app push` and opening the app), not run; the Local Play smoke-panel screenshot, and the `pa` command blocks that cannot be re-run without changing the environment. ADRs 0001–0004 written; audits recorded in [`docs/design/audit-2026-09-17.md`](docs/design/audit-2026-09-17.md) |
 
 Work proceeds one task at a time from [`tasks/todo.md`](tasks/todo.md). Each task writes a failing test first, leaves the app working, and lands as its own commit.
 
 ## Documentation
 
-- **[How to build a Power Apps code app](docs/how-to-build-a-power-apps-code-app.md)** — a step-by-step guide from a clone of this repository to the app running locally against Dataverse and published to an environment, with the real error text for each failure hit along the way.
+- **[How to build a Power Apps code app](docs/how-to-build-a-power-apps-code-app.md)** — a step-by-step guide from a clone of this repository to the app running locally against Dataverse, published to an environment, then changed and published again from your own fork, with the real error text for each failure hit along the way.
 - **[Dataverse setup](docs/dataverse-setup.md)** — the operational runbook for the schema, with a click-by-click manual fallback.
 - **[SPEC.md](SPEC.md)** — what is being built and why, with acceptance criteria.
 - **[Architecture decisions](docs/adr/)** — why the `pa` CLI, the repository pattern, TanStack Query and a generated solution package.

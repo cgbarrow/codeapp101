@@ -24,6 +24,7 @@ That is not where teams in the OPS work. In our corporate OPS tenant the same st
 | 2 | Run the app on your machine: clone, sample data, connect to your environment, Local Play |
 | 3 | What the app does: the features, in brief |
 | 4 | Publish and share: build, push, share, assign the role, smoke test |
+| 5 | Change the app and publish it again: fork, branch, test-first edit, commit, build, push |
 
 Each part ends with a short **Verify** section. Finish it before you start the next part.
 
@@ -71,7 +72,7 @@ AccelerateON is also worth talking to before you decide on a code app at all. A 
 ### Local tooling
 
 - Node.js 22 or later, which the Power Apps CLI requires. Check yours with `node --version` in a terminal. Version 24 LTS was used here.
-- Git.
+- Git, and a [GitHub](https://github.com) account. Part 5 pushes your changes to your own fork of the repository.
 - A code editor or AI coding harness. Visual Studio Code works well, because its terminal opens in the project folder.
 - About 250 MB of disk for the Playwright browsers, only if you run the end-to-end tests.
 - Python 3, only if you change the Dataverse schema and need to regenerate the solution package.
@@ -188,7 +189,7 @@ Part 2 gets the repository running on your machine: first against sample data wi
 
 #### Step 6: Get the code
 
-The repository is private. Contact christopher.barrow@ontario.ca for access.
+The repository is public, so you do not need to ask for access. Clone it as shown below to follow Parts 2 to 4. In Part 5 you will change the app, and for that you work in your own fork. Step 15 shows how to point this clone at your fork, so there is nothing to do now.
 
 In the terminal, in the folder where you keep projects:
 
@@ -436,7 +437,7 @@ npx pa app push --solution-id <solution-id>
 
 `--solution-id` puts the app in the `CodeApp101` solution next to its tables. That way the solution carries the whole app when it moves from DEV to UAT to PROD environments. Without the flag, the app lands in the environment's preferred or Default solution.
 
-The first push prints `App pushed successfully.` and writes the new app's ID into `appId` in `power.config.json`. Commit that file: it is how later pushes update this app instead of creating another one. To publish a change later, run the same two commands.
+The first push prints `App pushed successfully.` and writes the new app's ID into `appId` in `power.config.json`. Commit that file: it is how later pushes update this app instead of creating another one. To publish a change later, run the same two commands. Part 5 does exactly that.
 
 **Moving to UAT and PROD.** You publish once, in DEV, and then move the solution:
 
@@ -495,6 +496,186 @@ The automated tests never ran inside the Power Apps player, against real Dataver
 - **What you published is what you built.** Because `push` does not build, the only reliable check is to build and push in one sequence, then open the app and look for the change you just made.
 - **A second user can open it and see their own data.** Test with a real second account, not with your own in a private window.
 - **The smoke checks are recorded** in [`docs/smoke.md`](smoke.md), with dates and outcomes.
+
+---
+
+### Part 5 · Change the app and publish it again
+
+Parts 1 to 4 got the app running and published. Part 5 teaches the loop you will repeat for every change after that: branch, change the tests first, change the code, check it, commit, build, push. The change is deliberately small: the sentence Today shows when nothing is due. You will edit one string, but it is used in four places, so the test suite gets a chance to catch you.
+
+Part 5 assumes you finished Part 4: the app is published, `power.config.json` holds your `appId`, the CLI is signed in, and you have the solution ID from Step 11.
+
+#### Step 15: Fork the repository and create a branch
+
+The repository is public, and only its owner can push to it. You work in your own copy, a **fork**, and push there.
+
+1. In a browser, open [github.com/cgbarrow/codeapp101](https://github.com/cgbarrow/codeapp101), choose **Fork**, then **Create fork**. GitHub creates `https://github.com/<your-username>/codeapp101`.
+2. Point your clone at the fork. If you cloned the original in Step 6 and went on to publish, keep that folder: it holds your `power.config.json` with your environment and `appId`. In the terminal, at the repository root:
+
+   ```bash
+   git remote set-url origin https://github.com/<your-username>/codeapp101.git
+   git remote -v
+   ```
+
+   Both lines of output should now show your username. If you are starting from scratch instead, run `git clone https://github.com/<your-username>/codeapp101.git` and work through Step 9 and Step 12 again, because a fresh clone carries the author's `power.config.json`, not yours.
+3. Create a branch for the change, still at the repository root:
+
+   ```bash
+   git switch -c change-empty-state
+   ```
+
+A branch keeps the change apart from `main`, so you can abandon it, or compare it with the original, with one command.
+
+> **A fork of a public repository is public.** Anything you push to it, including every earlier commit on the branch such as your `power.config.json` from Step 12, can be read by anyone. The file holds your environment ID and app ID. They are identifiers, not credentials: using them still needs a sign-in. If your team treats them as internal, create an empty **private** repository in your own GitHub account and run `git remote set-url origin <its-url>` instead. Every step below is the same.
+
+#### Step 16: Find the text and change the tests first
+
+In the terminal, at the repository root, find every place the sentence appears. Search `e2e` as well as `src`, so a browser test cannot surprise you later:
+
+```bash
+grep -rn "Nothing due today" src e2e
+```
+
+In Windows PowerShell, use this instead:
+
+```powershell
+Get-ChildItem src, e2e -Recurse -File | Select-String -SimpleMatch "Nothing due today"
+```
+
+Four lines come back, in three files. `e2e` has none:
+
+```
+src/App.test.tsx:37:      await screen.findByText("Nothing due today.", {}, { timeout: 3000 }),
+src/routes/TodayRoute.tsx:61:          <p className={styles.emptyTitle}>Nothing due today.</p>
+src/routes/TodayRoute.test.tsx:119:    expect(await screen.findByText("Nothing due today.")).toBeInTheDocument();
+src/routes/TodayRoute.test.tsx:131:    expect(screen.queryByText("Nothing due today.")).not.toBeInTheDocument();
+```
+
+Choose your wording. This article uses `Nothing due today. Enjoy it.` The app's tone is quiet and utilitarian, so keep a replacement short, plain and free of exclamation marks.
+
+Edit the **tests** first. In `src/App.test.tsx` line 37, and in `src/routes/TodayRoute.test.tsx` lines 119 and 131, replace `Nothing due today.` with your new text. Do not touch `TodayRoute.tsx` yet. Then run the tests:
+
+```bash
+npm test
+```
+
+Two tests fail, with `Unable to find an element with the text: Nothing due today. Enjoy it.`:
+
+```
+ × TodayRoute > shows the empty state when nothing is due
+ × App > creates the Inbox for a new user, for Today's quick add to file into
+ Test Files  2 failed | 42 passed (44)
+      Tests  2 failed | 461 passed (463)
+```
+
+That failure is the point. The tests now describe the behaviour you want, and the app does not do it yet. The third edit, line 131, passes either way, because it checks that the text is **absent**. You still changed it so it keeps guarding the right sentence.
+
+#### Step 17: Change the component and watch the tests pass
+
+In `src/routes/TodayRoute.tsx` line 61, replace the sentence with your new text:
+
+```tsx
+<p className={styles.emptyTitle}>Nothing due today. Enjoy it.</p>
+```
+
+Run the tests again, in the terminal at the repository root:
+
+```bash
+npm test
+```
+
+```
+ Test Files  44 passed (44)
+      Tests  463 passed (463)
+```
+
+If a test still fails, the new text differs between the test and the component by a character. Compare them.
+
+#### Step 18: See it in the browser
+
+In the terminal, at the repository root:
+
+```bash
+npm run dev
+```
+
+Open the `Local` address. The sample data has three tasks due today or overdue. Tick all three, and Today shows your new sentence above the note `Add a task above, or press n.` Stop the server with **Ctrl+C**.
+
+Then run `npm run dev:dataverse` and open the Local Play URL, as in Step 10, to confirm the app still loads against your real tables. Local Play shows your real tasks, so the new sentence appears only if nothing of yours is due. Do not tick real tasks to see it. The sample-data run already showed it.
+
+#### Step 19: Run the four checks
+
+Every change in this repository passes the same four checks before it is committed. In the terminal, at the repository root:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+`npm run lint` must report no warnings, not only no errors. Each command should finish without errors. If one fails, fix it before you go on: the same four run on every pull request in the repository's CI.
+
+#### Step 20: Commit, and push the branch to your fork
+
+In the terminal, at the repository root:
+
+```bash
+git status
+git add src
+git commit -m "Add a friendly line to the Today empty state"
+git push -u origin change-empty-state
+```
+
+`git status` should list exactly the three files you edited and nothing else. `git add src` stages only those, so an unrelated change such as `power.config.json` cannot slip into the commit. The repository's commit messages are one short sentence in the imperative mood, with no prefix. The first push asks you to sign in to GitHub. The terminal then prints a link to open a pull request. Ignore it: the change stays on your fork, and nothing is proposed to the original repository.
+
+Open `https://github.com/<your-username>/codeapp101/tree/change-empty-state` to see the branch, and its **Compare** view for the three-file diff. The original's `main` keeps its original wording.
+
+#### Step 21: Build and publish
+
+The change is committed, but the published app is still the old build. In the terminal, at the repository root, using the solution ID from Step 11:
+
+```bash
+npm run build
+npx pa app push --solution-id <solution-id>
+```
+
+`push` uploads whatever is in `dist/` and builds nothing itself, so the build must come first. Confirm that the build holds your text before you push:
+
+```bash
+grep -c "Enjoy it" dist/assets/index-*.js
+```
+
+In PowerShell: `Select-String -Path dist\assets\index-*.js -SimpleMatch "Enjoy it" -List`. A count of `1` or a match means `dist/` has the new text. Use your own wording in the search.
+
+**Why this updates the app instead of creating another.** `push` reads `appId` in `power.config.json`. When it holds the ID of your published app, `push` replaces that app's code and keeps its link, sharing and place in the `CodeApp101` solution. That is why Step 12 told you to commit the file. If `appId` is `null` or missing, `push` creates a new app. See [`push` created a second app](#push-created-a-second-app).
+
+Passing `--solution-id` again is harmless for an app already in the solution. Leave it on every push.
+
+#### Step 22: Open the app and see the change
+
+In the maker portal, open **Apps**, then **Simple Todo**, as in Step 14. You need an empty Today:
+
+- Sign in as the second account from Step 14, which has the `Todo User` role and no tasks, or
+- use your own account on a day when nothing is due.
+
+Today shows your new sentence. If it still shows the old one, see [the old text still shows](#the-old-text-still-shows-after-a-successful-push).
+
+#### Verify Part 5
+
+- **The tests failed for the right reason, then passed.** Step 16 showed two failures that named the new text. Step 17 showed all tests passing. A test that never failed proves nothing.
+- **The four checks pass.** `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` all succeed.
+- **The branch is on your fork, and `main` is untouched.** The branch page on GitHub shows one commit with three changed files. `git switch main` and `grep -rn "Enjoy it" src` finds nothing.
+- **`push` updated the same app.** In the terminal, at the repository root:
+
+  ```bash
+  npx pa app list
+  ```
+
+  It still lists one **Simple Todo**, with the ID in `appId` in `power.config.json`.
+- **The change is live.** The app opened from the Apps list shows the new sentence on an empty Today.
+
+To undo the experiment, switch back to `main`, build, and push again. The app returns to the original wording, and the same two commands do it.
 
 ---
 
@@ -625,6 +806,18 @@ npm install --global @microsoft/power-apps-cli
 **Cause.** A missing security role or a missing Power Apps Per User licence. The symptoms overlap, and neither looks like a licensing problem from the browser.
 
 **Fix.** Check Power Apps Per User licence assignment first, because it is the quickest to rule out. Then make sure the user holds the `Todo User` security role (Step 5).
+
+### The old text still shows after a successful push
+
+**Cause.** One of three things. `push` uploaded a stale `dist/` because the build did not run first, or ran before your last edit. The browser is showing a cached copy. Or you opened a link that `push` printed earlier, or a bookmark, rather than the app in the Apps list.
+
+**Fix.** Check that the build holds the new text (`grep -c "Enjoy it" dist/assets/index-*.js` in the terminal), then run `npm run build` and `npx pa app push --solution-id <solution-id>` again. Open **Apps → Simple Todo** in the maker portal and hard-refresh the tab (**Ctrl+Shift+R** on Windows, **Cmd+Shift+R** on macOS), or open the app in a private window.
+
+### `push` created a second app
+
+**Cause.** `appId` in `power.config.json` was `null` or missing when you pushed. This happens after a fresh clone, which carries the author's file rather than yours, after `pa app init` wrote a new file, or when you switched to a branch that predates the first push and so lacks the `appId` you committed in Step 12.
+
+**Fix.** Run `npx pa app list`. Two apps called Simple Todo appear. Keep the one you want, copy its ID into `appId` in `power.config.json`, and commit the file. In the maker portal, remove the extra app from **Apps**, and from **Solutions → CodeApp101** if it was added there. Push again and check that the list still shows one app.
 
 ---
 
